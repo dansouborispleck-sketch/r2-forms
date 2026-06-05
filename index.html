@@ -1189,49 +1189,40 @@ function downloadXLSForm(form) {
 
 async function validateAndDeploy() {
   showPanel('panel-processing2');
-  document.getElementById('proc2-title').textContent = lang==='fr'?'Conversion en cours...':'Converting...';
-  document.getElementById('proc2-sub').textContent = lang==='fr'?'Génération du masque XLSForm...':'Generating XLSForm...';
+  document.getElementById('proc2-title').textContent = lang==='fr'?'Déploiement en cours...':'Deploying...';
+  document.getElementById('proc2-sub').textContent = lang==='fr'?'Connexion à votre compte...':'Connecting to your account...';
 
   let pct=0;
-  const iv=setInterval(()=>{pct=Math.min(pct+3,100);document.getElementById('progress-fill2').style.width=pct+'%';if(pct>=100)clearInterval(iv);},40);
+  const iv=setInterval(()=>{pct=Math.min(pct+0.8,90);document.getElementById('progress-fill2').style.width=pct+'%';if(pct>=90)clearInterval(iv);},60);
 
-  await new Promise(r=>setTimeout(r,1500));
-  clearInterval(iv);
-  document.getElementById('progress-fill2').style.width='100%';
-  await new Promise(r=>setTimeout(r,300));
+  try {
+    let result;
+    if (selectedTool === 'jotform') {
+      result = await deployToJotForm(validatedForm);
+    } else {
+      result = await deployToKoboToolbox(validatedForm);
+    }
 
-  // Download the XLSForm file
-  const filename = downloadXLSForm(validatedForm);
-  deployedFormUrl = selectedTool === 'kobo' 
-    ? 'https://kf.kobotoolbox.org/new'
-    : (TOOL_URLS[selectedTool] || '#');
+    deployedFormUrl = result.url;
+    clearInterval(iv);
+    document.getElementById('progress-fill2').style.width='100%';
+    await new Promise(r=>setTimeout(r,400));
 
-  goStep(5);
-  const q = validatedForm?.questions?.length || 0;
-  const g = [...new Set((validatedForm?.questions||[]).map(q=>q.group).filter(Boolean))].length || 1;
-  const l = (validatedForm?.questions||[]).filter(q=>q.linked).length || 0;
-  document.getElementById('dep-q').textContent = q;
-  document.getElementById('dep-g').textContent = g;
-  document.getElementById('dep-l').textContent = l;
+    goStep(5);
+    const q = validatedForm?.questions?.length || 0;
+    const g = [...new Set((validatedForm?.questions||[]).map(q=>q.group).filter(Boolean))].length || 1;
+    const l = (validatedForm?.questions||[]).filter(q=>q.linked).length || 0;
+    document.getElementById('dep-q').textContent = q;
+    document.getElementById('dep-g').textContent = g;
+    document.getElementById('dep-l').textContent = l;
+    document.getElementById('deploy-sub').textContent = lang==='fr'
+      ? `Votre masque a été déployé avec succès sur ${TOOL_NAMES[selectedTool]}. Cliquez sur "Accéder à mon compte" pour le retrouver.`
+      : `Your form has been successfully deployed to ${TOOL_NAMES[selectedTool]}. Click "Access my account" to find it.`;
 
-  // Update step 5 UI for XLSForm import instructions
-  const toolName = TOOL_NAMES[selectedTool];
-  if (lang==='fr') {
-    document.getElementById('deploy-sub').innerHTML = `
-      Votre masque <strong>${validatedForm.title||'Formulaire'}</strong> a été généré et téléchargé.<br><br>
-      <strong>Pour l'importer dans ${toolName} :</strong><br>
-      1. Cliquez sur <em>"Accéder à ${toolName}"</em> ci-dessous<br>
-      2. Créez un nouveau projet → <em>"Importer un XLSForm"</em><br>
-      3. Glissez le fichier <strong>${filename}</strong> téléchargé<br>
-      4. Votre masque est prêt à collecter des données ✅`;
-  } else {
-    document.getElementById('deploy-sub').innerHTML = `
-      Your form <strong>${validatedForm.title||'Form'}</strong> has been generated and downloaded.<br><br>
-      <strong>To import it into ${toolName}:</strong><br>
-      1. Click <em>"Access ${toolName}"</em> below<br>
-      2. Create new project → <em>"Import XLSForm"</em><br>
-      3. Upload the file <strong>${filename}</strong><br>
-      4. Your form is ready to collect data ✅`;
+  } catch(err) {
+    clearInterval(iv);
+    showPanel('panel4');
+    showToast('❌ ' + (err.message || (lang==='fr'?'Erreur de déploiement. Vérifiez vos identifiants.':'Deployment error.')));
   }
 }
 
