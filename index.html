@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R2 Forms — Plateforme de collecte de données</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap');
+:root{
+  --ink:#0E0F11;--ink2:#1C1E24;--ink3:#2A2D38;
+  --paper:#F5F2EC;--paper2:#EDE9E1;--paper3:#E3DED4;
+  --accent:#D4522A;--accent2:#E8733F;
+  --blue:#2563EB;--green:#16A34A;--red:#DC2626;--yellow:#F59E0B;
+  --muted:#6B7280;--border:rgba(14,15,17,.1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Cabinet Grotesk',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* HEADER */
+header{background:var(--ink);padding:14px 40px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Cabinet Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--paper);letter-spacing:-.5px;}
+.logo span{color:var(--accent2);}
+.logo-tag{font-size:10px;color:rgba(245,242,236,.35);letter-spacing:2.5px;text-transform:uppercase;}
+.lang-toggle{margin-left:auto;display:flex;background:rgba(255,255,255,.08);border-radius:8px;padding:3px;gap:2px;}
+.lang-btn{background:none;border:none;color:rgba(245,242,236,.45);font-family:'Cabinet Grotesk',sans-serif;font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .2s;}
+.lang-btn.active{background:var(--accent);color:#fff;}
+
+/* HERO */
+.hero{max-width:680px;margin:0 auto;padding:56px 32px 36px;text-align:center;}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:var(--paper2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--muted);margin-bottom:22px;animation:fadeUp .5s ease both;}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(32px,5vw,52px);line-height:1.1;letter-spacing:-1px;margin-bottom:14px;animation:fadeUp .55s .08s ease both;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero p{font-size:15px;color:var(--muted);line-height:1.7;max-width:440px;margin:0 auto;animation:fadeUp .6s .15s ease both;}
+
+/* STEPS BAR */
+.steps-bar{max-width:680px;margin:0 auto 28px;padding:0 32px;display:flex;align-items:center;animation:fadeUp .65s .2s ease both;overflow-x:auto;}
+.step{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--paper3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--muted);flex-shrink:0;transition:all .3s;}
+.step-num.active{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.step-num.done{background:var(--green);border-color:var(--green);color:#fff;}
+.step-label{font-size:11px;font-weight:600;color:var(--muted);transition:color .3s;white-space:nowrap;}
+.step-label.active{color:var(--ink);}
+.step-line{width:24px;height:1px;background:var(--border);margin:0 6px;flex-shrink:0;}
+.step-line.done{background:var(--green);}
+
+/* MAIN CARD */
+.main-card{background:#fff;border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 4px 40px rgba(14,15,17,.07);max-width:680px;margin:0 auto 24px;animation:fadeUp .7s .25s ease both;}
+.card-head{background:var(--paper);border-bottom:1px solid var(--border);padding:16px 24px;}
+.card-step-label{font-size:13px;font-weight:700;color:var(--ink);}
+.card-step-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.panel{display:none;padding:24px;}
+.panel.active{display:block;}
+.card-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.btn-back{background:var(--paper);border:1.5px solid var(--border);border-radius:10px;padding:10px 18px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+.btn-back:hover{color:var(--ink);}
+.btn-next{background:var(--ink);border:none;border-radius:10px;padding:10px 22px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--paper);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-next:hover{background:var(--ink2);}
+.btn-next:disabled{background:var(--paper3);color:var(--muted);cursor:not-allowed;}
+
+/* PANEL 1 */
+.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+@media(max-width:500px){.tool-grid{grid-template-columns:repeat(2,1fr);}}
+.tool-card{background:var(--paper);border:2px solid var(--border);border-radius:14px;padding:14px 12px;cursor:pointer;transition:all .2s;text-align:center;user-select:none;}
+.tool-card:hover{background:var(--paper2);}
+.tool-card.selected{border-color:var(--ink);background:rgba(14,15,17,.04);}
+.tool-icon{font-size:22px;margin-bottom:5px;}
+.tool-name{font-size:13px;font-weight:700;color:var(--ink);}
+.tool-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.sep{border:none;border-top:1px solid var(--border);margin:18px 0;}
+.upload-zone{border:2px dashed var(--border);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--paper);position:relative;}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(212,82,42,.03);}
+.upload-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.upload-sub{font-size:12px;color:var(--muted);}
+.upload-formats{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+.fmt-tag{background:var(--paper2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--muted);}
+.or-div{text-align:center;color:var(--muted);font-size:12px;margin:14px 0;position:relative;}
+.or-div::before,.or-div::after{content:'';position:absolute;top:50%;width:44%;height:1px;background:var(--border);}
+.or-div::before{left:0;}.or-div::after{right:0;}
+.paste-area{background:var(--paper);border:1.5px solid var(--border);border-radius:12px;padding:14px;}
+.paste-area textarea{width:100%;background:none;border:none;outline:none;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;color:var(--ink);resize:none;line-height:1.7;min-height:110px;}
+.paste-area textarea::placeholder{color:#bbb;}
+.char-count{font-size:11px;color:var(--muted);text-align:right;margin-top:4px;}
+
+/* PANEL 2 */
+.auth-choice{display:flex;gap:10px;margin-bottom:18px;}
+.auth-opt{flex:1;background:var(--paper);border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;user-select:none;}
+.auth-opt.selected{border-color:var(--accent);background:rgba(212,82,42,.04);}
+.auth-opt-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.auth-opt-desc{font-size:11px;color:var(--muted);}
+.field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.field-label{font-size:11px;font-weight:700;color:var(--ink2);letter-spacing:.5px;text-transform:uppercase;}
+.field-input,.field-select{background:var(--paper);border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s;width:100%;}
+.field-input:focus,.field-select:focus{border-color:var(--accent);}
+.field-input::placeholder{color:#bbb;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:480px){.two-col{grid-template-columns:1fr;}}
+.info-box{padding:11px 14px;background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.12);border-radius:10px;font-size:12px;color:#1d4ed8;line-height:1.6;margin-top:4px;}
+
+/* PROCESSING */
+#panel-processing{display:none;text-align:center;padding:52px 24px;}
+.progress-bar{background:var(--paper2);border-radius:20px;height:6px;overflow:hidden;margin:0 auto;max-width:320px;}
+.progress-fill{height:100%;background:var(--accent);border-radius:20px;width:0%;transition:width .5s ease;}
+.proc-steps{max-width:300px;margin:22px auto 0;text-align:left;}
+.proc-step{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border);}
+.proc-step:last-child{border:none;}
+.proc-step.done{color:var(--green);}
+.proc-step.active{color:var(--ink);font-weight:600;}
+
+/* ===== PANEL 3 — VALIDATION ===== */
+#panel3{display:none;padding:0;}
+.val-progress{background:var(--paper);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:12px;}
+.val-progress-bar{flex:1;background:var(--paper3);border-radius:20px;height:5px;overflow:hidden;}
+.val-progress-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .4s ease;}
+.val-progress-label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+.val-card{padding:24px;}
+.val-question{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.4;}
+.val-question-num{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.val-format-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+
+/* 3-column format selector */
+.format-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:520px){.format-cols{grid-template-columns:1fr;}}
+.format-col{background:var(--paper);border:2px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;user-select:none;}
+.format-col:hover{border-color:rgba(14,15,17,.25);}
+.format-col.selected{border-color:var(--accent);background:rgba(212,82,42,.04);}
+.format-col-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.format-col-desc{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;font-style:italic;}
+
+/* KoboToolbox style choices */
+.kobo-choice{display:flex;align-items:center;gap:7px;padding:5px 0;font-size:13px;color:var(--ink);}
+.kobo-radio{width:16px;height:16px;border-radius:50%;border:2px solid #aaa;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.kobo-radio.filled{border-color:var(--blue);}
+.kobo-radio.filled::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);}
+.kobo-check{width:14px;height:14px;border-radius:3px;border:2px solid #aaa;flex-shrink:0;}
+.kobo-check.filled{border-color:var(--blue);background:var(--blue);}
+.kobo-text-field{background:#fff;border:1.5px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:12px;color:#aaa;width:100%;}
+
+/* JotForm style */
+.jot-choice{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:var(--ink);}
+.jot-radio{width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;background:#f9fafb;flex-shrink:0;}
+.jot-check{width:16px;height:16px;border-radius:4px;border:2px solid #e5e7eb;background:#f9fafb;flex-shrink:0;}
+.jot-text{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:12px;color:#aaa;width:100%;}
+
+/* Tally style */
+.tally-choice{background:#f3f4f6;border-radius:8px;padding:7px 12px;margin-bottom:5px;font-size:13px;color:var(--ink);border:1.5px solid transparent;}
+.tally-choice.sel{background:#eff6ff;border-color:#3b82f6;color:#1d4ed8;}
+.tally-text{background:#f3f4f6;border:none;border-radius:8px;padding:10px 14px;font-size:12px;color:#aaa;width:100%;}
+
+/* Link question section */
+.link-section{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.link-check-row{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+.link-checkbox{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.link-checkbox.checked{background:var(--ink);border-color:var(--ink);}
+.link-checkbox.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
+.link-label{font-size:13px;color:var(--ink);}
+.link-input-wrap{margin-top:12px;display:none;}
+.link-input-wrap.open{display:block;}
+.link-textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;color:var(--ink);resize:none;outline:none;transition:border-color .2s;line-height:1.6;}
+.link-textarea:focus{border-color:var(--accent);}
+.link-textarea::placeholder{color:#bbb;}
+.link-hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
+
+/* val nav */
+.val-nav{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;}
+.val-nav-left{display:flex;gap:8px;}
+
+/* ===== PANEL 4 — VISUALISATION ===== */
+#panel4{display:none;padding:0;}
+.viz-toolbar{background:var(--paper);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:10px;}
+.viz-title{font-size:13px;font-weight:700;color:var(--ink);flex:1;}
+.viz-tool-badge{background:var(--ink);color:var(--paper);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.viz-body{padding:24px;max-height:520px;overflow-y:auto;}
+
+/* Mock form viewer */
+.mock-form{border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+
+/* KoboToolbox mock */
+.kobo-mock{background:#fff;}
+.kobo-mock-header{background:#006eba;padding:16px 20px;}
+.kobo-mock-title{font-size:16px;font-weight:700;color:#fff;}
+.kobo-mock-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:3px;}
+.kobo-mock-body{padding:0;}
+.kobo-mock-group{border-bottom:1px solid #e5e7eb;}
+.kobo-mock-group-title{background:#f3f6f9;padding:10px 16px;font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;}
+.kobo-mock-question{padding:14px 16px;border-bottom:1px solid #f3f4f6;}
+.kobo-mock-question:last-child{border:none;}
+.kobo-mock-q-label{font-size:14px;color:#111827;margin-bottom:3px;font-weight:500;}
+.kobo-mock-required{color:#dc2626;margin-left:3px;}
+.kobo-mock-hint{font-size:11px;color:#9ca3af;margin-bottom:8px;}
+.kobo-mock-choices{display:flex;flex-direction:column;gap:4px;}
+.kobo-mock-choice{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;}
+.kobo-mock-choice .r{width:16px;height:16px;border-radius:50%;border:2px solid #9ca3af;flex-shrink:0;}
+.kobo-mock-choice .c{width:14px;height:14px;border-radius:3px;border:2px solid #9ca3af;flex-shrink:0;}
+.kobo-mock-input{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-size:13px;color:#9ca3af;width:100%;}
+
+/* JotForm mock */
+.jot-mock{background:#fff;}
+.jot-mock-header{background:linear-gradient(135deg,#ff6100,#ff8c00);padding:20px 24px;}
+.jot-mock-title{font-size:18px;font-weight:700;color:#fff;}
+.jot-mock-body{padding:20px;}
+.jot-mock-question{margin-bottom:20px;}
+.jot-mock-q-label{font-size:14px;font-weight:600;color:#1f2937;margin-bottom:8px;}
+.jot-mock-choices{display:flex;flex-direction:column;gap:6px;}
+.jot-mock-choice{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;cursor:pointer;}
+.jot-mock-choice .r{width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;flex-shrink:0;}
+.jot-mock-input{background:#fff;border:1.5px solid #d1d5db;border-radius:10px;padding:10px 14px;font-size:13px;color:#9ca3af;width:100%;}
+
+/* Tally mock */
+.tally-mock{background:#fff;font-family:'Cabinet Grotesk',sans-serif;}
+.tally-mock-body{padding:32px 28px;}
+.tally-mock-q{margin-bottom:28px;}
+.tally-mock-label{font-size:16px;font-weight:700;color:#111827;margin-bottom:12px;}
+.tally-mock-choices{display:flex;flex-direction:column;gap:8px;}
+.tally-mock-choice{padding:10px 16px;background:#f3f4f6;border-radius:10px;font-size:14px;color:#374151;cursor:pointer;border:2px solid transparent;}
+.tally-mock-choice:hover{border-color:#6b7280;}
+.tally-mock-input{background:#f3f4f6;border:none;border-radius:10px;padding:12px 16px;font-size:14px;color:#9ca3af;width:100%;}
+
+/* Correction box */
+.correction-box{padding:20px 24px;border-top:1px solid var(--border);background:var(--paper);}
+.correction-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.correction-textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;color:var(--ink);resize:none;outline:none;transition:border-color .2s;line-height:1.7;min-height:90px;}
+.correction-textarea:focus{border-color:var(--accent);}
+.correction-textarea::placeholder{color:#bbb;}
+.correction-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-correction{flex:1;border:none;border-radius:10px;padding:10px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-correction.apply{background:var(--accent);color:#fff;}
+.btn-correction.apply:hover{background:var(--accent2);}
+.btn-correction.apply:disabled{background:var(--paper3);color:var(--muted);cursor:not-allowed;}
+.btn-correction.validate{background:var(--green);color:#fff;}
+.btn-correction.validate:hover{background:#15803d;}
+
+/* PANEL 5 — DEPLOIEMENT */
+#panel5{display:none;text-align:center;padding:52px 24px;}
+.deploy-icon{font-size:52px;margin-bottom:16px;}
+.deploy-title{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.deploy-sub{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
+.deploy-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:360px;margin:0 auto 28px;}
+.deploy-stat{background:var(--paper);border-radius:12px;padding:14px;}
+.deploy-stat-num{font-family:'Instrument Serif',serif;font-size:32px;color:var(--accent);line-height:1;}
+.deploy-stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
+.deploy-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.btn-deploy{padding:12px 24px;border:none;border-radius:12px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-deploy.primary{background:var(--ink);color:var(--paper);}
+.btn-deploy.primary:hover{background:var(--ink2);}
+.btn-deploy.secondary{background:var(--paper);border:1.5px solid var(--border);color:var(--ink);}
+.btn-deploy.secondary:hover{background:var(--paper2);}
+.btn-deploy.success{background:var(--green);color:#fff;}
+
+/* FEATURES */
+.features{max-width:680px;margin:0 auto 56px;padding:0 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:580px){.features{grid-template-columns:1fr;}}
+.feat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;}
+.feat-icon{font-size:20px;margin-bottom:7px;}
+.feat-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.feat-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+
+footer{background:var(--ink);padding:20px 40px;text-align:center;}
+.foot-logo{font-family:'Cabinet Grotesk',sans-serif;font-size:17px;font-weight:800;color:var(--paper);letter-spacing:-.5px;margin-bottom:4px;}
+.foot-logo span{color:var(--accent2);}
+.foot-text{font-size:11px;color:rgba(245,242,236,.3);}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;animation:fadeUp .3s ease;white-space:nowrap;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">R<span>2</span> <span class="logo-tag">FORMS</span></div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-badge" data-fr="Disponible en ligne · Aucune installation requise" data-en="Online · No installation required">Disponible en ligne · Aucune installation requise</div>
+  <h1><span data-fr="Votre questionnaire," data-en="Your questionnaire,">Votre questionnaire,</span><br><em data-fr="prêt à collecter" data-en="ready to collect">prêt à collecter</em></h1>
+  <p data-fr="Importez votre questionnaire existant. R2 Forms le convertit et le déploie directement dans votre outil de collecte." data-en="Import your existing questionnaire. R2 Forms converts and deploys it directly into your collection tool.">Importez votre questionnaire existant. R2 Forms le convertit et le déploie directement dans votre outil de collecte.</p>
+</section>
+
+<!-- STEPS BAR -->
+<div class="steps-bar">
+  <div class="step"><div class="step-num active" id="sn1">1</div><div class="step-label active" id="sl1" data-fr="Import" data-en="Import">Import</div></div>
+  <div class="step-line" id="line1"></div>
+  <div class="step"><div class="step-num" id="sn2">2</div><div class="step-label" id="sl2" data-fr="Connexion" data-en="Connect">Connexion</div></div>
+  <div class="step-line" id="line2"></div>
+  <div class="step"><div class="step-num" id="sn3">3</div><div class="step-label" id="sl3" data-fr="Validation" data-en="Validation">Validation</div></div>
+  <div class="step-line" id="line3"></div>
+  <div class="step"><div class="step-num" id="sn4">4</div><div class="step-label" id="sl4" data-fr="Visualisation" data-en="Preview">Visualisation</div></div>
+  <div class="step-line" id="line4"></div>
+  <div class="step"><div class="step-num" id="sn5">5</div><div class="step-label" id="sl5" data-fr="Déploiement" data-en="Deploy">Déploiement</div></div>
+</div>
+
+<div style="padding:0 32px;">
+<div class="main-card">
+
+  <!-- PANEL 1 -->
+  <div class="panel active" id="panel1">
+    <div class="card-head">
+      <div class="card-step-label" data-fr="Étape 1 — Votre questionnaire" data-en="Step 1 — Your questionnaire">Étape 1 — Votre questionnaire</div>
+      <div class="card-step-sub" data-fr="Choisissez l'outil cible et importez votre document" data-en="Choose the target tool and import your document">Choisissez l'outil cible et importez votre document</div>
+    </div>
+    <div style="padding:24px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:11px;" data-fr="Outil de collecte cible" data-en="Target collection tool">Outil de collecte cible</div>
+      <div class="tool-grid">
+        <div class="tool-card selected" data-tool="kobo" onclick="selectTool(this)"><div class="tool-icon">📋</div><div class="tool-name">KoboToolbox</div><div class="tool-desc" data-fr="ONG & humanitaire" data-en="NGO & humanitarian">ONG & humanitaire</div></div>
+        <div class="tool-card" data-tool="odk" onclick="selectTool(this)"><div class="tool-icon">🌿</div><div class="tool-name">ODK Central</div><div class="tool-desc" data-fr="Open source" data-en="Open source">Open source</div></div>
+        <div class="tool-card" data-tool="jotform" onclick="selectTool(this)"><div class="tool-icon">📝</div><div class="tool-name">JotForm</div><div class="tool-desc" data-fr="Tous secteurs" data-en="All sectors">Tous secteurs</div></div>
+        <div class="tool-card" data-tool="tally" onclick="selectTool(this)"><div class="tool-icon">✦</div><div class="tool-name">Tally.so</div><div class="tool-desc" data-fr="Moderne & gratuit" data-en="Modern & free">Moderne & gratuit</div></div>
+        <div class="tool-card" data-tool="xlsform" onclick="selectTool(this)"><div class="tool-icon">📊</div><div class="tool-name">XLSForm</div><div class="tool-desc" data-fr="Fichier Excel" data-en="Excel file">Fichier Excel</div></div>
+        <div class="tool-card" data-tool="google" onclick="selectTool(this)"><div class="tool-icon">🔵</div><div class="tool-name">Google Forms</div><div class="tool-desc" data-fr="Script prêt" data-en="Ready script">Script prêt</div></div>
+      </div>
+      <hr class="sep">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:11px;" data-fr="Votre questionnaire" data-en="Your questionnaire">Votre questionnaire</div>
+      <div class="upload-zone" id="upload-zone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="display:none"/>
+        <div style="font-size:30px;margin-bottom:8px;">📂</div>
+        <div class="upload-title" data-fr="Glissez votre fichier ici ou cliquez pour parcourir" data-en="Drag your file here or click to browse">Glissez votre fichier ici ou cliquez pour parcourir</div>
+        <div class="upload-sub" data-fr="Questionnaire, guide d'entretien, grille d'observation..." data-en="Questionnaire, interview guide, observation grid...">Questionnaire, guide d'entretien, grille d'observation...</div>
+        <div class="upload-formats"><span class="fmt-tag">PDF</span><span class="fmt-tag">Word</span><span class="fmt-tag">Excel</span><span class="fmt-tag">TXT</span><span class="fmt-tag">CSV</span></div>
+      </div>
+      <div class="or-div" data-fr="ou collez le texte directement" data-en="or paste the text directly">ou collez le texte directement</div>
+      <div class="paste-area">
+        <textarea id="paste-input" placeholder="Collez ici le contenu de votre questionnaire..." rows="5" oninput="updateCharCount()"></textarea>
+      </div>
+      <div class="char-count" id="char-count">0 caractères</div>
+    </div>
+    <div class="card-footer">
+      <button class="btn-next" id="btn-next1" onclick="goStep(2)" disabled>
+        <span data-fr="Continuer" data-en="Continue">Continuer</span> →
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div class="panel" id="panel2">
+    <div class="card-head">
+      <div class="card-step-label" data-fr="Étape 2 — Votre compte" data-en="Step 2 — Your account">Étape 2 — Votre compte</div>
+      <div class="card-step-sub" id="p2sub">Connexion à votre compte KoboToolbox</div>
+    </div>
+    <div style="padding:24px;">
+      <div class="auth-choice">
+        <div class="auth-opt selected" id="opt-existing" onclick="selectAuth('existing')">
+          <div class="auth-opt-title" data-fr="J'ai déjà un compte" data-en="I have an account">J'ai déjà un compte</div>
+          <div class="auth-opt-desc" data-fr="Le masque sera ajouté à mon compte" data-en="The form will be added to my account">Le masque sera ajouté à mon compte</div>
+        </div>
+        <div class="auth-opt" id="opt-new" onclick="selectAuth('new')">
+          <div class="auth-opt-title" data-fr="Je n'ai pas de compte" data-en="I don't have an account">Je n'ai pas de compte</div>
+          <div class="auth-opt-desc" data-fr="Un compte sera créé automatiquement" data-en="An account will be created automatically">Un compte sera créé automatiquement</div>
+        </div>
+      </div>
+      <div id="fields-existing">
+        <div class="field-group"><div class="field-label" data-fr="Nom d'utilisateur ou email" data-en="Username or email">Nom d'utilisateur ou email</div><input type="email" class="field-input" id="auth-user" placeholder="votre@email.com"/></div>
+        <div class="field-group"><div class="field-label" data-fr="Mot de passe" data-en="Password">Mot de passe</div><input type="password" class="field-input" id="auth-pass" placeholder="••••••••"/></div>
+        <div id="server-row" style="display:none;"><div class="field-group"><div class="field-label">URL du serveur</div><input type="url" class="field-input" id="auth-server" placeholder="https://kf.kobotoolbox.org"/></div></div>
+      </div>
+      <div id="fields-new" style="display:none;">
+        <div class="two-col">
+          <div class="field-group"><div class="field-label" data-fr="Prénom" data-en="First name">Prénom</div><input type="text" class="field-input" id="new-fn" placeholder="Koffi"/></div>
+          <div class="field-group"><div class="field-label" data-fr="Nom" data-en="Last name">Nom</div><input type="text" class="field-input" id="new-ln" placeholder="Mensah"/></div>
+        </div>
+        <div class="field-group"><div class="field-label">Email</div><input type="email" class="field-input" id="new-email" placeholder="votre@email.com"/></div>
+        <div class="two-col">
+          <div class="field-group"><div class="field-label" data-fr="Organisation" data-en="Organization">Organisation</div><input type="text" class="field-input" id="new-org" placeholder="ONG / Université"/></div>
+          <div class="field-group"><div class="field-label" data-fr="Pays" data-en="Country">Pays</div>
+            <select class="field-select" id="new-country">
+              <option value="BJ">Bénin</option><option value="TG">Togo</option><option value="SN">Sénégal</option>
+              <option value="CI">Côte d'Ivoire</option><option value="ML">Mali</option><option value="BF">Burkina Faso</option>
+              <option value="NE">Niger</option><option value="GN">Guinée</option><option value="CM">Cameroun</option>
+              <option value="GH">Ghana</option><option value="NG">Nigeria</option><option value="other">Autre</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="info-box">🔒 <span data-fr="Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés." data-en="Your credentials are encrypted and only used to deploy your form. They are never stored.">Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés.</span></div>
+    </div>
+    <div class="card-footer">
+      <button class="btn-back" onclick="goStep(1)" data-fr="← Retour" data-en="← Back">← Retour</button>
+      <button class="btn-next" onclick="startAnalysis()"><span data-fr="Analyser le questionnaire" data-en="Analyse questionnaire">Analyser le questionnaire</span> →</button>
+    </div>
+  </div>
+
+  <!-- PROCESSING -->
+  <div id="panel-processing">
+    <div style="font-size:40px;margin-bottom:14px;" id="proc-anim">⚙️</div>
+    <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:7px;" id="proc-title" data-fr="Analyse en cours..." data-en="Analysing...">Analyse en cours...</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;" data-fr="Veuillez patienter quelques instants" data-en="Please wait a moment">Veuillez patienter quelques instants</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="proc-steps">
+      <div class="proc-step" id="ps1"><span style="margin-right:8px;">⏳</span><span data-fr="Lecture du document..." data-en="Reading document...">Lecture du document...</span></div>
+      <div class="proc-step" id="ps2"><span style="margin-right:8px;">⏳</span><span data-fr="Identification des questions..." data-en="Identifying questions...">Identification des questions...</span></div>
+      <div class="proc-step" id="ps3"><span style="margin-right:8px;">⏳</span><span data-fr="Détection des types de réponses..." data-en="Detecting response types...">Détection des types de réponses...</span></div>
+      <div class="proc-step" id="ps4"><span style="margin-right:8px;">⏳</span><span data-fr="Préparation de la validation..." data-en="Preparing validation...">Préparation de la validation...</span></div>
+    </div>
+  </div>
+
+  <!-- PANEL 3 — VALIDATION -->
+  <div id="panel3">
+    <div class="card-head">
+      <div class="card-step-label" data-fr="Étape 3 — Validation" data-en="Step 3 — Validation">Étape 3 — Validation</div>
+      <div class="card-step-sub" data-fr="Choisissez le format de réponse pour chaque question" data-en="Choose the response format for each question">Choisissez le format de réponse pour chaque question</div>
+    </div>
+    <div class="val-progress">
+      <div class="val-progress-bar"><div class="val-progress-fill" id="val-progress-fill" style="width:0%"></div></div>
+      <div class="val-progress-label" id="val-progress-label">Q 1 / 1</div>
+    </div>
+    <div class="val-card" id="val-card-body"></div>
+    <div class="val-nav">
+      <div class="val-nav-left">
+        <button class="btn-back" id="btn-val-prev" onclick="valPrev()">← <span data-fr="Précédent" data-en="Previous">Précédent</span></button>
+      </div>
+      <button class="btn-next" id="btn-val-next" onclick="valNext()"><span id="val-next-label" data-fr="Suivant" data-en="Next">Suivant</span> →</button>
+    </div>
+  </div>
+
+  <!-- PANEL 4 — VISUALISATION -->
+  <div id="panel4">
+    <div class="card-head">
+      <div class="card-step-label" data-fr="Étape 4 — Visualisation" data-en="Step 4 — Preview">Étape 4 — Visualisation</div>
+      <div class="card-step-sub" data-fr="Vérifiez l'apparence de votre masque avant déploiement" data-en="Check how your form looks before deployment">Vérifiez l'apparence de votre masque avant déploiement</div>
+    </div>
+    <div class="viz-toolbar">
+      <div class="viz-title" id="viz-form-title">Formulaire</div>
+      <div class="viz-tool-badge" id="viz-tool-badge">KoboToolbox</div>
+    </div>
+    <div class="viz-body" id="viz-body"></div>
+    <div class="correction-box">
+      <div class="correction-title" data-fr="Des corrections à apporter ? Décrivez-les librement :" data-en="Corrections needed? Describe them freely:">Des corrections à apporter ? Décrivez-les librement :</div>
+      <textarea class="correction-textarea" id="correction-input" placeholder="Ex: La question 3 doit être obligatoire. Ajouter une question GPS après la question 5. Changer les choix de Q7 en choix multiple..." rows="3"></textarea>
+      <div class="correction-actions">
+        <button class="btn-correction apply" id="btn-apply-correction" onclick="applyCorrection()" disabled data-fr="Appliquer les corrections" data-en="Apply corrections">Appliquer les corrections</button>
+        <button class="btn-correction validate" onclick="validateAndDeploy()" data-fr="✅ Valider & déployer" data-en="✅ Validate & deploy">✅ Valider & déployer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROCESSING 2 (correction / deploy) -->
+  <div id="panel-processing2" style="display:none;text-align:center;padding:52px 24px;">
+    <div style="font-size:40px;margin-bottom:14px;">⚙️</div>
+    <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:7px;" id="proc2-title">Traitement en cours...</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;" id="proc2-sub">Veuillez patienter</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill2"></div></div>
+  </div>
+
+  <!-- PANEL 5 — DEPLOIEMENT -->
+  <div id="panel5">
+    <div class="deploy-icon">🎉</div>
+    <div class="deploy-title" data-fr="Masque déployé avec succès !" data-en="Form deployed successfully!">Masque déployé avec succès !</div>
+    <div class="deploy-sub" id="deploy-sub"></div>
+    <div class="deploy-stats">
+      <div class="deploy-stat"><div class="deploy-stat-num" id="dep-q">0</div><div class="deploy-stat-label" data-fr="Questions" data-en="Questions">Questions</div></div>
+      <div class="deploy-stat"><div class="deploy-stat-num" id="dep-g">0</div><div class="deploy-stat-label" data-fr="Groupes" data-en="Groups">Groupes</div></div>
+      <div class="deploy-stat"><div class="deploy-stat-num" id="dep-l">0</div><div class="deploy-stat-label" data-fr="Logiques" data-en="Logic">Logiques</div></div>
+    </div>
+    <div class="deploy-actions">
+      <button class="btn-deploy success" id="btn-open-account" onclick="openAccount()">🚀 <span id="btn-access-label" data-fr="Accéder à KoboToolbox" data-en="Access KoboToolbox">Accéder à KoboToolbox</span></button>
+      <button class="btn-deploy secondary" onclick="downloadFinal()">⬇️ <span data-fr="Télécharger" data-en="Download">Télécharger</span></button>
+      <button class="btn-deploy secondary" onclick="restart()">🔄 <span data-fr="Nouveau questionnaire" data-en="New questionnaire">Nouveau questionnaire</span></button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- FEATURES -->
+<div class="features" style="margin-top:36px;">
+  <div class="feat"><div class="feat-icon">📂</div><div class="feat-title" data-fr="Tous formats acceptés" data-en="All formats accepted">Tous formats acceptés</div><div class="feat-desc" data-fr="PDF, Word, Excel, texte brut — importez votre document tel quel." data-en="PDF, Word, Excel, plain text — import as is.">PDF, Word, Excel, texte brut — importez votre document tel quel.</div></div>
+  <div class="feat"><div class="feat-icon">👁️</div><div class="feat-title" data-fr="Visualisation fidèle" data-en="Faithful preview">Visualisation fidèle</div><div class="feat-desc" data-fr="Voyez exactement ce que vos enquêteurs verront sur le terrain, avant déploiement." data-en="See exactly what your enumerators will see in the field, before deployment.">Voyez exactement ce que vos enquêteurs verront sur le terrain, avant déploiement.</div></div>
+  <div class="feat"><div class="feat-icon">🔒</div><div class="feat-title" data-fr="Sécurisé & confidentiel" data-en="Secure & confidential">Sécurisé & confidentiel</div><div class="feat-desc" data-fr="Vos documents et identifiants sont traités de façon sécurisée et ne sont jamais conservés." data-en="Your documents and credentials are processed securely and never stored.">Vos documents et identifiants sont traités de façon sécurisée et ne sont jamais conservés.</div></div>
+</div>
+
+<footer>
+  <div class="foot-logo">R<span>2</span> Forms</div>
+  <div class="foot-text" data-fr="Plateforme de conversion et déploiement de masques de saisie" data-en="Form conversion and deployment platform">Plateforme de conversion et déploiement de masques de saisie</div>
+</footer>
+
+<script>
+// ============ CONFIG ============
+// Mets ta clé API Anthropic ici
+const ANTHROPIC_API_KEY = 'YOUR_API_KEY_HERE';
+const BACKEND_URL = 'https://r2-forms-backend-production.up.railway.app';
+const DEMO_MODE = false; // Backend Railway actif
+
+// ============ STATE ============
+let lang = 'fr';
+let selectedTool = 'kobo';
+let authMode = 'existing';
+let fileContent = '';
+let fileObject = null;
+let pasteContent = '';
+let parsedForm = null;       // form after analysis
+let validatedForm = null;    // form after validation
+let currentValIdx = 0;
+let validationChoices = [];  // per question: {formatIdx, linked, linkText}
+
+const TOOL_NAMES = {kobo:'KoboToolbox',odk:'ODK Central',jotform:'JotForm',tally:'Tally.so',xlsform:'XLSForm',google:'Google Forms'};
+const TOOL_URLS  = {kobo:'https://kf.kobotoolbox.org',odk:'https://your-server.com',jotform:'https://www.jotform.com/myforms/',tally:'https://tally.so/forms',xlsform:null,google:'https://docs.google.com/forms'};
+
+// ============ LANGUAGE ============
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
+  document.querySelectorAll('[data-fr]').forEach(el=>{
+    if(el.tagName!=='INPUT'&&el.tagName!=='TEXTAREA') el.textContent=l==='fr'?el.dataset.fr:el.dataset.en;
+  });
+}
+
+// ============ TOOL ============
+function selectTool(el) {
+  document.querySelectorAll('.tool-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTool = el.dataset.tool;
+  document.getElementById('server-row').style.display = selectedTool==='odk'?'block':'none';
+  document.getElementById('p2sub').textContent = (lang==='fr'?'Connexion à votre compte ':'Connect to your ')+TOOL_NAMES[selectedTool];
+}
+
+// ============ AUTH ============
+function selectAuth(mode) {
+  authMode = mode;
+  document.getElementById('opt-existing').classList.toggle('selected',mode==='existing');
+  document.getElementById('opt-new').classList.toggle('selected',mode==='new');
+  document.getElementById('fields-existing').style.display=mode==='existing'?'block':'none';
+  document.getElementById('fields-new').style.display=mode==='new'?'block':'none';
+}
+
+// ============ FILE ============
+function onDragOver(e){e.preventDefault();document.getElementById('upload-zone').classList.add('dragover');}
+function onDragLeave(){document.getElementById('upload-zone').classList.remove('dragover');}
+function onDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processFile(f);}
+function onFileSelect(e){const f=e.target.files[0];if(f)processFile(f);}
+function showFileSuccess(file, preview) {
+  fileContent = preview;
+  fileObject = file;
+  document.getElementById('upload-zone').innerHTML=`
+    <div style="font-size:26px;margin-bottom:7px;">✅</div>
+    <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · Cliquez pour changer</div>
+    <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+  checkReady1();
+}
+
+function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const maxSize = 15 * 1024 * 1024; // 15MB
+
+  if (file.size > maxSize) {
+    showToast(lang==='fr'?'Fichier trop volumineux (max 15 MB)':'File too large (max 15 MB)');
+    return;
+  }
+
+  // TXT, CSV — lecture texte simple
+  if (['txt','csv'].includes(ext)) {
+    const reader = new FileReader();
+    reader.onload = e => showFileSuccess(file, e.target.result);
+    reader.onerror = () => showToast(lang==='fr'?'Erreur de lecture du fichier':'File reading error');
+    reader.readAsText(file, 'UTF-8');
+    return;
+  }
+
+  // PDF — extraction du texte brut via lecture binaire + parsing basique
+  if (ext === 'pdf') {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        // Extract readable text from PDF binary
+        const binary = e.target.result;
+        const text = extractTextFromPDF(binary);
+        if (text && text.trim().length > 10) {
+          showFileSuccess(file, text);
+        } else {
+          // PDF non lisible (scanné) — stocker le nom pour Claude
+          showFileSuccess(file, `[FICHIER PDF: ${file.name}] Contenu binaire non extractible directement. Veuillez coller le texte ci-dessous.`);
+          showToast(lang==='fr'?'PDF détecté — collez aussi le texte si possible':'PDF detected — paste text below if possible');
+        }
+      } catch(e) {
+        showFileSuccess(file, `[PDF: ${file.name}]`);
+      }
+    };
+    reader.readAsBinaryString(file);
+    return;
+  }
+
+  // DOCX — extraction XML interne
+  if (['doc','docx'].includes(ext)) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const text = extractTextFromDOCX(e.target.result);
+        showFileSuccess(file, text || `[DOCX: ${file.name}]`);
+      } catch(err) {
+        showFileSuccess(file, `[DOCX: ${file.name}]`);
+        showToast(lang==='fr'?'Word importé — extraction en cours':'Word imported — extracting content');
+      }
+    };
+    reader.readAsBinaryString(file);
+    return;
+  }
+
+  // XLSX, XLS — lecture binaire + extraction texte
+  if (['xlsx','xls','odt'].includes(ext)) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      showFileSuccess(file, `[${ext.toUpperCase()}: ${file.name}] Fichier importé avec succès.`);
+      showToast(lang==='fr'?'Fichier importé avec succès':'File imported successfully');
+    };
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
+  // Fallback — lecture texte
+  const reader = new FileReader();
+  reader.onload = e => showFileSuccess(file, e.target.result);
+  reader.onerror = () => showToast(lang==='fr'?'Format non supporté':'Unsupported format');
+  reader.readAsText(file, 'UTF-8');
+}
+
+// Extract text from PDF binary (basic parser)
+function extractTextFromPDF(binary) {
+  let text = '';
+  // Extract text between BT and ET markers (PDF text blocks)
+  const btMatches = binary.match(/BT[\s\S]*?ET/g) || [];
+  btMatches.forEach(block => {
+    // Extract strings in parentheses Tj/TJ operators
+    const strings = block.match(/\(([^)]{1,200})\)\s*Tj/g) || [];
+    strings.forEach(s => {
+      const m = s.match(/\(([^)]*)\)/);
+      if (m && m[1]) {
+        const cleaned = m[1].replace(/\\n/g,' ').replace(/\\r/g,' ').trim();
+        if (cleaned.length > 1) text += cleaned + ' ';
+      }
+    });
+    // Also TJ arrays
+    const tjArr = block.match(/\[([^\]]{1,500})\]\s*TJ/g) || [];
+    tjArr.forEach(s => {
+      const parts = s.match(/\(([^)]{1,100})\)/g) || [];
+      parts.forEach(p => {
+        const m2 = p.match(/\(([^)]*)\)/);
+        if (m2 && m2[1].trim()) text += m2[1].trim() + ' ';
+      });
+    });
+  });
+
+  // Also try to extract plain text streams
+  if (text.length < 50) {
+    const streamMatches = binary.match(/stream[\s\S]*?endstream/g) || [];
+    streamMatches.forEach(s => {
+      const cleaned = s.replace(/[^\x20-\x7E\n\r]/g, ' ').replace(/\s+/g,' ').trim();
+      if (cleaned.length > 20 && !cleaned.startsWith('stream')) {
+        text += cleaned.slice(0, 2000) + ' ';
+      }
+    });
+  }
+
+  return text.replace(/\s+/g,' ').trim();
+}
+
+// Extract text from DOCX (ZIP containing word/document.xml)
+function extractTextFromDOCX(binary) {
+  // Look for XML content in the binary (DOCX is a ZIP)
+  // Find word/document.xml content
+  let text = '';
+
+  // Try to find readable text blocks in the binary
+  const cleaned = binary.replace(/[^\x20-\x7E\n\r]/g, '|');
+  const xmlMatches = cleaned.match(/<w:t[^>]*>([^<]{2,})<\/w:t>/g) || [];
+  xmlMatches.forEach(m => {
+    const inner = m.replace(/<[^>]+>/g,'').trim();
+    if (inner.length > 1) text += inner + ' ';
+  });
+
+  // Also look for plain text patterns
+  if (text.length < 30) {
+    const parts = cleaned.split('|').filter(p => p.trim().length > 3);
+    text = parts.join(' ').replace(/\s+/g,' ').trim().slice(0, 5000);
+  }
+
+  return text;
+}
+function updateCharCount(){
+  pasteContent=document.getElementById('paste-input').value;
+  document.getElementById('char-count').textContent=pasteContent.length+(lang==='fr'?' caractères':' characters');
+  checkReady1();
+}
+function checkReady1(){
+  document.getElementById('btn-next1').disabled=!(fileContent.length>0||pasteContent.trim().length>20);
+}
+
+// ============ STEPS NAVIGATION ============
+function showPanel(id) {
+  // Hide everything
+  ['panel1','panel2','panel3','panel4','panel5',
+   'panel-processing','panel-processing2'].forEach(pid=>{
+    const el=document.getElementById(pid);
+    if(el) el.style.display='none';
+  });
+  // Show target
+  const t=document.getElementById(id);
+  if(t) t.style.display='block';
+}
+
+function goStep(s) {
+  showPanel('panel'+s);
+  // Update steps bar
+  for(let i=1;i<=5;i++){
+    const num=document.getElementById('sn'+i);
+    const lbl=document.getElementById('sl'+i);
+    if(!num||!lbl) continue;
+    num.classList.remove('active','done');
+    lbl.classList.remove('active');
+    if(i<s){num.classList.add('done');num.textContent='✓';}
+    else if(i===s){num.classList.add('active');lbl.classList.add('active');if(num.textContent==='✓')num.textContent=i;}
+    const ln=document.getElementById('line'+i);
+    if(ln) ln.classList.toggle('done',i<s);
+  }
+}
+
+// ============ ANALYSIS ============
+async function startAnalysis() {
+  showPanel('panel-processing');
+  animateProcessing();
+  const content = fileContent||pasteContent;
+  try {
+    parsedForm = await analyseQuestionnaire(content);
+    validationChoices = parsedForm.questions.map(()=>({formatIdx:null,linked:false,linkText:''}));
+    currentValIdx = 0;
+    await new Promise(r=>setTimeout(r,1000));
+    goStep(3);
+    renderValCard();
+  } catch(e) {
+    console.error('Error:', e);
+    goStep(2);
+    showToast(lang==='fr'?'Erreur. Veuillez réessayer.':'Error. Please try again.');
+  }
+}
+
+function animateProcessing() {
+  let pct=0;
+  const fill=document.getElementById('progress-fill');
+  const iv=setInterval(()=>{pct=Math.min(pct+1,95);fill.style.width=pct+'%';if(pct>=95)clearInterval(iv);},55);
+  const steps=[['ps1',600],['ps2',1800],['ps3',3200],['ps4',4400]];
+  steps.forEach(([id,delay],i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById(id);
+      el.classList.add('active');
+      el.querySelector('span').textContent='⚙️ ';
+      if(i>0){const prev=document.getElementById(steps[i-1][0]);prev.classList.remove('active');prev.classList.add('done');prev.querySelector('span').textContent='✓ ';}
+    },delay);
+  });
+}
+
+async function analyseQuestionnaire(content) {
+  if(DEMO_MODE){
+    await new Promise(r=>setTimeout(r,4500));
+    return buildDemoForm(content);
+  }
+  // Passe par le backend Railway — évite le CORS
+  const res = await fetch(BACKEND_URL + '/api/analyse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: content, tool: selectedTool })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({message:'Erreur serveur'}));
+    throw new Error(err.message || 'Erreur analyse');
+  }
+  const data = await res.json();
+  return data.form;
+}
+
+function buildDemoForm(content) {
+  const questions=[
+    {id:'q1',num:1,label:'Quel est le nom complet du répondant ?',type:'text',required:true,hint:'',choices:[],group:'Informations générales',
+      formats:[{id:'A',name:'Texte libre',type:'text',note:'Le répondant écrit son nom'},{id:'B',name:'Réponse courte',type:'text',note:'Champ court, max 50 caractères'}]},
+    {id:'q2',num:2,label:'Quel est l\'âge du répondant ?',type:'integer',required:true,hint:'En années révolues',choices:[],group:'Informations générales',
+      formats:[{id:'A',name:'Nombre entier',type:'integer',note:'Saisie numérique uniquement'},{id:'B',name:'Texte libre',type:'text',note:'Le répondant écrit l\'âge en toutes lettres'}]},
+    {id:'q3',num:3,label:'Quel est le sexe du répondant ?',type:'select_one',required:true,hint:'',choices:['Masculin','Féminin'],group:'Informations générales',
+      formats:[
+        {id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse possible'},
+        {id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses possibles'},
+        {id:'C',name:'Texte libre',type:'text',note:'Le répondant écrit sa réponse'}
+      ]},
+    {id:'q4',num:4,label:'Quel est le niveau d\'instruction du répondant ?',type:'select_one',required:false,hint:'',choices:['Aucune instruction','Primaire','Secondaire','Supérieur'],group:'Informations générales',
+      formats:[
+        {id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse possible'},
+        {id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses possibles'},
+        {id:'C',name:'Texte libre',type:'text',note:'Le répondant écrit sa réponse'}
+      ]},
+    {id:'q5',num:5,label:'Quelle est la position GPS du ménage ?',type:'geopoint',required:false,hint:'Capturez automatiquement via le GPS',choices:[],group:'Localisation',
+      formats:[{id:'A',name:'GPS automatique',type:'geopoint',note:'Capture la position via le GPS du téléphone'},{id:'B',name:'Coordonnées manuelles',type:'text',note:'L\'enquêteur saisit les coordonnées'}]},
+    {id:'q6',num:6,label:'Photo du répondant',type:'image',required:false,hint:'',choices:[],group:'Localisation',
+      formats:[{id:'A',name:'Photo',type:'image',note:'Prendre une photo avec l\'appareil'},{id:'B',name:'Ignorer',type:'note',note:'Ne pas inclure cette question'}]},
+  ];
+  return {title:'Formulaire de collecte de données',questions,groups:['Informations générales','Localisation']};
+}
+
+// ============ VALIDATION STEP ============
+function renderValCard() {
+  const q=parsedForm.questions[currentValIdx];
+  const total=parsedForm.questions.length;
+  const pct=((currentValIdx)/total)*100;
+  document.getElementById('val-progress-fill').style.width=pct+'%';
+  document.getElementById('val-progress-label').textContent=`Q ${currentValIdx+1} / ${total}`;
+
+  const choice=validationChoices[currentValIdx];
+  const isLast=currentValIdx===total-1;
+  document.getElementById('val-next-label').textContent=isLast?(lang==='fr'?'Voir le résumé':'See summary'):(lang==='fr'?'Suivant':'Next');
+
+  const formats=q.formats||[];
+  const colsHtml=formats.map((f,fi)=>`
+    <div class="format-col ${choice.formatIdx===fi?'selected':''}" onclick="selectFormat(${fi})">
+      <div class="format-col-title">${f.name}</div>
+      ${renderFormatPreview(q,f)}
+      <div class="format-col-desc">${f.note}</div>
+    </div>`).join('');
+
+  const linkOpen=choice.linked?'open':'';
+  document.getElementById('val-card-body').innerHTML=`
+    <div class="val-question-num">Question ${q.num} ${q.group?'· '+q.group:''}</div>
+    <div class="val-question">${q.label}${q.required?'<span style="color:var(--red);margin-left:3px;">*</span>':''}</div>
+    ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
+    <div class="val-format-label" style="margin-top:16px;" data-fr="Choisissez le format de réponse :" data-en="Choose response format:">${lang==='fr'?'Choisissez le format de réponse :':'Choose response format:'}</div>
+    <div class="format-cols">${colsHtml}</div>
+    <div class="link-section">
+      <div class="link-check-row" onclick="toggleLink()">
+        <div class="link-checkbox ${choice.linked?'checked':''}" id="link-cb"></div>
+        <div class="link-label">${lang==='fr'?'Cette question est liée à une autre question':'This question is linked to another question'}</div>
+      </div>
+      <div class="link-input-wrap ${linkOpen}" id="link-wrap">
+        <textarea class="link-textarea" id="link-text" placeholder="${lang==='fr'?'Expliquez le lien en vos propres mots... Ex: Si le répondant répond Non, passer directement à la question 7':'Explain the link in your own words... Ex: If the respondent answers No, skip to question 7'}" rows="3" oninput="saveLinkText()">${choice.linkText||''}</textarea>
+        <div class="link-hint">${lang==='fr'?'Décrivez simplement le lien, R2 Forms se charge du reste.':'Simply describe the link, R2 Forms handles the rest.'}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('btn-val-prev').style.visibility=currentValIdx===0?'hidden':'visible';
+  updateValNext();
+}
+
+function renderFormatPreview(q,f) {
+  const choices=q.choices||[];
+  const tool=selectedTool;
+  if(f.type==='select_one') {
+    if(tool==='jotform') return `<div class="jot-mock-choices">${choices.map((c,i)=>`<div class="jot-mock-choice"><div class="jot-radio"></div>${c}</div>`).join('')}</div>`;
+    if(tool==='tally') return `<div>${choices.map(c=>`<div class="tally-choice">${c}</div>`).join('')}</div>`;
+    return `<div class="kobo-mock-choices">${choices.map((c,i)=>`<div class="kobo-mock-choice"><div class="r ${i===0?'filled':''}"></div>${c}</div>`).join('')}</div>`;
+  }
+  if(f.type==='select_multiple') {
+    if(tool==='jotform') return `<div class="jot-mock-choices">${choices.map(c=>`<div class="jot-mock-choice"><div class="jot-check"></div>${c}</div>`).join('')}</div>`;
+    if(tool==='tally') return `<div>${choices.map(c=>`<div class="tally-choice">${c}</div>`).join('')}</div>`;
+    return `<div class="kobo-mock-choices">${choices.map((c,i)=>`<div class="kobo-mock-choice"><div class="c ${i===0?'filled':''}"></div>${c}</div>`).join('')}</div>`;
+  }
+  if(f.type==='geopoint') return `<div style="background:#e5f6e5;border-radius:8px;padding:10px;text-align:center;font-size:20px;">📍<div style="font-size:11px;color:#15803d;margin-top:4px;">GPS</div></div>`;
+  if(f.type==='image') return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;font-size:20px;">📷<div style="font-size:11px;color:#6b7280;margin-top:4px;">Photo</div></div>`;
+  if(f.type==='date') return `<div style="background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px;font-size:12px;color:#9ca3af;">📅 jj/mm/aaaa</div>`;
+  if(f.type==='note') return `<div style="background:#fef9e7;border-radius:8px;padding:10px;font-size:12px;color:#92400e;">Cette question sera ignorée</div>`;
+  if(tool==='jotform') return `<div class="jot-text">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
+  if(tool==='tally') return `<div class="tally-text">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
+  return `<div class="kobo-mock-input">${lang==='fr'?'Saisissez votre réponse...':'Type your answer...'}</div>`;
+}
+
+function selectFormat(fi) {
+  validationChoices[currentValIdx].formatIdx=fi;
+  updateValNext();
+  renderValCard();
+}
+
+function toggleLink() {
+  validationChoices[currentValIdx].linked=!validationChoices[currentValIdx].linked;
+  renderValCard();
+}
+
+function saveLinkText() {
+  const el=document.getElementById('link-text');
+  if(el) validationChoices[currentValIdx].linkText=el.value;
+}
+
+function updateValNext() {
+  const done=validationChoices[currentValIdx].formatIdx!==null;
+  document.getElementById('btn-val-next').disabled=!done;
+}
+
+function valPrev() {
+  if(currentValIdx>0){currentValIdx--;renderValCard();}
+}
+
+function valNext() {
+  const total=parsedForm.questions.length;
+  if(currentValIdx<total-1){currentValIdx++;renderValCard();}
+  else buildVisualization();
+}
+
+// ============ VISUALISATION ============
+function buildVisualization() {
+  // Apply validation choices to form
+  validatedForm=JSON.parse(JSON.stringify(parsedForm));
+  validatedForm.questions=validatedForm.questions.map((q,i)=>{
+    const ch=validationChoices[i];
+    const fmt=q.formats?.[ch.formatIdx]||q.formats?.[0];
+    return {...q,selectedType:fmt?.type||q.type,linked:ch.linked,linkText:ch.linkText};
+  });
+
+  goStep(4);
+  document.getElementById('viz-form-title').textContent=validatedForm.title||'Formulaire';
+  document.getElementById('viz-tool-badge').textContent=TOOL_NAMES[selectedTool];
+  renderVisualization(validatedForm);
+}
+
+function renderVisualization(form) {
+  const body=document.getElementById('viz-body');
+  body.innerHTML='<div class="mock-form">'+buildMockForm(form)+'</div>';
+}
+
+function buildMockForm(form) {
+  const tool=selectedTool;
+  if(tool==='jotform') return buildJotMock(form);
+  if(tool==='tally') return buildTallyMock(form);
+  return buildKoboMock(form); // default for kobo, odk, xlsform, google
+}
+
+function buildKoboMock(form) {
+  // Group questions
+  const groups={};
+  form.questions.forEach(q=>{
+    const g=q.group||lang==='fr'?'Général':'General';
+    if(!groups[g])groups[g]=[];
+    groups[g].push(q);
+  });
+  let html=`<div class="kobo-mock">
+    <div class="kobo-mock-header">
+      <div class="kobo-mock-title">${form.title||'Formulaire'}</div>
+      <div class="kobo-mock-sub">${lang==='fr'?'Remplissez toutes les questions obligatoires (*)':'Fill in all required fields (*)'}</div>
+    </div>
+    <div class="kobo-mock-body">`;
+  Object.entries(groups).forEach(([gname,qs])=>{
+    html+=`<div class="kobo-mock-group"><div class="kobo-mock-group-title">${gname}</div>`;
+    qs.forEach(q=>{
+      html+=`<div class="kobo-mock-question">
+        <div class="kobo-mock-q-label">${q.label}${q.required?'<span class="kobo-mock-required">*</span>':''}</div>
+        ${q.hint?`<div class="kobo-mock-hint">${q.hint}</div>`:''}
+        ${renderKoboAnswer(q)}
+        ${q.linked&&q.linkText?`<div style="font-size:10px;color:#9ca3af;margin-top:4px;">↪ ${q.linkText}</div>`:''}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  html+='</div></div>';
+  return html;
+}
+
+function renderKoboAnswer(q) {
+  const t=q.selectedType||q.type;
+  const choices=q.choices||[];
+  if(t==='select_one')
+    return `<div class="kobo-mock-choices">${choices.map(c=>`<div class="kobo-mock-choice"><div class="r"></div>${c}</div>`).join('')}</div>`;
+  if(t==='select_multiple')
+    return `<div class="kobo-mock-choices">${choices.map(c=>`<div class="kobo-mock-choice"><div class="c"></div>${c}</div>`).join('')}</div>`;
+  if(t==='geopoint') return `<div style="background:#e5f6e5;border-radius:8px;padding:10px;text-align:center;font-size:18px;">📍 <span style="font-size:12px;color:#15803d;">Capture GPS</span></div>`;
+  if(t==='image') return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;font-size:18px;">📷 <span style="font-size:12px;color:#6b7280;">Prendre une photo</span></div>`;
+  if(t==='date') return `<div class="kobo-mock-input">📅 jj/mm/aaaa</div>`;
+  if(t==='integer'||t==='decimal') return `<div class="kobo-mock-input">123...</div>`;
+  return `<div class="kobo-mock-input">${lang==='fr'?'Saisissez votre réponse...':'Type your answer...'}</div>`;
+}
+
+function buildJotMock(form) {
+  let html=`<div class="jot-mock"><div class="jot-mock-header"><div class="jot-mock-title">${form.title||'Formulaire'}</div></div><div class="jot-mock-body">`;
+  form.questions.forEach(q=>{
+    const t=q.selectedType||q.type;
+    const choices=q.choices||[];
+    html+=`<div class="jot-mock-question"><div class="jot-mock-q-label">${q.label}${q.required?' *':''}</div>`;
+    if(t==='select_one'||t==='select_multiple')
+      html+=`<div class="jot-mock-choices">${choices.map(c=>`<div class="jot-mock-choice"><div class="${t==='select_one'?'r':'c'}" style="width:18px;height:18px;border-radius:${t==='select_one'?'50%':'4px'};border:2px solid #d1d5db;flex-shrink:0;background:#f9fafb;"></div>${c}</div>`).join('')}</div>`;
+    else if(t==='geopoint') html+=`<div class="jot-mock-input">📍 GPS</div>`;
+    else if(t==='image') html+=`<div class="jot-mock-input">📷 Photo</div>`;
+    else if(t==='date') html+=`<div class="jot-mock-input">📅 Date</div>`;
+    else html+=`<div class="jot-mock-input">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
+    if(q.linked&&q.linkText) html+=`<div style="font-size:10px;color:#9ca3af;margin-top:4px;">↪ ${q.linkText}</div>`;
+    html+='</div>';
+  });
+  html+='</div></div>';
+  return html;
+}
+
+function buildTallyMock(form) {
+  let html=`<div class="tally-mock"><div class="tally-mock-body">`;
+  html+=`<div style="font-size:22px;font-weight:800;color:#111827;margin-bottom:28px;">${form.title||'Formulaire'}</div>`;
+  form.questions.forEach(q=>{
+    const t=q.selectedType||q.type;
+    const choices=q.choices||[];
+    html+=`<div class="tally-mock-q"><div class="tally-mock-label">${q.label}${q.required?' *':''}</div>`;
+    if(t==='select_one'||t==='select_multiple')
+      html+=`<div class="tally-mock-choices">${choices.map(c=>`<div class="tally-mock-choice">${c}</div>`).join('')}</div>`;
+    else if(t==='geopoint') html+=`<div class="tally-mock-input">📍 Position GPS</div>`;
+    else if(t==='image') html+=`<div class="tally-mock-input">📷 Photo</div>`;
+    else if(t==='date') html+=`<div class="tally-mock-input">📅 Date</div>`;
+    else html+=`<div class="tally-mock-input">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
+    if(q.linked&&q.linkText) html+=`<div style="font-size:10px;color:#9ca3af;margin-top:6px;">↪ ${q.linkText}</div>`;
+    html+='</div>';
+  });
+  html+='</div></div>';
+  return html;
+}
+
+// Correction input listener
+document.addEventListener('DOMContentLoaded',()=>{
+  // Init: show only panel1
+  ['panel1','panel2','panel3','panel4','panel5','panel-processing','panel-processing2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+  document.getElementById('panel1').style.display='block';
+
+  const ta=document.getElementById('correction-input');
+  if(ta) ta.addEventListener('input',()=>{
+    document.getElementById('btn-apply-correction').disabled=ta.value.trim().length<5;
+  });
+  document.getElementById('paste-input').addEventListener('input',updateCharCount);
+});
+
+async function applyCorrection() {
+  const text=document.getElementById('correction-input').value.trim();
+  if(!text) return;
+  showPanel('panel-processing2');
+  document.getElementById('proc2-title').textContent=lang==='fr'?'Application des corrections...':'Applying corrections...';
+  document.getElementById('proc2-sub').textContent=lang==='fr'?'Veuillez patienter':'Please wait';
+  let pct=0;
+  const iv=setInterval(()=>{pct=Math.min(pct+2,95);document.getElementById('progress-fill2').style.width=pct+'%';if(pct>=95)clearInterval(iv);},60);
+
+  try {
+    const corrected=await correctForm(validatedForm,text);
+    validatedForm=corrected;
+    await new Promise(r=>setTimeout(r,1800));
+    document.getElementById('progress-fill2').style.width='100%';
+    await new Promise(r=>setTimeout(r,400));
+    showPanel('panel4');
+    document.getElementById('correction-input').value='';
+    document.getElementById('btn-apply-correction').disabled=true;
+    renderVisualization(validatedForm);
+    showToast(lang==='fr'?'✅ Corrections appliquées':'✅ Corrections applied');
+  } catch(e) {
+    showPanel('panel4');
+    showToast(lang==='fr'?'Erreur. Veuillez réessayer.':'Error. Please try again.');
+  }
+}
+
+async function correctForm(form, instructions) {
+  if(DEMO_MODE){
+    await new Promise(r=>setTimeout(r,2000));
+    const f=JSON.parse(JSON.stringify(form));
+    f.questions[0].required=true;
+    return f;
+  }
+  // Passe par le backend Railway
+  const res = await fetch(BACKEND_URL + '/api/correct', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ form, instructions })
+  });
+  if (!res.ok) throw new Error('Erreur correction');
+  const data = await res.json();
+  return data.form;
+}
+
+// ============ DEPLOY ============
+// ============ KOBOTOOLBOX DEPLOYMENT ============
+async function deployToKoboToolbox(form) {
+  const server = document.getElementById('auth-server')?.value?.trim() || 'https://kf.kobotoolbox.org';
+  const username = document.getElementById('auth-user')?.value?.trim();
+  const password = document.getElementById('auth-pass')?.value?.trim();
+
+  if (!username || !password) throw new Error(lang==='fr'?'Identifiants manquants':'Missing credentials');
+
+  updateProcText(lang==='fr'?'Authentification KoboToolbox...':'Authenticating...');
+
+  // Get token
+  const tokenRes = await fetch(`${server}/token/?format=json`, {
+    method: 'GET',
+    headers: { 'Authorization': 'Basic ' + btoa(username + ':' + password) }
+  });
+  if (!tokenRes.ok) throw new Error(lang==='fr'?'Identifiants incorrects':'Invalid credentials');
+  const { token } = await tokenRes.json();
+  const auth = { 'Authorization': 'Token ' + token, 'Content-Type': 'application/json' };
+
+  // Create asset
+  updateProcText(lang==='fr'?'Création du formulaire...':'Creating form...');
+  const assetRes = await fetch(`${server}/api/v2/assets/?format=json`, {
+    method: 'POST', headers: auth,
+    body: JSON.stringify({ name: form.title || 'Formulaire R2', asset_type: 'survey' })
+  });
+  if (!assetRes.ok) throw new Error('Erreur création formulaire');
+  const { uid: assetUid, url: assetUrl } = await assetRes.json();
+
+  // Patch content
+  updateProcText(lang==='fr'?'Import du questionnaire...':'Importing questionnaire...');
+  const koboContent = buildKoboContent(form);
+  const patchRes = await fetch(`${server}/api/v2/assets/${assetUid}/?format=json`, {
+    method: 'PATCH', headers: auth,
+    body: JSON.stringify({ name: form.title || 'Formulaire R2', content: koboContent })
+  });
+  if (!patchRes.ok) throw new Error('Erreur import questionnaire');
+
+  // Deploy
+  updateProcText(lang==='fr'?'Déploiement...':'Deploying...');
+  await fetch(`${server}/api/v2/assets/${assetUid}/deployment/?format=json`, {
+    method: 'POST', headers: auth,
+    body: JSON.stringify({ active: true })
+  });
+
+  return { uid: assetUid, url: `${server}/#/forms/${assetUid}/summary`, server };
+}
+
+async function deployToJotForm(form) {
+  showToast(lang==='fr'?'Déploiement JotForm bientôt disponible':'JotForm deployment coming soon');
+  await new Promise(r=>setTimeout(r,1500));
+  return { uid:'demo', url:'https://www.jotform.com/myforms/', server:'jotform' };
+}
+
+function updateProcText(txt) {
+  const el=document.getElementById('proc2-title');
+  if(el) el.textContent=txt;
+}
+
+let deployedFormUrl = null;
+
+// ============ BUILD XLSFORM ============
+function buildXLSFormCSV(form) {
+  // Survey sheet
+  let survey = 'type,name,label::French,label::English,required,hint,relevant\n';
+  // Choices sheet  
+  let choices = 'list_name,name,label::French,label::English\n';
+  const seen = new Set();
+
+  form.questions.forEach(q => {
+    const t = q.selectedType || q.type || 'text';
+    const name = (q.id || 'q'+q.num).replace(/[^a-zA-Z0-9_]/g,'_');
+    const label = (q.label||'').replace(/,/g,';').replace(/\n/g,' ');
+    const required = q.required ? 'yes' : '';
+    const hint = (q.hint||'').replace(/,/g,';');
+    const relevant = (q.linked && q.linkText) ? '# ' + q.linkText.replace(/,/g,';') : '';
+
+    if (t === 'select_one' || t === 'select_multiple') {
+      const listName = 'list_'+name;
+      survey += `${t} ${listName},${name},${label},${label},${required},${hint},${relevant}\n`;
+      if (!seen.has(listName)) {
+        seen.add(listName);
+        (q.choices||[]).forEach((c,i) => {
+          const cl = (typeof c==='string'?c:(c.label||'')).replace(/,/g,';');
+          choices += `${listName},c${i+1},${cl},${cl}\n`;
+        });
+      }
+    } else if (t === 'geopoint') {
+      survey += `geopoint,${name},${label},${label},${required},${hint},${relevant}\n`;
+    } else if (t === 'image') {
+      survey += `image,${name},${label},${label},${required},${hint},${relevant}\n`;
+    } else if (t === 'date') {
+      survey += `date,${name},${label},${label},${required},${hint},${relevant}\n`;
+    } else if (t === 'integer') {
+      survey += `integer,${name},${label},${label},${required},${hint},${relevant}\n`;
+    } else if (t === 'decimal') {
+      survey += `decimal,${name},${label},${label},${required},${hint},${relevant}\n`;
+    } else {
+      survey += `text,${name},${label},${label},${required},${hint},${relevant}\n`;
+    }
+  });
+
+  const settings = `form_title,form_id\n${(form.title||'Formulaire').replace(/,/g,';')},${(form.title||'formulaire').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()}\n`;
+
+  return { survey, choices, settings };
+}
+
+function downloadXLSForm(form) {
+  const { survey, choices, settings } = buildXLSFormCSV(form);
+  // Pack as a simple text file (XLSForm compatible CSV)
+  // For real XLSForm .xlsx, we'd need a library — CSV is importable by KoboToolbox too
+  const fullContent = `=== survey ===\n${survey}\n=== choices ===\n${choices}\n=== settings ===\n${settings}`;
+  const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const filename = (form.title||'formulaire').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'') + '_XLSForm.txt';
+  a.download = filename;
+  a.click();
+  return filename;
+}
+
+async function validateAndDeploy() {
+  showPanel('panel-processing2');
+  document.getElementById('proc2-title').textContent = lang==='fr'?'Conversion en cours...':'Converting...';
+  document.getElementById('proc2-sub').textContent = lang==='fr'?'Génération du masque XLSForm...':'Generating XLSForm...';
+
+  let pct=0;
+  const iv=setInterval(()=>{pct=Math.min(pct+3,100);document.getElementById('progress-fill2').style.width=pct+'%';if(pct>=100)clearInterval(iv);},40);
+
+  await new Promise(r=>setTimeout(r,1500));
+  clearInterval(iv);
+  document.getElementById('progress-fill2').style.width='100%';
+  await new Promise(r=>setTimeout(r,300));
+
+  // Download the XLSForm file
+  const filename = downloadXLSForm(validatedForm);
+  deployedFormUrl = selectedTool === 'kobo' 
+    ? 'https://kf.kobotoolbox.org/new'
+    : (TOOL_URLS[selectedTool] || '#');
+
+  goStep(5);
+  const q = validatedForm?.questions?.length || 0;
+  const g = [...new Set((validatedForm?.questions||[]).map(q=>q.group).filter(Boolean))].length || 1;
+  const l = (validatedForm?.questions||[]).filter(q=>q.linked).length || 0;
+  document.getElementById('dep-q').textContent = q;
+  document.getElementById('dep-g').textContent = g;
+  document.getElementById('dep-l').textContent = l;
+
+  // Update step 5 UI for XLSForm import instructions
+  const toolName = TOOL_NAMES[selectedTool];
+  if (lang==='fr') {
+    document.getElementById('deploy-sub').innerHTML = `
+      Votre masque <strong>${validatedForm.title||'Formulaire'}</strong> a été généré et téléchargé.<br><br>
+      <strong>Pour l'importer dans ${toolName} :</strong><br>
+      1. Cliquez sur <em>"Accéder à ${toolName}"</em> ci-dessous<br>
+      2. Créez un nouveau projet → <em>"Importer un XLSForm"</em><br>
+      3. Glissez le fichier <strong>${filename}</strong> téléchargé<br>
+      4. Votre masque est prêt à collecter des données ✅`;
+  } else {
+    document.getElementById('deploy-sub').innerHTML = `
+      Your form <strong>${validatedForm.title||'Form'}</strong> has been generated and downloaded.<br><br>
+      <strong>To import it into ${toolName}:</strong><br>
+      1. Click <em>"Access ${toolName}"</em> below<br>
+      2. Create new project → <em>"Import XLSForm"</em><br>
+      3. Upload the file <strong>${filename}</strong><br>
+      4. Your form is ready to collect data ✅`;
+  }
+}
+
+function openAccount(){
+  const url = deployedFormUrl || TOOL_URLS[selectedTool];
+  if(url) window.open(url,'_blank');
+  else showToast(lang==='fr'?'Téléchargez le fichier pour l\'importer':'Download the file to import it');
+}
+function downloadFinal(){if(!validatedForm)return;const b=new Blob([JSON.stringify(validatedForm,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(validatedForm.title||'masque').replace(/\s+/g,'_')+'.json';a.click();}
+function restart(){location.reload();}
+
+let _tt=null;
+function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();if(_tt)clearTimeout(_tt);const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);_tt=setTimeout(()=>t.remove(),3200);}
+</script>
+</body>
+</html>
