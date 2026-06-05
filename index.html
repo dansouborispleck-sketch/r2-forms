@@ -1075,43 +1075,25 @@ async function deployToKoboToolbox(form) {
 
   if (!username || !password) throw new Error(lang==='fr'?'Identifiants manquants':'Missing credentials');
 
-  updateProcText(lang==='fr'?'Authentification KoboToolbox...':'Authenticating...');
+  updateProcText(lang==='fr'?'Déploiement en cours...':'Deploying...');
 
-  // Get token
-  const tokenRes = await fetch(`${server}/token/?format=json`, {
-    method: 'GET',
-    headers: { 'Authorization': 'Basic ' + btoa(username + ':' + password) }
-  });
-  if (!tokenRes.ok) throw new Error(lang==='fr'?'Identifiants incorrects':'Invalid credentials');
-  const { token } = await tokenRes.json();
-  const auth = { 'Authorization': 'Token ' + token, 'Content-Type': 'application/json' };
-
-  // Create asset
-  updateProcText(lang==='fr'?'Création du formulaire...':'Creating form...');
-  const assetRes = await fetch(`${server}/api/v2/assets/?format=json`, {
-    method: 'POST', headers: auth,
-    body: JSON.stringify({ name: form.title || 'Formulaire R2', asset_type: 'survey' })
-  });
-  if (!assetRes.ok) throw new Error('Erreur création formulaire');
-  const { uid: assetUid, url: assetUrl } = await assetRes.json();
-
-  // Patch content
-  updateProcText(lang==='fr'?'Import du questionnaire...':'Importing questionnaire...');
-  const koboContent = buildKoboContent(form);
-  const patchRes = await fetch(`${server}/api/v2/assets/${assetUid}/?format=json`, {
-    method: 'PATCH', headers: auth,
-    body: JSON.stringify({ name: form.title || 'Formulaire R2', content: koboContent })
-  });
-  if (!patchRes.ok) throw new Error('Erreur import questionnaire');
-
-  // Deploy
-  updateProcText(lang==='fr'?'Déploiement...':'Deploying...');
-  await fetch(`${server}/api/v2/assets/${assetUid}/deployment/?format=json`, {
-    method: 'POST', headers: auth,
-    body: JSON.stringify({ active: true })
+  // Tout passe par le backend Railway — évite le CORS
+  const res = await fetch(BACKEND_URL + '/api/deploy/kobo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      form,
+      credentials: { username, password, server }
+    })
   });
 
-  return { uid: assetUid, url: `${server}/#/forms/${assetUid}/summary`, server };
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({message:'Erreur déploiement'}));
+    throw new Error(err.message || 'Erreur déploiement');
+  }
+
+  const data = await res.json();
+  return { uid: data.uid, url: data.url, server };
 }
 
 async function deployToJotForm(form) {
