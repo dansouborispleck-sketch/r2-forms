@@ -768,7 +768,7 @@ function renderValCard() {
 
     numericHtml = `<div style="margin-bottom:16px;padding:14px;background:rgba(245,158,11,.05);border:1.5px solid rgba(245,158,11,.18);border-radius:12px;">
       <div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">📏 ${lang==='fr'?'Précisions sur la valeur (tout est optionnel)':'Value details (all optional)'}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${lang==='fr'?'Laissez vide si vous n'êtes pas sûr — le répondant pourra saisir librement.':'Leave empty if unsure — the respondent can enter freely.'}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${lang==='fr'?'Laissez vide si vous n\'etes pas sur — le repondant pourra saisir librement.':'Leave empty if unsure — the respondent can enter freely.'}</div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
         ${inp('num-min', choice.numMin, lang==='fr'?'Ex: 0':'Ex: 0', lang==='fr'?'Valeur minimale acceptée':'Minimum accepted value')}
@@ -944,7 +944,7 @@ function renderFormatPreview(q, f) {
   if (qclass === 'acknowledge' || f.type === 'acknowledge')
     return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
       <div style="width:18px;height:18px;border-radius:4px;border:2px solid #9ca3af;flex-shrink:0;"></div>
-      <span style="font-size:12px;color:var(--ink);">${lang==='fr'?'Je confirme / J'accepte':'I confirm / I agree'}</span>
+      <span style="font-size:12px;color:var(--ink);">${lang==='fr'?'Je confirme / J\'accepte':'I confirm / I agree'}</span>
     </div>`;
 
   // RANKING
