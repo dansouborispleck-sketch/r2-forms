@@ -1098,7 +1098,12 @@ function buildVisualization() {
       relevant,
       calculation,
       constraint,
-      required
+      required,
+      validatedFormatIdx: fmtIdx,
+      numMin: ch.numMin || '',
+      numMax: ch.numMax || '',
+      numDigitsBefore: ch.numDigitsBefore || '',
+      numDigitsAfter: ch.numDigitsAfter || ''
     };
   });
 
