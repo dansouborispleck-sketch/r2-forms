@@ -1450,6 +1450,29 @@ async function validateAndDeploy() {
   if (!canDeploy) return;
 
   showPanel('panel-processing2');
+  document.getElementById('proc2-title').textContent = lang==='fr'?'Vérification du masque...':'Verifying form...';
+  document.getElementById('proc2-sub').textContent = lang==='fr'?'Analyse de la logique en cours...':'Checking logic...';
+
+  // Appel API verify — Claude vérifie le XLSForm sans le montrer à l'utilisateur
+  try {
+    const verifyRes = await fetch(BACKEND_URL + '/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ form: validatedForm })
+    });
+    if (verifyRes.ok) {
+      const verifyData = await verifyRes.json();
+      // Mettre à jour le formulaire avec les corrections
+      if (verifyData.form) validatedForm = verifyData.form;
+      // Afficher les problèmes trouvés si non bloquants
+      if (verifyData.issues && verifyData.issues.length > 0) {
+        console.log('[VERIFY] Issues:', verifyData.issues);
+      }
+    }
+  } catch(e) {
+    console.log('[VERIFY] Ignoré:', e.message);
+  }
+
   document.getElementById('proc2-title').textContent = lang==='fr'?'Déploiement en cours...':'Deploying...';
   document.getElementById('proc2-sub').textContent = lang==='fr'?'Connexion à votre compte...':'Connecting to your account...';
 
