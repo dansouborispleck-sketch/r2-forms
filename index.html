@@ -707,55 +707,46 @@ function buildDemoForm(content) {
 function renderValCard() {
   const q = parsedForm.questions[currentValIdx];
   const total = parsedForm.questions.length;
-  const pct = ((currentValIdx) / total) * 100;
+  const pct = (currentValIdx / total) * 100;
   document.getElementById('val-progress-fill').style.width = pct + '%';
   document.getElementById('val-progress-label').textContent = `Q ${currentValIdx+1} / ${total}`;
 
   const choice = validationChoices[currentValIdx];
   const isLast = currentValIdx === total - 1;
   document.getElementById('val-next-label').textContent = isLast
-    ? (lang==='fr'?'Voir le résumé':'See summary')
+    ? (lang==='fr'?'Voir la vérification finale':'See final check')
     : (lang==='fr'?'Suivant':'Next');
 
   const formats = q.formats || [];
+  const suggestions = (q.suggestions || []).filter(s => s.type !== 'required_override');
+  const isNumeric = q.is_numeric || ['integer','decimal'].includes(q.type);
 
-  // Build suggestions HTML
-  const suggestions = q.suggestions || [];
+  // Suggestions HTML
   let suggestionsHtml = '';
   if (suggestions.length > 0) {
     suggestionsHtml = `<div style="margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-        <span>💡</span> ${lang==='fr'?'Propositions intelligentes':'Smart suggestions'}
+      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+        💡 ${lang==='fr'?'Propositions intelligentes':'Smart suggestions'}
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${suggestions.map((s, si) => {
-          const confirmed = choice.confirmedSuggestions?.[si];
-          const rejected = choice.rejectedSuggestions?.[si];
-          const confidenceColor = s.confidence === 'high' ? 'var(--green)' : s.confidence === 'medium' ? 'var(--yellow)' : 'var(--muted)';
-          const confidenceLabel = s.confidence === 'high' ? (lang==='fr'?'Haute confiance':'High confidence') : s.confidence === 'medium' ? (lang==='fr'?'Confiance moyenne':'Medium confidence') : (lang==='fr'?'Faible confiance':'Low confidence');
+          const confirmed = !!(choice.confirmedSuggestions || {})[si];
           const typeIcon = {skip_logic:'🔀',calculate:'🧮',constraint:'🔒',required:'⚠️',repeat:'🔁'}[s.type] || '💡';
-          const bgColor = confirmed ? 'rgba(22,163,74,.08)' : rejected ? 'rgba(220,38,38,.05)' : 'rgba(37,99,235,.05)';
-          const borderColor = confirmed ? 'rgba(22,163,74,.3)' : rejected ? 'rgba(220,38,38,.2)' : 'rgba(37,99,235,.15)';
-          return `<div style="background:${bgColor};border:1.5px solid ${borderColor};border-radius:12px;padding:12px 14px;">
-            <div style="display:flex;align-items:flex-start;gap:10px;">
-              <span style="font-size:18px;flex-shrink:0;margin-top:1px;">${typeIcon}</span>
-              <div style="flex:1;min-width:0;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
-                  <span style="font-size:12px;font-weight:700;color:var(--ink);">${s.label}</span>
-                  <span style="font-size:10px;color:${confidenceColor};background:rgba(0,0,0,.05);padding:1px 6px;border-radius:10px;">${confidenceLabel}</span>
-                </div>
-                <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5;">${s.description}</div>
-                ${s.value ? `<div style="font-size:11px;color:var(--ink2);background:var(--paper);border-radius:6px;padding:4px 8px;font-family:'Courier New',monospace;margin-bottom:8px;">${s.value}</div>` : ''}
-                <div style="display:flex;gap:6px;">
-                  ${confirmed
-                    ? `<button onclick="rejectSuggestion(${si})" style="background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;">✓ ${lang==='fr'?'Confirmé — Annuler':'Confirmed — Undo'}</button>`
-                    : rejected
-                    ? `<button onclick="confirmSuggestion(${si})" style="background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;">✗ ${lang==='fr'?'Refusé — Reconsidérer':'Rejected — Reconsider'}</button>`
-                    : `<button onclick="confirmSuggestion(${si})" style="background:var(--green);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;">✅ ${lang==='fr'?'Confirmer':'Confirm'}</button>
-                       <button onclick="rejectSuggestion(${si})" style="background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;">❌ ${lang==='fr'?'Ignorer':'Ignore'}</button>`
-                  }
-                </div>
+          const confidenceColor = s.confidence==='high'?'var(--green)':s.confidence==='medium'?'var(--yellow)':'var(--muted)';
+          const confidenceLabel = s.confidence==='high'?(lang==='fr'?'Haute confiance':'High confidence'):s.confidence==='medium'?(lang==='fr'?'Confiance moyenne':'Medium confidence'):(lang==='fr'?'Faible confiance':'Low confidence');
+          const bg = confirmed ? 'rgba(22,163,74,.08)' : 'rgba(37,99,235,.04)';
+          const border = confirmed ? 'rgba(22,163,74,.3)' : 'rgba(37,99,235,.15)';
+          return `<div style="background:${bg};border:1.5px solid ${border};border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+            <input type="checkbox" ${confirmed?'checked':''} onchange="toggleSuggestion(${si}, this.checked)"
+              style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:var(--green);flex-shrink:0;"/>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap;">
+                <span style="font-size:16px;">${typeIcon}</span>
+                <span style="font-size:12px;font-weight:700;color:var(--ink);">${s.label}</span>
+                <span style="font-size:10px;color:${confidenceColor};background:rgba(0,0,0,.05);padding:1px 7px;border-radius:10px;">${confidenceLabel}</span>
               </div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:${s.value?'6px':'0'};">${s.description}</div>
+              ${s.value?`<div style="font-size:11px;color:var(--ink2);background:var(--paper);border-radius:6px;padding:4px 8px;font-family:'Courier New',monospace;">${s.value}</div>`:''}
             </div>
           </div>`;
         }).join('')}
@@ -763,11 +754,46 @@ function renderValCard() {
     </div>`;
   }
 
-  // Format columns
+  // Numeric min/max fields
+  let numericHtml = '';
+  if (isNumeric) {
+    numericHtml = `<div style="margin-bottom:16px;padding:12px 14px;background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.2);border-radius:12px;">
+      <div style="font-size:11px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+        📏 ${lang==='fr'?'Plage de valeurs (optionnel)':'Value range (optional)'}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${lang==='fr'?'Minimum':'Minimum'}</div>
+          <input type="number" id="num-min" value="${choice.numMin||''}" placeholder="${lang==='fr'?'Ex: 0':'Ex: 0'}"
+            oninput="saveNumericBounds()"
+            style="width:100%;background:var(--paper);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;color:var(--ink);outline:none;"/>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${lang==='fr'?'Maximum':'Maximum'}</div>
+          <input type="number" id="num-max" value="${choice.numMax||''}" placeholder="${lang==='fr'?'Ex: 120':'Ex: 120'}"
+            oninput="saveNumericBounds()"
+            style="width:100%;background:var(--paper);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;color:var(--ink);outline:none;"/>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Obligatoire toggle
+  const isRequired = choice.required !== undefined ? choice.required : true; // default true
+  const requiredHtml = `<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--paper);border:1px solid var(--border);border-radius:10px;">
+    <input type="checkbox" id="chk-required" ${isRequired?'checked':''} onchange="toggleRequired(this.checked)"
+      style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;"/>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:var(--ink);">${lang==='fr'?'Question obligatoire':'Required question'}</div>
+      <div style="font-size:11px;color:var(--muted);">${lang==='fr'?'Décochez si cette question est facultative':'Uncheck if this question is optional'}</div>
+    </div>
+  </div>`;
+
+  // Format cols
   const colsHtml = formats.map((f, fi) => {
     const isRecommended = fi === (q.suggested_format_idx || 0);
     const isSelected = choice.formatIdx === fi;
-    return `<div class="format-col ${isSelected ? 'selected' : ''}" onclick="selectFormat(${fi})" style="position:relative;">
+    return `<div class="format-col ${isSelected?'selected':''}" onclick="selectFormat(${fi})" style="position:relative;">
       ${isRecommended && !isSelected ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">💡 ${lang==='fr'?'Recommandé':'Recommended'}</div>` : ''}
       <div class="format-col-title">${f.name}</div>
       ${renderFormatPreview(q, f)}
@@ -775,34 +801,38 @@ function renderValCard() {
     </div>`;
   }).join('');
 
-  const linkOpen = choice.linked ? 'open' : '';
   document.getElementById('val-card-body').innerHTML = `
-    <div class="val-question-num">Question ${q.num} ${q.group ? '· '+q.group : ''}</div>
-    <div class="val-question">${q.label}${q.required ? '<span style="color:var(--red);margin-left:3px;">*</span>' : ''}</div>
-    ${q.hint ? `<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>` : ''}
-
+    <div class="val-question-num">Question ${q.num}${q.group?' · '+q.group:''}</div>
+    <div class="val-question">${q.label}</div>
+    ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
     ${suggestionsHtml}
-
-    <div class="val-format-label" style="margin-top:${suggestions.length > 0 ? '4px' : '16px'};">
-      ${lang==='fr' ? 'Choisissez le format de réponse :' : 'Choose response format:'}
+    <div class="val-format-label" style="margin-top:${suggestions.length>0?'4px':'16px'};">
+      ${lang==='fr'?'Choisissez le format de réponse :':'Choose response format:'}
     </div>
     <div class="format-cols">${colsHtml}</div>
+    ${numericHtml}
+    ${requiredHtml}`;
 
-    <div class="link-section">
-      <div class="link-check-row" onclick="toggleLink()">
-        <div class="link-checkbox ${choice.linked ? 'checked' : ''}" id="link-cb"></div>
-        <div class="link-label">${lang==='fr' ? 'Cette question est liée à une autre question' : 'This question is linked to another question'}</div>
-      </div>
-      <div class="link-input-wrap ${linkOpen}" id="link-wrap">
-        <textarea class="link-textarea" id="link-text"
-          placeholder="${lang==='fr' ? 'Expliquez le lien en vos propres mots... Ex: Si le répondant répond Non, passer directement à la question 7' : 'Explain the link in your own words...'}"
-          rows="3" oninput="saveLinkText()">${choice.linkText || ''}</textarea>
-        <div class="link-hint">${lang==='fr' ? 'Décrivez simplement le lien, R2 Forms se charge du reste.' : 'Simply describe the link, R2 Forms handles the rest.'}</div>
-      </div>
-    </div>`;
-
-  document.getElementById('btn-val-prev').style.visibility = currentValIdx === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-val-prev').style.visibility = currentValIdx===0?'hidden':'visible';
   updateValNext();
+}
+
+function toggleSuggestion(si, checked) {
+  if (!validationChoices[currentValIdx].confirmedSuggestions)
+    validationChoices[currentValIdx].confirmedSuggestions = {};
+  validationChoices[currentValIdx].confirmedSuggestions[si] = checked;
+  // No re-render needed — checkbox handles its own state
+}
+
+function toggleRequired(checked) {
+  validationChoices[currentValIdx].required = checked;
+}
+
+function saveNumericBounds() {
+  const min = document.getElementById('num-min')?.value;
+  const max = document.getElementById('num-max')?.value;
+  validationChoices[currentValIdx].numMin = min;
+  validationChoices[currentValIdx].numMax = max;
 }
 
 function confirmSuggestion(si) {
@@ -884,27 +914,38 @@ function buildVisualization() {
 
     // Appliquer les suggestions confirmées
     let relevant = '';
-    let calculate = '';
+    let calculation = '';
     let constraint = '';
-    let required = q.required;
+    let selectedType = fmt?.type || q.type;
 
     const confirmed = ch.confirmedSuggestions || {};
     (q.suggestions || []).forEach((s, si) => {
       if (confirmed[si]) {
-        if (s.type === 'skip_logic') relevant = s.value || '';
-        if (s.type === 'calculate') calculate = s.value || '';
-        if (s.type === 'constraint') constraint = s.value || '';
-        if (s.type === 'required') required = true;
+        if (s.type === 'skip_logic' && s.value) relevant = s.value;
+        if (s.type === 'calculate' && s.value) {
+          calculation = s.value;
+          selectedType = 'calculate'; // override type
+        }
       }
     });
 
+    // Contrainte numérique min/max
+    if (ch.numMin !== undefined && ch.numMin !== '' && ch.numMax !== undefined && ch.numMax !== '') {
+      constraint = `. >= ${ch.numMin} and . <= ${ch.numMax}`;
+    } else if (ch.numMin !== undefined && ch.numMin !== '') {
+      constraint = `. >= ${ch.numMin}`;
+    } else if (ch.numMax !== undefined && ch.numMax !== '') {
+      constraint = `. <= ${ch.numMax}`;
+    }
+
+    // Required par défaut true, sauf si modifié
+    const required = ch.required !== undefined ? ch.required : true;
+
     return {
       ...q,
-      selectedType: fmt?.type || q.type,
-      linked: ch.linked,
-      linkText: ch.linkText,
-      relevant: relevant || (ch.linked && ch.linkText ? ch.linkText : ''),
-      calculate,
+      selectedType,
+      relevant,
+      calculation,
       constraint,
       required
     };
@@ -1174,7 +1215,58 @@ function downloadXLSForm(form) {
   return filename;
 }
 
+async function preDeployCheck() {
+  // Vérification complète avant déploiement
+  const issues = [];
+  const warnings = [];
+
+  validatedForm.questions.forEach((q, i) => {
+    const num = q.num || (i+1);
+
+    // Vérifier choix remplis
+    if ((q.selectedType === 'select_one' || q.selectedType === 'select_multiple') && (!q.choices || q.choices.length === 0)) {
+      issues.push(lang==='fr' ? `Q${num} — Choix manquants pour "${q.label}"` : `Q${num} — Missing choices for "${q.label}"`);
+    }
+
+    // Vérifier formule calcul
+    if (q.selectedType === 'calculate' && !q.calculation) {
+      issues.push(lang==='fr' ? `Q${num} — Formule de calcul manquante pour "${q.label}"` : `Q${num} — Missing calculation formula for "${q.label}"`);
+    }
+
+    // Vérifier relevant (logique de saut)
+    if (q.relevant && q.relevant.includes('${')) {
+      // Check referenced IDs exist
+      const refs = q.relevant.match(/\$\{([^}]+)\}/g) || [];
+      refs.forEach(ref => {
+        const refId = ref.replace('${','').replace('}','');
+        const exists = validatedForm.questions.some(qq => (qq.id || ('q'+qq.num)) === refId);
+        if (!exists) warnings.push(lang==='fr' ? `Q${num} — Référence "${refId}" introuvable dans le saut conditionnel` : `Q${num} — Reference "${refId}" not found in skip logic`);
+      });
+    }
+  });
+
+  if (issues.length > 0 || warnings.length > 0) {
+    let msg = '';
+    if (issues.length > 0) msg += (lang==='fr'?'❌ Problèmes à corriger:\n':'❌ Issues to fix:\n') + issues.map(i=>'• '+i).join('\n');
+    if (warnings.length > 0) msg += (issues.length>0?'\n\n':'') + (lang==='fr'?'⚠️ Avertissements:\n':'⚠️ Warnings:\n') + warnings.map(w=>'• '+w).join('\n');
+    if (issues.length > 0) msg += '\n\n' + (lang==='fr'?'Corrigez ces problèmes avant de déployer.':'Fix these issues before deploying.');
+    else msg += '\n\n' + (lang==='fr'?'Déployer quand même ?':'Deploy anyway?');
+
+    if (issues.length > 0) {
+      alert(msg);
+      return false;
+    } else {
+      return confirm(msg);
+    }
+  }
+  return true;
+}
+
 async function validateAndDeploy() {
+  // Vérification avant déploiement
+  const canDeploy = await preDeployCheck();
+  if (!canDeploy) return;
+
   showPanel('panel-processing2');
   document.getElementById('proc2-title').textContent = lang==='fr'?'Déploiement en cours...':'Deploying...';
   document.getElementById('proc2-sub').textContent = lang==='fr'?'Connexion à votre compte...':'Connecting to your account...';
