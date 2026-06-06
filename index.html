@@ -636,6 +636,20 @@ async function startAnalysis() {
     await new Promise(r=>setTimeout(r,1000));
     goStep(3);
     renderValCard();
+
+    // Afficher avertissement de sections manquantes si nécessaire
+    if (window._analyseWarning) {
+      setTimeout(() => {
+        const warnDiv = document.createElement('div');
+        warnDiv.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#7c2d12;color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;z-index:9000;max-width:480px;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,.3);';
+        warnDiv.innerHTML = `<div style="font-weight:700;margin-bottom:6px;">⚠️ Questionnaire partiellement extrait</div>
+          <div>${window._analyseWarning}</div>
+          <div style="margin-top:10px;font-size:11px;opacity:.8;">Cliquez pour fermer</div>`;
+        warnDiv.onclick = () => warnDiv.remove();
+        document.body.appendChild(warnDiv);
+        setTimeout(() => warnDiv.remove(), 12000);
+      }, 500);
+    }
   } catch(e) {
     console.error('Error:', e);
     goStep(2);
@@ -674,6 +688,19 @@ async function analyseQuestionnaire(content) {
     throw new Error(err.message || 'Erreur analyse');
   }
   const data = await res.json();
+
+  // Afficher avertissement si des sections ont échoué
+  if (data.warning) {
+    // Stocker pour affichage après validation
+    window._analyseWarning = data.warning;
+    window._chunksFailed = data.chunks_failed;
+    window._chunksTotal = data.chunks_total;
+  } else {
+    window._analyseWarning = null;
+    window._chunksFailed = 0;
+    window._chunksTotal = data.chunks_total || 1;
+  }
+
   return data.form;
 }
 
