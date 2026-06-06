@@ -637,6 +637,32 @@ async function startAnalysis() {
     goStep(3);
     renderValCard();
 
+    // Afficher rapport de cohérence si présent
+    if (parsedForm.coherence_report && parsedForm.coherence_report.length > 0) {
+      setTimeout(function() {
+        const report = parsedForm.coherence_report;
+        const div = document.createElement('div');
+        div.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:16px 20px;border-radius:14px;font-size:13px;z-index:9000;max-width:520px;line-height:1.6;box-shadow:0 4px 24px rgba(0,0,0,.3);cursor:pointer;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font-weight:700;margin-bottom:8px;font-size:14px;';
+        t.textContent = lang==='fr' ? 'Rapport analyse du questionnaire' : 'Questionnaire analysis report';
+        div.appendChild(t);
+        report.forEach(function(r) {
+          const el = document.createElement('div');
+          el.style.cssText = 'padding:3px 0;opacity:.9;';
+          el.textContent = '- ' + r;
+          div.appendChild(el);
+        });
+        const cl = document.createElement('div');
+        cl.style.cssText = 'margin-top:10px;font-size:11px;opacity:.6;';
+        cl.textContent = lang==='fr' ? 'Cliquez pour fermer' : 'Click to close';
+        div.appendChild(cl);
+        div.onclick = function(){ div.remove(); };
+        document.body.appendChild(div);
+        setTimeout(function(){ if(div.parentElement) div.remove(); }, 15000);
+      }, 600);
+    }
+
     // Afficher avertissement de sections manquantes si nécessaire
     if (window._analyseWarning) {
       setTimeout(() => {
