@@ -535,153 +535,56 @@ function onDragOver(e){e.preventDefault();document.getElementById('upload-zone')
 function onDragLeave(){document.getElementById('upload-zone').classList.remove('dragover');}
 function onDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processFile(f);}
 function onFileSelect(e){const f=e.target.files[0];if(f)processFile(f);}
-function showFileSuccess(file, preview) {
-  fileContent = preview;
-  fileObject = file;
-  document.getElementById('upload-zone').innerHTML=`
-    <div style="font-size:26px;margin-bottom:7px;">✅</div>
-    <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · Cliquez pour changer</div>
-    <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
-  checkReady1();
-}
-
 function processFile(file) {
+  // Envoie directement au backend Railway — pas de lecture locale
   const ext = file.name.split('.').pop().toLowerCase();
-  const maxSize = 15 * 1024 * 1024; // 15MB
+  const maxSize = 15 * 1024 * 1024;
 
   if (file.size > maxSize) {
     showToast(lang==='fr'?'Fichier trop volumineux (max 15 MB)':'File too large (max 15 MB)');
     return;
   }
 
-  // TXT, CSV — lecture texte simple
-  if (['txt','csv'].includes(ext)) {
-    const reader = new FileReader();
-    reader.onload = e => showFileSuccess(file, e.target.result);
-    reader.onerror = () => showToast(lang==='fr'?'Erreur de lecture du fichier':'File reading error');
-    reader.readAsText(file, 'UTF-8');
-    return;
-  }
+  const zone = document.getElementById('upload-zone');
+  zone.innerHTML = `
+    <div style="font-size:26px;margin-bottom:8px;">⏳</div>
+    <div style="font-size:14px;font-weight:600;color:var(--muted);">${lang==='fr'?'Lecture du fichier...':'Reading file...'}</div>
+    <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
 
-  // PDF — extraction du texte brut via lecture binaire + parsing basique
-  if (ext === 'pdf') {
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        // Extract readable text from PDF binary
-        const binary = e.target.result;
-        const text = extractTextFromPDF(binary);
-        if (text && text.trim().length > 10) {
-          showFileSuccess(file, text);
-        } else {
-          // PDF non lisible (scanné) — stocker le nom pour Claude
-          showFileSuccess(file, `[FICHIER PDF: ${file.name}] Contenu binaire non extractible directement. Veuillez coller le texte ci-dessous.`);
-          showToast(lang==='fr'?'PDF détecté — collez aussi le texte si possible':'PDF detected — paste text below if possible');
-        }
-      } catch(e) {
-        showFileSuccess(file, `[PDF: ${file.name}]`);
+  const formData = new FormData();
+  formData.append('file', file);
+
+  fetch(BACKEND_URL + '/api/import', { method: 'POST', body: formData })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        zone.innerHTML = `
+          <div style="font-size:26px;margin-bottom:8px;">❌</div>
+          <div style="font-size:14px;font-weight:700;color:var(--red);">${data.message || 'Erreur de lecture'}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">${lang==='fr'?'Collez le texte ci-dessous':'Paste text below'}</div>
+          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+        showToast('⚠️ ' + (data.message || 'Erreur'));
+        return;
       }
-    };
-    reader.readAsBinaryString(file);
-    return;
-  }
-
-  // DOCX — extraction XML interne
-  if (['doc','docx'].includes(ext)) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const text = extractTextFromDOCX(e.target.result);
-        showFileSuccess(file, text || `[DOCX: ${file.name}]`);
-      } catch(err) {
-        showFileSuccess(file, `[DOCX: ${file.name}]`);
-        showToast(lang==='fr'?'Word importé — extraction en cours':'Word imported — extracting content');
-      }
-    };
-    reader.readAsBinaryString(file);
-    return;
-  }
-
-  // XLSX, XLS — lecture binaire + extraction texte
-  if (['xlsx','xls','odt'].includes(ext)) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      showFileSuccess(file, `[${ext.toUpperCase()}: ${file.name}] Fichier importé avec succès.`);
-      showToast(lang==='fr'?'Fichier importé avec succès':'File imported successfully');
-    };
-    reader.readAsArrayBuffer(file);
-    return;
-  }
-
-  // Fallback — lecture texte
-  const reader = new FileReader();
-  reader.onload = e => showFileSuccess(file, e.target.result);
-  reader.onerror = () => showToast(lang==='fr'?'Format non supporté':'Unsupported format');
-  reader.readAsText(file, 'UTF-8');
-}
-
-// Extract text from PDF binary (basic parser)
-function extractTextFromPDF(binary) {
-  let text = '';
-  // Extract text between BT and ET markers (PDF text blocks)
-  const btMatches = binary.match(/BT[\s\S]*?ET/g) || [];
-  btMatches.forEach(block => {
-    // Extract strings in parentheses Tj/TJ operators
-    const strings = block.match(/\(([^)]{1,200})\)\s*Tj/g) || [];
-    strings.forEach(s => {
-      const m = s.match(/\(([^)]*)\)/);
-      if (m && m[1]) {
-        const cleaned = m[1].replace(/\\n/g,' ').replace(/\\r/g,' ').trim();
-        if (cleaned.length > 1) text += cleaned + ' ';
-      }
+      // Succès — texte extrait par le backend
+      fileContent = data.text;
+      fileObject = file;
+      const chars = data.metadata?.chars?.toLocaleString() || data.text?.length?.toLocaleString();
+      zone.innerHTML = `
+        <div style="font-size:26px;margin-bottom:7px;">✅</div>
+        <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · ${chars} ${lang==='fr'?'caractères extraits':'characters extracted'} · ${lang==='fr'?'Cliquez pour changer':'Click to change'}</div>
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+      checkReady1();
+    })
+    .catch(err => {
+      zone.innerHTML = `
+        <div style="font-size:26px;margin-bottom:8px;">⚠️</div>
+        <div style="font-size:14px;font-weight:700;color:var(--yellow);">${lang==='fr'?'Serveur non disponible':'Server unavailable'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">${lang==='fr'?'Collez le texte ci-dessous':'Paste text below'}</div>
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+      showToast(lang==='fr'?'⚠️ Erreur serveur — utilisez le champ texte':'⚠️ Server error — use text field');
     });
-    // Also TJ arrays
-    const tjArr = block.match(/\[([^\]]{1,500})\]\s*TJ/g) || [];
-    tjArr.forEach(s => {
-      const parts = s.match(/\(([^)]{1,100})\)/g) || [];
-      parts.forEach(p => {
-        const m2 = p.match(/\(([^)]*)\)/);
-        if (m2 && m2[1].trim()) text += m2[1].trim() + ' ';
-      });
-    });
-  });
-
-  // Also try to extract plain text streams
-  if (text.length < 50) {
-    const streamMatches = binary.match(/stream[\s\S]*?endstream/g) || [];
-    streamMatches.forEach(s => {
-      const cleaned = s.replace(/[^\x20-\x7E\n\r]/g, ' ').replace(/\s+/g,' ').trim();
-      if (cleaned.length > 20 && !cleaned.startsWith('stream')) {
-        text += cleaned.slice(0, 2000) + ' ';
-      }
-    });
-  }
-
-  return text.replace(/\s+/g,' ').trim();
-}
-
-// Extract text from DOCX (ZIP containing word/document.xml)
-function extractTextFromDOCX(binary) {
-  // Look for XML content in the binary (DOCX is a ZIP)
-  // Find word/document.xml content
-  let text = '';
-
-  // Try to find readable text blocks in the binary
-  const cleaned = binary.replace(/[^\x20-\x7E\n\r]/g, '|');
-  const xmlMatches = cleaned.match(/<w:t[^>]*>([^<]{2,})<\/w:t>/g) || [];
-  xmlMatches.forEach(m => {
-    const inner = m.replace(/<[^>]+>/g,'').trim();
-    if (inner.length > 1) text += inner + ' ';
-  });
-
-  // Also look for plain text patterns
-  if (text.length < 30) {
-    const parts = cleaned.split('|').filter(p => p.trim().length > 3);
-    text = parts.join(' ').replace(/\s+/g,' ').trim().slice(0, 5000);
-  }
-
-  return text;
 }
 function updateCharCount(){
   pasteContent=document.getElementById('paste-input').value;
@@ -802,44 +705,120 @@ function buildDemoForm(content) {
 
 // ============ VALIDATION STEP ============
 function renderValCard() {
-  const q=parsedForm.questions[currentValIdx];
-  const total=parsedForm.questions.length;
-  const pct=((currentValIdx)/total)*100;
-  document.getElementById('val-progress-fill').style.width=pct+'%';
-  document.getElementById('val-progress-label').textContent=`Q ${currentValIdx+1} / ${total}`;
+  const q = parsedForm.questions[currentValIdx];
+  const total = parsedForm.questions.length;
+  const pct = ((currentValIdx) / total) * 100;
+  document.getElementById('val-progress-fill').style.width = pct + '%';
+  document.getElementById('val-progress-label').textContent = `Q ${currentValIdx+1} / ${total}`;
 
-  const choice=validationChoices[currentValIdx];
-  const isLast=currentValIdx===total-1;
-  document.getElementById('val-next-label').textContent=isLast?(lang==='fr'?'Voir le résumé':'See summary'):(lang==='fr'?'Suivant':'Next');
+  const choice = validationChoices[currentValIdx];
+  const isLast = currentValIdx === total - 1;
+  document.getElementById('val-next-label').textContent = isLast
+    ? (lang==='fr'?'Voir le résumé':'See summary')
+    : (lang==='fr'?'Suivant':'Next');
 
-  const formats=q.formats||[];
-  const colsHtml=formats.map((f,fi)=>`
-    <div class="format-col ${choice.formatIdx===fi?'selected':''}" onclick="selectFormat(${fi})">
+  const formats = q.formats || [];
+
+  // Build suggestions HTML
+  const suggestions = q.suggestions || [];
+  let suggestionsHtml = '';
+  if (suggestions.length > 0) {
+    suggestionsHtml = `<div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span>💡</span> ${lang==='fr'?'Propositions intelligentes':'Smart suggestions'}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${suggestions.map((s, si) => {
+          const confirmed = choice.confirmedSuggestions?.[si];
+          const rejected = choice.rejectedSuggestions?.[si];
+          const confidenceColor = s.confidence === 'high' ? 'var(--green)' : s.confidence === 'medium' ? 'var(--yellow)' : 'var(--muted)';
+          const confidenceLabel = s.confidence === 'high' ? (lang==='fr'?'Haute confiance':'High confidence') : s.confidence === 'medium' ? (lang==='fr'?'Confiance moyenne':'Medium confidence') : (lang==='fr'?'Faible confiance':'Low confidence');
+          const typeIcon = {skip_logic:'🔀',calculate:'🧮',constraint:'🔒',required:'⚠️',repeat:'🔁'}[s.type] || '💡';
+          const bgColor = confirmed ? 'rgba(22,163,74,.08)' : rejected ? 'rgba(220,38,38,.05)' : 'rgba(37,99,235,.05)';
+          const borderColor = confirmed ? 'rgba(22,163,74,.3)' : rejected ? 'rgba(220,38,38,.2)' : 'rgba(37,99,235,.15)';
+          return `<div style="background:${bgColor};border:1.5px solid ${borderColor};border-radius:12px;padding:12px 14px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="font-size:18px;flex-shrink:0;margin-top:1px;">${typeIcon}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                  <span style="font-size:12px;font-weight:700;color:var(--ink);">${s.label}</span>
+                  <span style="font-size:10px;color:${confidenceColor};background:rgba(0,0,0,.05);padding:1px 6px;border-radius:10px;">${confidenceLabel}</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5;">${s.description}</div>
+                ${s.value ? `<div style="font-size:11px;color:var(--ink2);background:var(--paper);border-radius:6px;padding:4px 8px;font-family:'Courier New',monospace;margin-bottom:8px;">${s.value}</div>` : ''}
+                <div style="display:flex;gap:6px;">
+                  ${confirmed
+                    ? `<button onclick="rejectSuggestion(${si})" style="background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;">✓ ${lang==='fr'?'Confirmé — Annuler':'Confirmed — Undo'}</button>`
+                    : rejected
+                    ? `<button onclick="confirmSuggestion(${si})" style="background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;">✗ ${lang==='fr'?'Refusé — Reconsidérer':'Rejected — Reconsider'}</button>`
+                    : `<button onclick="confirmSuggestion(${si})" style="background:var(--green);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;">✅ ${lang==='fr'?'Confirmer':'Confirm'}</button>
+                       <button onclick="rejectSuggestion(${si})" style="background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;">❌ ${lang==='fr'?'Ignorer':'Ignore'}</button>`
+                  }
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Format columns
+  const colsHtml = formats.map((f, fi) => {
+    const isRecommended = fi === (q.suggested_format_idx || 0);
+    const isSelected = choice.formatIdx === fi;
+    return `<div class="format-col ${isSelected ? 'selected' : ''}" onclick="selectFormat(${fi})" style="position:relative;">
+      ${isRecommended && !isSelected ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">💡 ${lang==='fr'?'Recommandé':'Recommended'}</div>` : ''}
       <div class="format-col-title">${f.name}</div>
-      ${renderFormatPreview(q,f)}
+      ${renderFormatPreview(q, f)}
       <div class="format-col-desc">${f.note}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
-  const linkOpen=choice.linked?'open':'';
-  document.getElementById('val-card-body').innerHTML=`
-    <div class="val-question-num">Question ${q.num} ${q.group?'· '+q.group:''}</div>
-    <div class="val-question">${q.label}${q.required?'<span style="color:var(--red);margin-left:3px;">*</span>':''}</div>
-    ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
-    <div class="val-format-label" style="margin-top:16px;" data-fr="Choisissez le format de réponse :" data-en="Choose response format:">${lang==='fr'?'Choisissez le format de réponse :':'Choose response format:'}</div>
+  const linkOpen = choice.linked ? 'open' : '';
+  document.getElementById('val-card-body').innerHTML = `
+    <div class="val-question-num">Question ${q.num} ${q.group ? '· '+q.group : ''}</div>
+    <div class="val-question">${q.label}${q.required ? '<span style="color:var(--red);margin-left:3px;">*</span>' : ''}</div>
+    ${q.hint ? `<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>` : ''}
+
+    ${suggestionsHtml}
+
+    <div class="val-format-label" style="margin-top:${suggestions.length > 0 ? '4px' : '16px'};">
+      ${lang==='fr' ? 'Choisissez le format de réponse :' : 'Choose response format:'}
+    </div>
     <div class="format-cols">${colsHtml}</div>
+
     <div class="link-section">
       <div class="link-check-row" onclick="toggleLink()">
-        <div class="link-checkbox ${choice.linked?'checked':''}" id="link-cb"></div>
-        <div class="link-label">${lang==='fr'?'Cette question est liée à une autre question':'This question is linked to another question'}</div>
+        <div class="link-checkbox ${choice.linked ? 'checked' : ''}" id="link-cb"></div>
+        <div class="link-label">${lang==='fr' ? 'Cette question est liée à une autre question' : 'This question is linked to another question'}</div>
       </div>
       <div class="link-input-wrap ${linkOpen}" id="link-wrap">
-        <textarea class="link-textarea" id="link-text" placeholder="${lang==='fr'?'Expliquez le lien en vos propres mots... Ex: Si le répondant répond Non, passer directement à la question 7':'Explain the link in your own words... Ex: If the respondent answers No, skip to question 7'}" rows="3" oninput="saveLinkText()">${choice.linkText||''}</textarea>
-        <div class="link-hint">${lang==='fr'?'Décrivez simplement le lien, R2 Forms se charge du reste.':'Simply describe the link, R2 Forms handles the rest.'}</div>
+        <textarea class="link-textarea" id="link-text"
+          placeholder="${lang==='fr' ? 'Expliquez le lien en vos propres mots... Ex: Si le répondant répond Non, passer directement à la question 7' : 'Explain the link in your own words...'}"
+          rows="3" oninput="saveLinkText()">${choice.linkText || ''}</textarea>
+        <div class="link-hint">${lang==='fr' ? 'Décrivez simplement le lien, R2 Forms se charge du reste.' : 'Simply describe the link, R2 Forms handles the rest.'}</div>
       </div>
     </div>`;
 
-  document.getElementById('btn-val-prev').style.visibility=currentValIdx===0?'hidden':'visible';
+  document.getElementById('btn-val-prev').style.visibility = currentValIdx === 0 ? 'hidden' : 'visible';
   updateValNext();
+}
+
+function confirmSuggestion(si) {
+  if (!validationChoices[currentValIdx].confirmedSuggestions) validationChoices[currentValIdx].confirmedSuggestions = {};
+  if (!validationChoices[currentValIdx].rejectedSuggestions) validationChoices[currentValIdx].rejectedSuggestions = {};
+  validationChoices[currentValIdx].confirmedSuggestions[si] = true;
+  delete validationChoices[currentValIdx].rejectedSuggestions[si];
+  renderValCard();
+}
+
+function rejectSuggestion(si) {
+  if (!validationChoices[currentValIdx].confirmedSuggestions) validationChoices[currentValIdx].confirmedSuggestions = {};
+  if (!validationChoices[currentValIdx].rejectedSuggestions) validationChoices[currentValIdx].rejectedSuggestions = {};
+  validationChoices[currentValIdx].rejectedSuggestions[si] = true;
+  delete validationChoices[currentValIdx].confirmedSuggestions[si];
+  renderValCard();
 }
 
 function renderFormatPreview(q,f) {
@@ -901,8 +880,34 @@ function buildVisualization() {
   validatedForm=JSON.parse(JSON.stringify(parsedForm));
   validatedForm.questions=validatedForm.questions.map((q,i)=>{
     const ch=validationChoices[i];
-    const fmt=q.formats?.[ch.formatIdx]||q.formats?.[0];
-    return {...q,selectedType:fmt?.type||q.type,linked:ch.linked,linkText:ch.linkText};
+    const fmt=q.formats?.[ch.formatIdx]||q.formats?.[q.suggested_format_idx||0]||q.formats?.[0];
+
+    // Appliquer les suggestions confirmées
+    let relevant = '';
+    let calculate = '';
+    let constraint = '';
+    let required = q.required;
+
+    const confirmed = ch.confirmedSuggestions || {};
+    (q.suggestions || []).forEach((s, si) => {
+      if (confirmed[si]) {
+        if (s.type === 'skip_logic') relevant = s.value || '';
+        if (s.type === 'calculate') calculate = s.value || '';
+        if (s.type === 'constraint') constraint = s.value || '';
+        if (s.type === 'required') required = true;
+      }
+    });
+
+    return {
+      ...q,
+      selectedType: fmt?.type || q.type,
+      linked: ch.linked,
+      linkText: ch.linkText,
+      relevant: relevant || (ch.linked && ch.linkText ? ch.linkText : ''),
+      calculate,
+      constraint,
+      required
+    };
   });
 
   goStep(4);
