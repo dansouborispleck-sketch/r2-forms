@@ -1594,30 +1594,45 @@ async function validateAndDeploy() {
 
 // ============ GOOGLE OAUTH2 ============
 let googleAccessToken = null;
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // A configurer
+const GOOGLE_CLIENT_ID = '873941698932-rk9boo1l3uccmnii866vgpsjg0pitn1t.apps.googleusercontent.com';
 
 function connectGoogle() {
-  // Simuler OAuth2 en production - remplacer par vraie implementation
-  // Pour prod: utiliser Google Identity Services
   const scope = 'https://www.googleapis.com/auth/forms.body';
-  const redirectUri = window.location.origin + window.location.pathname;
+  const redirectUri = 'https://dansouborispleck-sketch.github.io/r2-forms/';
   const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
-    'client_id=' + GOOGLE_CLIENT_ID +
+    'client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID) +
     '&redirect_uri=' + encodeURIComponent(redirectUri) +
     '&response_type=token' +
-    '&scope=' + encodeURIComponent(scope);
+    '&scope=' + encodeURIComponent(scope) +
+    '&prompt=select_account';
 
-  if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') {
-    // Mode demo - simuler connexion
-    googleAccessToken = 'DEMO_TOKEN';
-    document.getElementById('google-connected').style.display = 'block';
-    document.getElementById('btn-google-auth').style.background = '#15803d';
-    document.getElementById('btn-google-auth').textContent = 'Compte connecte';
-    showToast('Mode demo - En production, connexion Google reelle');
-  } else {
-    window.open(authUrl, 'google-auth', 'width=500,height=600');
-    // Le token sera recupere via postMessage
-  }
+  // Ouvrir popup OAuth2
+  const popup = window.open(authUrl, 'google-auth', 'width=520,height=620,scrollbars=yes');
+
+  // Verifier si le popup est revenu avec le token (via URL hash)
+  const timer = setInterval(function() {
+    try {
+      if (popup && popup.closed) {
+        clearInterval(timer);
+        return;
+      }
+      if (popup && popup.location && popup.location.href.includes('dansouborispleck-sketch.github.io')) {
+        const hash = popup.location.hash;
+        const params = new URLSearchParams(hash.replace('#',''));
+        const token = params.get('access_token');
+        if (token) {
+          googleAccessToken = token;
+          document.getElementById('google-connected').style.display = 'block';
+          document.getElementById('btn-google-auth').style.background = '#15803d';
+          document.getElementById('btn-google-auth').textContent = lang==='fr'?'Compte Google connecte':'Google account connected';
+          popup.close();
+          clearInterval(timer);
+        }
+      }
+    } catch(e) {
+      // Cross-origin - on attend
+    }
+  }, 500);
 }
 
 // Recevoir le token Google apres OAuth
