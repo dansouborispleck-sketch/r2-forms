@@ -494,7 +494,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       <div class="deploy-stat"><div class="deploy-stat-num" id="dep-l">0</div><div class="deploy-stat-label" data-fr="Logiques" data-en="Logic">Logiques</div></div>
     </div>
     <div class="deploy-actions">
-      <button class="btn-deploy success" id="btn-open-account" onclick="openAccount()">🚀 <span id="btn-access-label" data-fr="Accéder à KoboToolbox" data-en="Access KoboToolbox">Accéder à KoboToolbox</span></button>
+      <button class="btn-deploy success" id="btn-open-account" onclick="openAccount()">🚀 <span id="btn-access-label">Accéder à KoboToolbox</span></button>
       <button class="btn-deploy secondary" onclick="downloadFinal()">⬇️ <span data-fr="Télécharger" data-en="Download">Télécharger</span></button>
       <button class="btn-deploy secondary" onclick="restart()">🔄 <span data-fr="Nouveau questionnaire" data-en="New questionnaire">Nouveau questionnaire</span></button>
     </div>
@@ -1171,6 +1171,30 @@ function buildVisualization() {
     // Required par défaut true, sauf si modifié
     const required = ch.required !== undefined ? ch.required : true;
 
+    // Auto skip_logic pour questions "Autres, precisez" sans relevant
+    if (!relevant && q.label) {
+      const lbl = q.label.toLowerCase();
+      if (lbl.includes('si autre') || (lbl.includes('precis') && lbl.includes('autre'))) {
+        const qIdx = i;
+        if (qIdx > 0) {
+          const parentQ = parsedForm.questions[qIdx - 1];
+          const parentName = (parentQ.id || ('q' + parentQ.num)).replace(/[^a-zA-Z0-9_]/g,'_');
+          const parentChoices = parentQ.choices || [];
+          let autreIdx = -1;
+          parentChoices.forEach((c, ci) => {
+            const cLbl = (typeof c === 'string' ? c : c.label || '').toLowerCase();
+            if (cLbl.includes('autre') || cLbl.includes('other')) autreIdx = ci;
+          });
+          if (autreIdx >= 0) {
+            const autreVal = (parentQ.choice_values && parentQ.choice_values[autreIdx] !== undefined)
+              ? String(parentQ.choice_values[autreIdx])
+              : String(autreIdx);
+                        relevant = "${" + parentName + "} = '" + autreVal + "'";
+          }
+        }
+      }
+    }
+
     return {
       ...q,
       selectedType,
@@ -1575,6 +1599,18 @@ async function validateAndDeploy() {
     await new Promise(r=>setTimeout(r,400));
 
     goStep(5);
+
+    // Mettre a jour le label du bouton selon l'outil
+    const toolLabels5 = {
+      kobo: lang==='fr'?'Acceder a KoboToolbox':'Open KoboToolbox',
+      odk: lang==='fr'?'Acceder a ODK Central':'Open ODK Central',
+      google: lang==='fr'?'Acceder a Google Forms':'Open Google Forms',
+      jotform: lang==='fr'?'Acceder a JotForm':'Open JotForm',
+      xlsform: lang==='fr'?'Telecharger XLSForm':'Download XLSForm'
+    };
+    const lbl5 = document.getElementById('btn-access-label');
+    if (lbl5) lbl5.textContent = toolLabels5[selectedTool] || ('Acceder a ' + (TOOL_NAMES[selectedTool]||''));
+
     const q = validatedForm?.questions?.length || 0;
     const g = [...new Set((validatedForm?.questions||[]).map(q=>q.group).filter(Boolean))].length || 1;
     const l = (validatedForm?.questions||[]).filter(q=>q.linked).length || 0;
@@ -1646,6 +1682,16 @@ window.addEventListener('message', function(e) {
 });
 
 function openAccount(){
+  // Mettre à jour le label selon l'outil
+  const toolLabels = {
+    kobo: lang==='fr'?'Acceder a KoboToolbox':'Open KoboToolbox',
+    odk: lang==='fr'?'Acceder a ODK Central':'Open ODK Central',
+    google: lang==='fr'?'Acceder a Google Forms':'Open Google Forms',
+    jotform: lang==='fr'?'Acceder a JotForm':'Open JotForm',
+    xlsform: lang==='fr'?'Telecharger XLSForm':'Download XLSForm'
+  };
+  const lbl = document.getElementById('btn-access-label');
+  if (lbl) lbl.textContent = toolLabels[selectedTool] || ('Acceder a ' + (TOOL_NAMES[selectedTool]||''));
   const url = deployedFormUrl || TOOL_URLS[selectedTool];
   if(url) window.open(url,'_blank');
   else showToast(lang==='fr'?'Téléchargez le fichier pour l\'importer':'Download the file to import it');
