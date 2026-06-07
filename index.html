@@ -312,7 +312,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
         <div class="tool-card selected" data-tool="kobo" onclick="selectTool(this)"><div class="tool-icon">📋</div><div class="tool-name">KoboToolbox</div><div class="tool-desc" data-fr="ONG & humanitaire" data-en="NGO & humanitarian">ONG & humanitaire</div></div>
         <div class="tool-card" data-tool="odk" onclick="selectTool(this)"><div class="tool-icon">🌿</div><div class="tool-name">ODK Central</div><div class="tool-desc" data-fr="Open source" data-en="Open source">Open source</div></div>
         <div class="tool-card" data-tool="jotform" onclick="selectTool(this)"><div class="tool-icon">📝</div><div class="tool-name">JotForm</div><div class="tool-desc" data-fr="Tous secteurs" data-en="All sectors">Tous secteurs</div></div>
-        <div class="tool-card" data-tool="tally" onclick="selectTool(this)"><div class="tool-icon">✦</div><div class="tool-name">Tally.so</div><div class="tool-desc" data-fr="Moderne & gratuit" data-en="Modern & free">Moderne & gratuit</div></div>
+
         <div class="tool-card" data-tool="xlsform" onclick="selectTool(this)"><div class="tool-icon">📊</div><div class="tool-name">XLSForm</div><div class="tool-desc" data-fr="Fichier Excel" data-en="Excel file">Fichier Excel</div></div>
         <div class="tool-card" data-tool="google" onclick="selectTool(this)"><div class="tool-icon">🔵</div><div class="tool-name">Google Forms</div><div class="tool-desc" data-fr="Script prêt" data-en="Ready script">Script prêt</div></div>
       </div>
@@ -378,7 +378,42 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
           </div>
         </div>
       </div>
-      <div class="info-box">🔒 <span data-fr="Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés." data-en="Your credentials are encrypted and only used to deploy your form. They are never stored.">Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés.</span></div>
+      <!-- JotForm API Key -->
+      <div id="fields-jotform" style="display:none;">
+        <div style="background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.15);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;">📋 Comment obtenir votre cle API JotForm</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+            1. Connectez-vous sur <a href="https://www.jotform.com" target="_blank" style="color:var(--blue);">jotform.com</a><br>
+            2. Cliquez sur votre photo de profil en haut a droite → <strong>Mes parametres</strong><br>
+            3. Cliquez sur <strong>API</strong> dans le menu<br>
+            4. Cliquez sur <strong>Creer une nouvelle cle</strong><br>
+            5. Copiez la cle et collez-la ci-dessous
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Cle API JotForm</div>
+          <input type="text" class="field-input" id="jotform-apikey" placeholder="Collez votre cle API JotForm ici..."/>
+        </div>
+        <div class="info-box">🔒 Votre cle API est utilisee uniquement pour deposer votre masque. Elle n'est jamais conservee.</div>
+      </div>
+
+      <!-- Google Forms OAuth2 -->
+      <div id="fields-google" style="display:none;">
+        <div style="background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.15);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;">🔵 Connexion Google</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;">Cliquez sur le bouton ci-dessous pour autoriser R2 Forms a creer des formulaires dans votre compte Google. Vous serez redirige vers Google et reviendrez automatiquement.</div>
+          <button onclick="connectGoogle()" id="btn-google-auth" style="background:#4285f4;color:#fff;border:none;border-radius:10px;padding:11px 20px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg>
+            Connecter mon compte Google
+          </button>
+          <div id="google-connected" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);border-radius:10px;font-size:13px;color:var(--green);font-weight:600;">
+            ✅ Compte Google connecte
+          </div>
+        </div>
+        <div class="info-box">🔒 R2 Forms n'accede qu'a Google Forms. Vos autres donnees Google ne sont pas accessibles.</div>
+      </div>
+
+      <div class="info-box" id="kobo-info-box">🔒 <span data-fr="Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés." data-en="Your credentials are encrypted and only used to deploy your form. They are never stored.">Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés.</span></div>
     </div>
     <div class="card-footer">
       <button class="btn-back" onclick="goStep(1)" data-fr="← Retour" data-en="← Back">← Retour</button>
@@ -518,7 +553,25 @@ function selectTool(el) {
   el.classList.add('selected');
   selectedTool = el.dataset.tool;
   document.getElementById('server-row').style.display = selectedTool==='odk'?'block':'none';
-  document.getElementById('p2sub').textContent = (lang==='fr'?'Connexion à votre compte ':'Connect to your ')+TOOL_NAMES[selectedTool];
+  document.getElementById('p2sub').textContent = (lang==='fr'?'Connexion a votre compte ':'Connect to your ')+TOOL_NAMES[selectedTool];
+
+  // Afficher le bon formulaire selon l'outil
+  const isJotform = selectedTool === 'jotform';
+  const isGoogle = selectedTool === 'google';
+  const isKoboODK = !isJotform && !isGoogle;
+
+  const fjot = document.getElementById('fields-jotform');
+  const fgoo = document.getElementById('fields-google');
+  const fex = document.getElementById('fields-existing');
+  const fac = document.getElementById('auth-choice');
+  const kib = document.getElementById('kobo-info-box');
+
+  if (fjot) fjot.style.display = isJotform ? 'block' : 'none';
+  if (fgoo) fgoo.style.display = isGoogle ? 'block' : 'none';
+  if (fex) fex.style.display = isKoboODK ? 'block' : 'none';
+  if (fac) fac.style.display = isKoboODK ? 'flex' : 'none';
+  if (kib) kib.style.display = isKoboODK ? 'block' : 'none';
+  document.getElementById('fields-new').style.display = 'none';
 }
 
 // ============ AUTH ============
@@ -1295,6 +1348,22 @@ async function correctForm(form, instructions) {
 }
 
 // ============ DEPLOY ============
+// ============ GOOGLE FORMS DEPLOYMENT ============
+async function deployToGoogle(form) {
+  if (!googleAccessToken || googleAccessToken === 'DEMO_TOKEN') {
+    throw new Error(lang==='fr'?'Connectez votre compte Google a l etape 2.':'Connect your Google account in step 2.');
+  }
+  updateProcText(lang==='fr'?'Deploiement Google Forms...':'Deploying to Google Forms...');
+  const res = await fetch(BACKEND_URL + '/api/deploy/google', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ form, credentials: { accessToken: googleAccessToken } })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Erreur deploiement Google Forms');
+  return { uid: data.formId, url: data.url, server: 'google' };
+}
+
 // ============ KOBOTOOLBOX DEPLOYMENT ============
 async function deployToKoboToolbox(form) {
   const server = document.getElementById('auth-server')?.value?.trim() || 'https://kf.kobotoolbox.org';
@@ -1325,9 +1394,20 @@ async function deployToKoboToolbox(form) {
 }
 
 async function deployToJotForm(form) {
-  showToast(lang==='fr'?'Déploiement JotForm bientôt disponible':'JotForm deployment coming soon');
-  await new Promise(r=>setTimeout(r,1500));
-  return { uid:'demo', url:'https://www.jotform.com/myforms/', server:'jotform' };
+  const apiKey = document.getElementById('jotform-apikey')?.value?.trim();
+  if (!apiKey) throw new Error(lang==='fr'?'Cle API JotForm manquante. Retournez a l etape 2.':'JotForm API key missing.');
+
+  updateProcText(lang==='fr'?'Deploiement JotForm...':'Deploying to JotForm...');
+
+  const res = await fetch(BACKEND_URL + '/api/deploy/jotform', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ form, credentials: { apiKey } })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Erreur deploiement JotForm');
+  return { uid: data.formId, url: data.url, server: 'jotform' };
 }
 
 function updateProcText(txt) {
@@ -1483,6 +1563,8 @@ async function validateAndDeploy() {
     let result;
     if (selectedTool === 'jotform') {
       result = await deployToJotForm(validatedForm);
+    } else if (selectedTool === 'google') {
+      result = await deployToGoogle(validatedForm);
     } else {
       result = await deployToKoboToolbox(validatedForm);
     }
@@ -1509,6 +1591,44 @@ async function validateAndDeploy() {
     showToast('❌ ' + (err.message || (lang==='fr'?'Erreur de déploiement. Vérifiez vos identifiants.':'Deployment error.')));
   }
 }
+
+// ============ GOOGLE OAUTH2 ============
+let googleAccessToken = null;
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // A configurer
+
+function connectGoogle() {
+  // Simuler OAuth2 en production - remplacer par vraie implementation
+  // Pour prod: utiliser Google Identity Services
+  const scope = 'https://www.googleapis.com/auth/forms.body';
+  const redirectUri = window.location.origin + window.location.pathname;
+  const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+    'client_id=' + GOOGLE_CLIENT_ID +
+    '&redirect_uri=' + encodeURIComponent(redirectUri) +
+    '&response_type=token' +
+    '&scope=' + encodeURIComponent(scope);
+
+  if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') {
+    // Mode demo - simuler connexion
+    googleAccessToken = 'DEMO_TOKEN';
+    document.getElementById('google-connected').style.display = 'block';
+    document.getElementById('btn-google-auth').style.background = '#15803d';
+    document.getElementById('btn-google-auth').textContent = 'Compte connecte';
+    showToast('Mode demo - En production, connexion Google reelle');
+  } else {
+    window.open(authUrl, 'google-auth', 'width=500,height=600');
+    // Le token sera recupere via postMessage
+  }
+}
+
+// Recevoir le token Google apres OAuth
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.googleToken) {
+    googleAccessToken = e.data.googleToken;
+    document.getElementById('google-connected').style.display = 'block';
+    document.getElementById('btn-google-auth').style.background = '#15803d';
+    document.getElementById('btn-google-auth').textContent = 'Compte connecte';
+  }
+});
 
 function openAccount(){
   const url = deployedFormUrl || TOOL_URLS[selectedTool];
