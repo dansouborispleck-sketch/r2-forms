@@ -1313,6 +1313,13 @@ function buildTallyMock(form) {
 
 // Correction input listener
 document.addEventListener('DOMContentLoaded',()=>{
+
+  // Init: cacher tous les panels
+  ['panel1','panel2','panel3','panel4','panel5','panel-processing','panel-processing2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+
   // Recuperer le token Google apres redirect OAuth2
   const hash = window.location.hash;
   if (hash && hash.includes('access_token') && sessionStorage.getItem('r2_google_auth_pending')) {
@@ -1320,24 +1327,54 @@ document.addEventListener('DOMContentLoaded',()=>{
     const token = params.get('access_token');
     if (token) {
       googleAccessToken = token;
+      // Recuperer l'etat sauvegarde
+      const savedTool = sessionStorage.getItem('r2_selected_tool') || 'google';
+      const savedContent = sessionStorage.getItem('r2_file_content') || '';
       sessionStorage.removeItem('r2_google_auth_pending');
-      // Nettoyer l'URL
+      sessionStorage.removeItem('r2_selected_tool');
+      sessionStorage.removeItem('r2_file_content');
       history.replaceState(null, '', window.location.pathname);
-      // Afficher confirmation connexion
+
+      // Restaurer l'etat
+      selectedTool = savedTool;
+      if (savedContent) {
+        fileContent = savedContent;
+        pasteContent = savedContent;
+      }
+
+      // Aller directement a l'etape 2 avec Google selectionne
       setTimeout(function() {
-        const connEl = document.getElementById('google-connected');
-        const btnEl = document.getElementById('btn-google-auth');
+        // Selectionner l'outil Google
+        document.querySelectorAll('.tool-card').forEach(function(c) {
+          c.classList.remove('selected');
+          if (c.dataset.tool === savedTool) c.classList.add('selected');
+        });
+        // Afficher panel2
+        showPanel('panel2');
+        // Mettre a jour la barre d'etapes
+        goStep(2);
+        // Afficher les champs Google
+        var fgoo = document.getElementById('fields-google');
+        var fjot = document.getElementById('fields-jotform');
+        var fex = document.getElementById('fields-existing');
+        var fac = document.getElementById('auth-choice');
+        var kib = document.getElementById('kobo-info-box');
+        if (fgoo) fgoo.style.display = savedTool === 'google' ? 'block' : 'none';
+        if (fjot) fjot.style.display = 'none';
+        if (fex) fex.style.display = savedTool !== 'google' && savedTool !== 'jotform' ? 'block' : 'none';
+        if (fac) fac.style.display = savedTool !== 'google' && savedTool !== 'jotform' ? 'flex' : 'none';
+        if (kib) kib.style.display = savedTool !== 'google' && savedTool !== 'jotform' ? 'block' : 'none';
+        // Confirmer connexion Google
+        var connEl = document.getElementById('google-connected');
+        var btnEl = document.getElementById('btn-google-auth');
         if (connEl) connEl.style.display = 'block';
         if (btnEl) { btnEl.style.background = '#15803d'; btnEl.textContent = lang==='fr'?'Compte Google connecte':'Google account connected'; }
-      }, 500);
+      }, 300);
+      return;
     }
   }
 
-  // Init: show only panel1
-  ['panel1','panel2','panel3','panel4','panel5','panel-processing','panel-processing2'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display='none';
-  });
+  // Afficher panel1 normalement
   document.getElementById('panel1').style.display='block';
 
   const ta=document.getElementById('correction-input');
@@ -1662,10 +1699,12 @@ function connectGoogle() {
     '&scope=' + encodeURIComponent(scope) +
     '&prompt=select_account';
 
-  // Stocker l'URL de retour dans sessionStorage pour la recuperer apres redirect
+  // Sauvegarder l'etat avant redirection
   sessionStorage.setItem('r2_google_auth_pending', '1');
+  sessionStorage.setItem('r2_selected_tool', selectedTool);
+  sessionStorage.setItem('r2_file_content', fileContent || pasteContent || '');
 
-  // Redirect direct au lieu d'un popup pour eviter les problemes COOP
+  // Redirect vers Google OAuth2
   window.location.href = authUrl;
 }
 
