@@ -1221,6 +1221,90 @@ function buildVisualization() {
   renderVisualization(validatedForm);
 }
 
+function renderExcelPreview(form) {
+  const questions = form.questions || [];
+  // Grouper par section
+  const groups = {};
+  const groupOrder = [];
+  questions.forEach(function(q) {
+    const g = q.group || 'General';
+    if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
+    groups[g].push(q);
+  });
+
+  function makeVarName(q) {
+    const label = (q.label || q.id || 'var').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').toLowerCase().replace(/^_|_$/g,'').slice(0,20);
+    return 'v' + (q.num || 0) + '_' + label;
+  }
+
+  // Groupes de couleurs pour les sections
+  const sectionColors = ['#1F4E79','#2E75B6','#1F6B3A','#7B3F00','#4B0082','#8B0000'];
+  const sectionTextColors = ['#BDD7EE','#DEEAF1','#C6EFCE','#FFDCB2','#E8D5FF','#FFD5D5'];
+
+  let html = '<div style="overflow-x:auto;margin-top:8px;">';
+  html += '<table style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:11px;min-width:100%;">';
+
+  // Ligne 1: sections
+  html += '<tr>';
+  groupOrder.forEach(function(g, gi) {
+    const n = groups[g].length;
+    const bg = sectionColors[gi % sectionColors.length];
+    html += '<th colspan="' + n + '" style="background:' + bg + ';color:#fff;padding:8px 10px;text-align:center;font-weight:700;border:1px solid #fff;font-size:11px;">' + g + '</th>';
+  });
+  html += '</tr>';
+
+  // Ligne 2: noms variables
+  html += '<tr>';
+  questions.forEach(function(q) {
+    html += '<th style="background:#2E75B6;color:#fff;padding:6px 8px;text-align:center;font-size:10px;border:1px solid #BDD7EE;white-space:nowrap;">' + makeVarName(q) + '</th>';
+  });
+  html += '</tr>';
+
+  // 5 lignes exemple
+  for (var r = 0; r < 5; r++) {
+    const bg = r % 2 === 0 ? '#EBF3FB' : '#FFFFFF';
+    html += '<tr>';
+    questions.forEach(function(q) {
+      const t = q.selectedType || q.type || 'text';
+      let cellContent = '';
+      if (t === 'select_one' || t === 'select_multiple') {
+        const choices = q.choices || [];
+        if (choices.length > 0 && r === 0) {
+          cellContent = '<select style="font-size:10px;border:none;background:transparent;width:100%;"><option>-- Choisir --</option>' +
+            choices.slice(0,5).map(function(c){ return '<option>' + (typeof c==='string'?c:c.label||c) + '</option>'; }).join('') + '</select>';
+        }
+      } else if (t === 'date' && r === 0) {
+        cellContent = '<span style="color:#999;font-style:italic;">jj/mm/aaaa</span>';
+      } else if ((t === 'integer' || t === 'decimal') && r === 0) {
+        cellContent = '<span style="color:#999;font-style:italic;">' + (t==='integer'?'0':'0.00') + '</span>';
+      }
+      html += '<td style="background:' + bg + ';border:1px solid #BDD7EE;padding:4px 8px;min-width:80px;max-width:150px;">' + cellContent + '</td>';
+    });
+    html += '</tr>';
+  }
+  html += '</table></div>';
+
+  // Badge Excel
+  html += '<div style="margin-top:12px;padding:10px 14px;background:#E2EFDA;border-radius:8px;font-size:12px;color:#375623;"><strong>📊 Fichier Excel</strong> — 2 feuilles : <em>Saisie</em> (100 lignes paramétrées) + <em>Dictionnaire</em> (' + questions.length + ' variables)</div>';
+
+  // Remplacer le contenu de panel4
+  const vizArea = document.getElementById('viz-questions');
+  if (vizArea) vizArea.innerHTML = html;
+  else {
+    const p4 = document.getElementById('panel4');
+    if (p4) {
+      let container = p4.querySelector('.viz-container');
+      if (!container) container = p4;
+      const existing = container.querySelector('.excel-preview');
+      if (existing) existing.remove();
+      const div = document.createElement('div');
+      div.className = 'excel-preview';
+      div.innerHTML = html;
+      container.appendChild(div);
+    }
+  }
+}
+
 function renderVisualization(form) {
   const body=document.getElementById('viz-body');
   body.innerHTML='<div class="mock-form">'+buildMockForm(form)+'</div>';
