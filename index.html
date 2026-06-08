@@ -1531,10 +1531,31 @@ async function correctForm(form, instructions) {
 async function deployToExcel(form) {
   updateProcText(lang==='fr'?'Generation du fichier Excel...':'Generating Excel file...');
 
+  // Alléger le formulaire - garder seulement ce qui est nécessaire pour Excel
+  const lightForm = {
+    title: form.title,
+    questions: (form.questions || []).map(function(q) {
+      return {
+        id: q.id,
+        num: q.num,
+        label: q.label,
+        group: q.group,
+        selectedType: q.selectedType,
+        type: q.type,
+        required: q.required,
+        hint: q.hint,
+        choices: q.choices,
+        numMin: q.numMin,
+        numMax: q.numMax,
+        numDigitsAfter: q.numDigitsAfter
+      };
+    })
+  };
+
   const res = await fetch(BACKEND_URL + '/api/deploy/excel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ form })
+    body: JSON.stringify({ form: lightForm })
   });
 
   if (!res.ok) {
