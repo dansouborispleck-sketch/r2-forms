@@ -314,6 +314,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
         <div class="tool-card" data-tool="jotform" onclick="selectTool(this)"><div class="tool-icon">📝</div><div class="tool-name">JotForm</div><div class="tool-desc" data-fr="Tous secteurs" data-en="All sectors">Tous secteurs</div></div>
 
         <div class="tool-card" data-tool="xlsform" onclick="selectTool(this)"><div class="tool-icon">📊</div><div class="tool-name">XLSForm</div><div class="tool-desc" data-fr="Fichier Excel" data-en="Excel file">Fichier Excel</div></div>
+        <div class="tool-card" data-tool="excel" onclick="selectTool(this)"><div class="tool-icon">📗</div><div class="tool-name">Excel</div><div class="tool-desc" data-fr="Masque de saisie" data-en="Data entry mask">Masque de saisie</div></div>
         <div class="tool-card" data-tool="google" onclick="selectTool(this)"><div class="tool-icon">🔵</div><div class="tool-name">Google Forms</div><div class="tool-desc" data-fr="Script prêt" data-en="Ready script">Script prêt</div></div>
       </div>
       <hr class="sep">
@@ -380,6 +381,10 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       </div>
       <!-- JotForm API Key -->
       <div id="fields-jotform" style="display:none;">
+        <div style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--red);">⚠️ Important</div>
+          <div style="font-size:12px;color:var(--ink);margin-top:4px;">Votre cle API doit avoir le niveau d'acces <strong>Full Access</strong>. Une cle en <em>Read Access</em> ne permettra pas de creer des formulaires.</div>
+        </div>
         <div style="background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.15);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
           <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;">📋 Comment obtenir votre cle API JotForm</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.7;">
@@ -534,7 +539,7 @@ let validatedForm = null;    // form after validation
 let currentValIdx = 0;
 let validationChoices = [];  // per question: {formatIdx, linked, linkText}
 
-const TOOL_NAMES = {kobo:'KoboToolbox',odk:'ODK Central',jotform:'JotForm',tally:'Tally.so',xlsform:'XLSForm',google:'Google Forms'};
+const TOOL_NAMES = {kobo:'KoboToolbox',odk:'ODK Central',jotform:'JotForm',tally:'Tally.so',xlsform:'XLSForm',google:'Google Forms',excel:'Excel'};
 const TOOL_URLS  = {kobo:'https://kf.kobotoolbox.org',odk:'https://your-server.com',jotform:'https://www.jotform.com/myforms/',tally:'https://tally.so/forms',xlsform:null,google:'https://docs.google.com/forms'};
 
 // ============ LANGUAGE ============
@@ -1429,6 +1434,36 @@ async function correctForm(form, instructions) {
 }
 
 // ============ DEPLOY ============
+// ============ EXCEL DEPLOYMENT ============
+async function deployToExcel(form) {
+  updateProcText(lang==='fr'?'Generation du fichier Excel...':'Generating Excel file...');
+
+  const res = await fetch(BACKEND_URL + '/api/deploy/excel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ form })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || 'Erreur generation Excel');
+  }
+
+  // Telecharger le fichier
+  const blob = await res.blob();
+  const filename = (form.title || 'formulaire').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40) + '_masque.xlsx';
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  return { uid: 'excel', url: '#', server: 'excel', filename };
+}
+
 // ============ GOOGLE FORMS DEPLOYMENT ============
 async function deployToGoogle(form) {
   if (!googleAccessToken || googleAccessToken === 'DEMO_TOKEN') {
@@ -1646,6 +1681,8 @@ async function validateAndDeploy() {
       result = await deployToJotForm(validatedForm);
     } else if (selectedTool === 'google') {
       result = await deployToGoogle(validatedForm);
+    } else if (selectedTool === 'excel') {
+      result = await deployToExcel(validatedForm);
     } else {
       result = await deployToKoboToolbox(validatedForm);
     }
@@ -1663,7 +1700,8 @@ async function validateAndDeploy() {
       odk: lang==='fr'?'Acceder a ODK Central':'Open ODK Central',
       google: lang==='fr'?'Acceder a Google Forms':'Open Google Forms',
       jotform: lang==='fr'?'Acceder a JotForm':'Open JotForm',
-      xlsform: lang==='fr'?'Telecharger XLSForm':'Download XLSForm'
+      xlsform: lang==='fr'?'Telecharger XLSForm':'Download XLSForm',
+      excel: lang==='fr'?'Fichier telecharge':'File downloaded'
     };
     const lbl5 = document.getElementById('btn-access-label');
     if (lbl5) lbl5.textContent = toolLabels5[selectedTool] || ('Acceder a ' + (TOOL_NAMES[selectedTool]||''));
@@ -1725,7 +1763,8 @@ function openAccount(){
     odk: lang==='fr'?'Acceder a ODK Central':'Open ODK Central',
     google: lang==='fr'?'Acceder a Google Forms':'Open Google Forms',
     jotform: lang==='fr'?'Acceder a JotForm':'Open JotForm',
-    xlsform: lang==='fr'?'Telecharger XLSForm':'Download XLSForm'
+    xlsform: lang==='fr'?'Telecharger XLSForm':'Download XLSForm',
+    excel: lang==='fr'?'Fichier telecharge':'File downloaded'
   };
   const lbl = document.getElementById('btn-access-label');
   if (lbl) lbl.textContent = toolLabels[selectedTool] || ('Acceder a ' + (TOOL_NAMES[selectedTool]||''));
