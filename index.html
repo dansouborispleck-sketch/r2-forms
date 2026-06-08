@@ -333,7 +333,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       <div class="char-count" id="char-count">0 caractères</div>
     </div>
     <div class="card-footer">
-      <button class="btn-next" id="btn-next1" onclick="goStep(2)" disabled>
+      <button class="btn-next" id="btn-next1" onclick="goNextFromStep1()" disabled>
         <span data-fr="Continuer" data-en="Continue">Continuer</span> →
       </button>
     </div>
@@ -664,6 +664,15 @@ function showPanel(id) {
   // Show target
   const t=document.getElementById(id);
   if(t) t.style.display='block';
+}
+
+function goNextFromStep1() {
+  if (selectedTool === 'excel') {
+    // Excel: pas d'étape 2, aller directement à l'analyse
+    startAnalysis();
+  } else {
+    goStep(2);
+  }
 }
 
 function goStep(s) {
