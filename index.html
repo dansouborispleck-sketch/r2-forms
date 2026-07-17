@@ -931,6 +931,27 @@ function renderValCard() {
     </div>
   </div>`;
 
+  // Pour les questions de type note: pas de format à choisir
+  const isNoteQuestion = q.question_class === 'note' || q.type === 'note' ||
+    (q.formats && q.formats.length === 1 && q.formats[0] && q.formats[0].type === 'note');
+
+  if (isNoteQuestion) {
+    // Auto-sélectionner format 0 et ne rien afficher
+    if (validationChoices[currentValIdx].formatIdx === null) {
+      validationChoices[currentValIdx].formatIdx = 0;
+    }
+    document.getElementById('val-card-body').innerHTML = `
+      <div class="val-question-num">Question ${q.num}${q.group?' · '+q.group:''}</div>
+      <div class="val-question">${q.label}</div>
+      <div style="margin-top:16px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;font-size:13px;color:#166534;">
+        📋 ${lang==='fr'?'Texte informatif — aucune saisie requise':'Informational text — no input required'}
+      </div>
+      ${requiredHtml}`;
+    document.getElementById('btn-val-prev').style.visibility = currentValIdx===0?'hidden':'visible';
+    document.getElementById('btn-val-next').disabled = false;
+    return;
+  }
+
   // Format cols
   const colsHtml = formats.map((f, fi) => {
     const isRecommended = fi === (q.suggested_format_idx || 0);
@@ -1139,9 +1160,10 @@ function saveLinkText() {
 
 function updateValNext() {
   const q = parsedForm.questions[currentValIdx];
-  const autoFormatClasses = ['date','geopoint','media','calculate'];
-  // Questions à format unique ou quantitatives : toujours valides
-  const autoValid = autoFormatClasses.includes(q.question_class);
+  const autoFormatClasses = ['date','geopoint','media','calculate','note'];
+  // Pour les notes et autres types auto: toujours valide
+  const isNote = q.question_class === 'note' || q.type === 'note' || (q.formats && q.formats.length === 1 && q.formats[0].type === 'note');
+  const autoValid = autoFormatClasses.includes(q.question_class) || isNote;
   const done = autoValid || validationChoices[currentValIdx].formatIdx !== null;
   document.getElementById('btn-val-next').disabled = !done;
 }
@@ -1163,8 +1185,9 @@ function buildVisualization() {
   validatedForm.questions=validatedForm.questions.map((q,i)=>{
     const ch=validationChoices[i];
     // Pour questions avec 1 seul format (date, geopoint, media, calculate), pas besoin de choix
-    const autoFormatClasses = ['date','geopoint','media','calculate'];
-    const fmtIdx = autoFormatClasses.includes(q.question_class) ? 0 : (ch.formatIdx !== null ? ch.formatIdx : (q.suggested_format_idx || 0));
+    const autoFormatClasses = ['date','geopoint','media','calculate','note'];
+    const isNoteQ = q.question_class === 'note' || q.type === 'note';
+    const fmtIdx = (autoFormatClasses.includes(q.question_class) || isNoteQ) ? 0 : (ch.formatIdx !== null ? ch.formatIdx : (q.suggested_format_idx || 0));
     const fmt = q.formats?.[fmtIdx] || q.formats?.[0];
 
     // Appliquer les suggestions confirmées
