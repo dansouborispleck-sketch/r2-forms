@@ -835,8 +835,43 @@ function buildDemoForm(content) {
 }
 
 // ============ VALIDATION STEP ============
+function ensureFormats(q) {
+  // Garantir que chaque question a ses formats selon sa classe
+  if (q.formats && q.formats.length > 0) return;
+  const cls = q.question_class || 'qualitative_open';
+  const t = q.type || 'text';
+  if (cls === 'quantitative' || t === 'integer' || t === 'decimal') {
+    q.formats = [{id:'A',name:'Nombre entier',type:'integer',note:'Ex: 25'},{id:'B',name:'Nombre décimal',type:'decimal',note:'Ex: 65,5'},{id:'C',name:'Échelle',type:'range',note:'Ex: 1 à 10'}];
+    q.question_class = 'quantitative';
+  } else if (cls === 'qualitative_choice' || t === 'select_one' || t === 'select_multiple') {
+    q.formats = [{id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse'},{id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses'},{id:'C',name:'Texte libre',type:'text',note:'Réponse libre'}];
+    q.question_class = 'qualitative_choice';
+    if (!q.suggested_format_idx) q.suggested_format_idx = 0;
+  } else if (cls === 'date_time' || t === 'date' || t === 'time' || t === 'datetime') {
+    q.formats = [{id:'A',name:'Date',type:'date',note:'jj/mm/aaaa'},{id:'B',name:'Heure',type:'time',note:'hh:mm'},{id:'C',name:'Date et heure',type:'datetime',note:'jj/mm/aaaa hh:mm'}];
+    q.question_class = 'date_time';
+  } else if (cls === 'geopoint' || t === 'geopoint') {
+    q.formats = [{id:'A',name:'GPS automatique',type:'geopoint',note:'Capture GPS'}];
+    q.question_class = 'geopoint';
+  } else if (cls === 'note' || t === 'note') {
+    q.formats = [{id:'A',name:'Note',type:'note',note:'Texte sans saisie'}];
+    q.question_class = 'note';
+  } else if (cls === 'media_photo' || t === 'image') {
+    q.formats = [{id:'A',name:'Photo',type:'image',note:'Prendre une photo'}];
+  } else if (cls === 'acknowledge' || t === 'acknowledge') {
+    q.formats = [{id:'A',name:'Confirmation',type:'acknowledge',note:'Case à cocher'}];
+  } else if (cls === 'scale' || t === 'range') {
+    q.formats = [{id:'A',name:'Échelle',type:'range',note:'Curseur'}];
+  } else {
+    // Défaut: texte libre
+    q.formats = [{id:'A',name:'Réponse courte',type:'text',note:'Quelques mots'},{id:'B',name:'Réponse longue',type:'text',note:'Plusieurs phrases'}];
+    q.question_class = 'qualitative_open';
+  }
+}
+
 function renderValCard() {
   const q = parsedForm.questions[currentValIdx];
+  ensureFormats(q); // Garantir les formats avant affichage
   const total = parsedForm.questions.length;
   const pct = (currentValIdx / total) * 100;
   document.getElementById('val-progress-fill').style.width = pct + '%';
