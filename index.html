@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>R2 Forms — Plateforme de collecte de données</title>
+<title>DIGUE — Plateforme de collecte de données</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 :root{
@@ -274,7 +274,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 <body>
 
 <header>
-  <div class="logo">R<span>2</span> <span class="logo-tag">FORMS</span></div>
+  <div class="logo">DIGUE <span class="logo-tag">COLLECT</span></div>
   <div class="lang-toggle">
     <button class="lang-btn active" onclick="setLang('fr')">FR</button>
     <button class="lang-btn" onclick="setLang('en')">EN</button>
@@ -284,7 +284,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 <section class="hero">
   <div class="hero-badge" data-fr="Disponible en ligne · Aucune installation requise" data-en="Online · No installation required">Disponible en ligne · Aucune installation requise</div>
   <h1><span data-fr="Votre questionnaire," data-en="Your questionnaire,">Votre questionnaire,</span><br><em data-fr="prêt à collecter" data-en="ready to collect">prêt à collecter</em></h1>
-  <p data-fr="Importez votre questionnaire existant. R2 Forms le convertit et le déploie directement dans votre outil de collecte." data-en="Import your existing questionnaire. R2 Forms converts and deploys it directly into your collection tool.">Importez votre questionnaire existant. R2 Forms le convertit et le déploie directement dans votre outil de collecte.</p>
+  <p data-fr="Importez votre questionnaire existant. DIGUE le convertit et le déploie directement dans votre outil de collecte." data-en="Import your existing questionnaire. DIGUE converts and deploys it directly into your collection tool.">Importez votre questionnaire existant. DIGUE le convertit et le déploie directement dans votre outil de collecte.</p>
 </section>
 
 <!-- STEPS BAR -->
@@ -365,20 +365,19 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
         <div id="server-row" style="display:none;"><div class="field-group"><div class="field-label">URL du serveur</div><input type="url" class="field-input" id="auth-server" placeholder="https://kf.kobotoolbox.org"/></div></div>
       </div>
       <div id="fields-new" style="display:none;">
-        <div class="two-col">
-          <div class="field-group"><div class="field-label" data-fr="Prénom" data-en="First name">Prénom</div><input type="text" class="field-input" id="new-fn" placeholder="Koffi"/></div>
-          <div class="field-group"><div class="field-label" data-fr="Nom" data-en="Last name">Nom</div><input type="text" class="field-input" id="new-ln" placeholder="Mensah"/></div>
-        </div>
-        <div class="field-group"><div class="field-label">Email</div><input type="email" class="field-input" id="new-email" placeholder="votre@email.com"/></div>
-        <div class="two-col">
-          <div class="field-group"><div class="field-label" data-fr="Organisation" data-en="Organization">Organisation</div><input type="text" class="field-input" id="new-org" placeholder="ONG / Université"/></div>
-          <div class="field-group"><div class="field-label" data-fr="Pays" data-en="Country">Pays</div>
-            <select class="field-select" id="new-country">
-              <option value="BJ">Bénin</option><option value="TG">Togo</option><option value="SN">Sénégal</option>
-              <option value="CI">Côte d'Ivoire</option><option value="ML">Mali</option><option value="BF">Burkina Faso</option>
-              <option value="NE">Niger</option><option value="GN">Guinée</option><option value="CM">Cameroun</option>
-              <option value="GH">Ghana</option><option value="NG">Nigeria</option><option value="other">Autre</option>
-            </select>
+        <div style="background:#FFF3F3;border:1.5px solid #FFD0D0;border-radius:14px;padding:20px;text-align:center;">
+          <div style="font-size:32px;margin-bottom:10px;" id="signup-icon">📋</div>
+          <div style="font-size:15px;font-weight:700;color:#1A1A1A;margin-bottom:6px;" id="signup-title">Créer un compte KoboToolbox</div>
+          <div style="font-size:13px;color:#767676;margin-bottom:16px;line-height:1.6;" id="signup-desc">
+            Vous serez redirigé vers le site de KoboToolbox pour créer votre compte gratuitement.
+            Revenez ensuite sur cette page et connectez-vous.
+          </div>
+          <button onclick="ouvrirInscription()" id="btn-signup"
+            style="background:#E8132A;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;width:100%;margin-bottom:10px;">
+            🔗 Créer mon compte sur <span id="signup-tool-name">KoboToolbox</span>
+          </button>
+          <div style="font-size:12px;color:#767676;padding:10px;background:#fff;border-radius:8px;border:1px solid #eee;">
+            💡 Après avoir créé votre compte, revenez ici et cliquez sur <strong>"J'ai déjà un compte"</strong> pour vous connecter.
           </div>
         </div>
       </div>
@@ -409,7 +408,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       <div id="fields-google" style="display:none;">
         <div style="background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.15);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
           <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;">🔵 Connexion Google</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;">Cliquez sur le bouton ci-dessous pour autoriser R2 Forms a creer des formulaires dans votre compte Google. Vous serez redirige vers Google et reviendrez automatiquement.</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;">Cliquez sur le bouton ci-dessous pour autoriser DIGUE a creer des formulaires dans votre compte Google. Vous serez redirige vers Google et reviendrez automatiquement.</div>
           <button onclick="connectGoogle()" id="btn-google-auth" style="background:#4285f4;color:#fff;border:none;border-radius:10px;padding:11px 20px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;justify-content:center;">
             <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg>
             Connecter mon compte Google
@@ -418,7 +417,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
             ✅ Compte Google connecte
           </div>
         </div>
-        <div class="info-box">🔒 R2 Forms n'accede qu'a Google Forms. Vos autres donnees Google ne sont pas accessibles.</div>
+        <div class="info-box">🔒 DIGUE n'accede qu'a Google Forms. Vos autres donnees Google ne sont pas accessibles.</div>
       </div>
 
       <div class="info-box" id="kobo-info-box">🔒 <span data-fr="Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés." data-en="Your credentials are encrypted and only used to deploy your form. They are never stored.">Vos identifiants sont chiffrés et utilisés uniquement pour déposer votre masque. Ils ne sont jamais conservés.</span></div>
@@ -520,8 +519,8 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 </div>
 
 <footer>
-  <div class="foot-logo">R<span>2</span> Forms</div>
-  <div class="foot-text" data-fr="Plateforme de conversion et déploiement de masques de saisie" data-en="Form conversion and deployment platform">Plateforme de conversion et déploiement de masques de saisie</div>
+  <div class="foot-logo">DIGUE</div>
+  <div class="foot-text" data-fr="La digue qui structure et protège vos données de terrain" data-en="Form conversion and deployment platform">La digue qui structure et protège vos données de terrain</div>
 </footer>
 
 <script>
@@ -557,6 +556,49 @@ function setLang(l) {
 }
 
 // ============ TOOL ============
+// URLs d'inscription pour chaque outil
+const TOOL_SIGNUP_URLS = {
+  kobo: 'https://www.kobotoolbox.org/sign-up/',
+  odk: 'https://getodk.org/',
+  jotform: 'https://www.jotform.com/signup/',
+  google: 'https://accounts.google.com/signup',
+  xlsform: 'https://www.kobotoolbox.org/sign-up/',
+  excel: null
+};
+
+const TOOL_SIGNUP_ICONS = {
+  kobo: '📋', odk: '🌿', jotform: '📝', google: '🔵', xlsform: '📊', excel: '📗'
+};
+
+function ouvrirInscription() {
+  const url = TOOL_SIGNUP_URLS[selectedTool];
+  if (!url) return;
+  window.open(url, '_blank');
+  // Après 2 secondes, inviter à revenir sur "J'ai déjà un compte"
+  setTimeout(function() {
+    showToast("✅ Page d'inscription ouverte \u2014 revenez ici apres avoir cree votre compte");
+  }, 500);
+}
+
+function mettreAJourSignup() {
+  const icon = document.getElementById('signup-icon');
+  const title = document.getElementById('signup-title');
+  const desc = document.getElementById('signup-desc');
+  const toolName = document.getElementById('signup-tool-name');
+  const btn = document.getElementById('btn-signup');
+  if (!title) return;
+  const name = TOOL_NAMES[selectedTool] || selectedTool;
+  if (icon) icon.textContent = TOOL_SIGNUP_ICONS[selectedTool] || '🔗';
+  if (title) title.textContent = 'Créer un compte ' + name;
+  if (toolName) toolName.textContent = name;
+  if (desc) desc.innerHTML = 'Vous serez redirigé vers le site de <strong>' + name + '</strong> pour créer votre compte gratuitement. Revenez ensuite sur cette page et connectez-vous.';
+  if (btn && !TOOL_SIGNUP_URLS[selectedTool]) {
+    btn.style.display = 'none';
+  } else if (btn) {
+    btn.style.display = 'block';
+  }
+}
+
 function selectTool(el) {
   document.querySelectorAll('.tool-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
@@ -581,6 +623,8 @@ function selectTool(el) {
   if (fac) fac.style.display = isKoboODK ? 'flex' : 'none';
   if (kib) kib.style.display = isKoboODK ? 'block' : 'none';
   document.getElementById('fields-new').style.display = 'none';
+  // Mettre à jour le bloc inscription si visible
+  setTimeout(mettreAJourSignup, 50);
 }
 
 // ============ AUTH ============
@@ -668,6 +712,64 @@ function showPanel(id) {
   // Show target
   const t=document.getElementById(id);
   if(t) t.style.display='block';
+}
+
+// ============ GESTION IMAGES MODALITES ============
+async function genererImage(choiceIdx, label, questionLabel) {
+  const btn = event.target;
+  btn.textContent = '⏳ Génération...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(BACKEND_URL + '/api/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: label, context: questionLabel })
+    });
+    const data = await res.json();
+    if (data.success && data.url) {
+      if (!validationChoices[currentValIdx].choiceImages) validationChoices[currentValIdx].choiceImages = {};
+      validationChoices[currentValIdx].choiceImages[choiceIdx] = { url: data.url, label: label, fromCache: data.fromCache };
+      renderValCard();
+      showToast(data.fromCache ? '✅ Image trouvée en cache' : '✅ Image générée avec succès');
+    }
+  } catch(err) {
+    btn.textContent = '🎨 Générer';
+    btn.disabled = false;
+    showToast('❌ Erreur génération image');
+  }
+}
+
+async function uploaderImage(event, choiceIdx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('key', 'upload_' + Date.now() + '_' + choiceIdx);
+  try {
+    showToast('⏳ Upload en cours...');
+    const res = await fetch(BACKEND_URL + '/api/upload-image', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success && data.url) {
+      if (!validationChoices[currentValIdx].choiceImages) validationChoices[currentValIdx].choiceImages = {};
+      validationChoices[currentValIdx].choiceImages[choiceIdx] = { url: data.url, label: '', fromCache: false, userUploaded: true };
+      renderValCard();
+      showToast('✅ Image uploadée');
+    }
+  } catch(err) {
+    showToast('❌ Erreur upload');
+  }
+}
+
+function supprimerImage(choiceIdx) {
+  if (validationChoices[currentValIdx].choiceImages) {
+    delete validationChoices[currentValIdx].choiceImages[choiceIdx];
+    renderValCard();
+  }
+}
+
+function toggleAudio() {
+  validationChoices[currentValIdx].audioEnabled = !validationChoices[currentValIdx].audioEnabled;
+  renderValCard();
 }
 
 function goBackToValidation() {
@@ -884,7 +986,8 @@ function renderValCard() {
     : (lang==='fr'?'Suivant':'Next');
 
   const formats = q.formats || [];
-  const suggestions = (q.suggestions || []).filter(s => s.type !== 'required_override');
+  const suggestions = (q.suggestions || []).filter(s => s.type !== 'required_override' && s.type !== 'audio');
+  const audioSuggestion = (q.suggestions || []).find(s => s.type === 'audio');
   const isNumeric = q.question_class === 'quantitative' || q.is_numeric || ['integer','decimal'].includes(q.type);
 
   // Suggestions HTML
@@ -987,6 +1090,67 @@ function renderValCard() {
     return;
   }
 
+  // Suggestion audio
+  let audioHtml = '';
+  if (audioSuggestion) {
+    const audioEnabled = !!(validationChoices[currentValIdx].audioEnabled);
+    audioHtml = `<div style="margin-bottom:16px;padding:14px 16px;background:${audioEnabled ? 'rgba(16,185,129,.08)' : 'rgba(245,158,11,.05)'};border:1.5px solid ${audioEnabled ? 'rgba(16,185,129,.3)' : 'rgba(245,158,11,.2)'};border-radius:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:24px;">🎙️</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:#1A1A1A;margin-bottom:2px;">Enregistrement audio suggéré</div>
+          <div style="font-size:12px;color:#767676;">Cette question peut être mieux capturée par enregistrement vocal</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <div onclick="toggleAudio()" style="width:44px;height:24px;border-radius:12px;background:${audioEnabled ? '#10B981' : '#D1D5DB'};position:relative;cursor:pointer;transition:background .2s;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;${audioEnabled ? 'right:2px' : 'left:2px'};transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:${audioEnabled ? '#10B981' : '#767676'};">${audioEnabled ? 'Activé' : 'Désactivé'}</span>
+        </label>
+      </div>
+      ${audioEnabled ? `<div style="margin-top:10px;padding:8px 12px;background:#fff;border-radius:8px;font-size:12px;color:#059669;">✅ Un champ d'enregistrement audio sera ajouté à cette question dans le formulaire déployé</div>` : ''}
+    </div>`;
+  }
+
+  // Images pour les modalités (questions à choix)
+  const isChoiceQ = q.question_class === 'qualitative_choice' ||
+    (q.selectedType || q.type || '') === 'select_one' ||
+    (q.selectedType || q.type || '') === 'select_multiple';
+
+  let choiceImagesHtml = '';
+  if (isChoiceQ && q.choices && q.choices.length > 0) {
+    const imgChoices = q.choices.map(function(c, ci) {
+      const label = typeof c === 'string' ? c : (c.label || String(c));
+      const imgData = (validationChoices[currentValIdx].choiceImages || {})[ci];
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#F8F8F8;border-radius:10px;margin-bottom:6px;">
+        <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eee;display:flex;align-items:center;justify-content:center;">
+          ${imgData && imgData.url
+            ? `<img src="${imgData.url}" style="width:100%;height:100%;object-fit:cover;" />`
+            : `<span style="font-size:18px;">🖼️</span>`}
+        </div>
+        <span style="flex:1;font-size:13px;color:#1A1A1A;">${label}</span>
+        <div style="display:flex;gap:6px;">
+          <button onclick="genererImage(${ci}, '${label.replace(/'/g,"\'")}', '${(q.label||'').replace(/'/g,"\'")}' )"
+            style="background:${imgData ? '#10B981' : '#E8132A'};color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;">
+            ${imgData ? '✅ Image' : '🎨 Générer'}
+          </button>
+          <label style="background:#1E40AF;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;">
+            📤 Upload
+            <input type="file" accept="image/*" onchange="uploaderImage(event, ${ci})" style="display:none;"/>
+          </label>
+          ${imgData ? `<button onclick="supprimerImage(${ci})" style="background:#eee;color:#666;border:none;border-radius:8px;padding:5px 8px;font-size:11px;cursor:pointer;">✕</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    choiceImagesHtml = `<div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:#767676;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+        🖼️ Images pour les modalités (optionnel)
+      </div>
+      ${imgChoices}
+    </div>`;
+  }
+
   // Format cols
   const colsHtml = formats.map((f, fi) => {
     const isRecommended = fi === (q.suggested_format_idx || 0);
@@ -1004,6 +1168,8 @@ function renderValCard() {
     <div class="val-question">${q.label}</div>
     ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
     ${suggestionsHtml}
+    ${audioHtml}
+    ${choiceImagesHtml}
     <div class="val-format-label" style="margin-top:${suggestions.length>0?'4px':'16px'};">
       ${q.question_class==='quantitative'
         ? (lang==='fr'?'Type de valeur numérique :':'Numeric value type:')
@@ -1281,7 +1447,7 @@ function buildVisualization() {
       }
     }
 
-    return {
+    const builtQ = {
       ...q,
       selectedType,
       relevant,
@@ -1292,9 +1458,35 @@ function buildVisualization() {
       numMin: ch.numMin || '',
       numMax: ch.numMax || '',
       numDigitsBefore: ch.numDigitsBefore || '',
-      numDigitsAfter: ch.numDigitsAfter || ''
+      numDigitsAfter: ch.numDigitsAfter || '',
+      audioEnabled: ch.audioEnabled || false,
+      choiceImages: ch.choiceImages || {}
     };
+    return builtQ;
   });
+
+  // Ajouter les questions audio après les questions concernées
+  const questionsWithAudio = [];
+  validatedForm.questions.forEach(function(q) {
+    questionsWithAudio.push(q);
+    if (q.audioEnabled) {
+      questionsWithAudio.push({
+        id: q.id + '_audio',
+        num: q.num,
+        label: 'Enregistrement audio — ' + q.label,
+        question_class: 'media_audio',
+        selectedType: 'audio',
+        type: 'audio',
+        required: false,
+        hint: 'Optionnel — enregistrez votre réponse à voix haute',
+        choices: [],
+        group: q.group || 'General',
+        formats: [{id:'A',name:'Audio',type:'audio',note:'Enregistrement vocal'}],
+        relevant: q.id ? '${' + q.id + '} != ""' : ''
+      });
+    }
+  });
+  validatedForm.questions = questionsWithAudio;
 
   goStep(4);
   document.getElementById('viz-form-title').textContent=validatedForm.title||'Formulaire';
@@ -1978,7 +2170,7 @@ async function lancerPaiement(montant, niveau) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         amount: montant,
-        description: 'R2 Forms - Masque ' + niveau + ' (' + (validatedForm.questions || []).length + ' questions)',
+        description: 'DIGUE - Masque ' + niveau + ' (' + (validatedForm.questions || []).length + ' questions)',
         customer: { email: email }
       })
     });
