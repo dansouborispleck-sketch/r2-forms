@@ -1868,7 +1868,7 @@ async function deployToKoboToolbox(form) {
 
   updateProcText(lang==='fr'?'Déploiement en cours...':'Deploying...');
 
-  // Tout passe par le backend Railway — évite le CORS
+  // Tout passe par le backend DIGUE — évite le CORS
   const res = await fetch(BACKEND_URL + '/api/deploy/kobo', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
