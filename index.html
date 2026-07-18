@@ -1988,8 +1988,9 @@ async function lancerPaiement(montant, niveau) {
 
     currentTransactionId = data.transactionId;
 
-    // Ouvrir FedaPay checkout
-    const checkoutUrl = 'https://checkout.fedapay.com/' + data.token;
+    // Ouvrir FedaPay checkout avec l'URL retournée par l'API
+    const checkoutUrl = data.checkoutUrl || data.token;
+    console.log('[PAYMENT] Checkout URL:', checkoutUrl);
     const popup = window.open(checkoutUrl, 'fedapay-checkout', 'width=520,height=700,scrollbars=yes');
 
     btn.textContent = 'En attente du paiement...';
