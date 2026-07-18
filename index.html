@@ -479,7 +479,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       <textarea class="correction-textarea" id="correction-input" placeholder="Ex: La question 3 doit être obligatoire. Ajouter une question GPS après la question 5. Changer les choix de Q7 en choix multiple..." rows="3"></textarea>
       <div class="correction-actions">
         <button class="btn-correction apply" id="btn-apply-correction" onclick="applyCorrection()" disabled data-fr="Appliquer les corrections" data-en="Apply corrections">Appliquer les corrections</button>
-        <button class="btn-correction validate" onclick="validateAndDeploy()" data-fr="✅ Valider & déployer" data-en="✅ Validate & deploy">✅ Valider & déployer</button>
+        <button class="btn-correction validate" onclick="demanderPaiement()" data-fr="✅ Valider & déployer" data-en="✅ Validate & deploy">✅ Valider & déployer</button>
       </div>
     </div>
   </div>
@@ -1848,6 +1848,194 @@ async function preDeployCheck() {
   }
 
   return true;
+}
+
+function demanderPaiement() {
+  // Vérifier d'abord les problèmes bloquants
+  const issues = [];
+  (validatedForm.questions || []).forEach(function(q, i) {
+    if ((q.selectedType === 'select_one' || q.selectedType === 'select_multiple') && (!q.choices || q.choices.length === 0)) {
+      issues.push('Q' + (q.num||i+1) + ' — Choix manquants pour "' + q.label + '"');
+    }
+  });
+  if (issues.length > 0) {
+    alert('❌ Problèmes à corriger avant le paiement :\n\n' + issues.map(function(i){ return '• '+i; }).join('\n'));
+    return;
+  }
+  // Afficher le modal de paiement
+  afficherPaiement(validatedForm);
+}
+
+// ============ CALCUL TARIFAIRE ============
+function calculerTarif(form) {
+  const questions = form.questions || [];
+  const nQ = questions.length;
+
+  // Prix de base selon le nombre de questions
+  let prixBase = 0;
+  if (nQ <= 15) prixBase = 1000;
+  else if (nQ <= 35) prixBase = 2000;
+  else if (nQ <= 60) prixBase = 3500;
+  else if (nQ <= 100) prixBase = 5000;
+  else if (nQ <= 150) prixBase = 7500;
+  else if (nQ <= 200) prixBase = 10000;
+  else prixBase = 15000;
+
+  // Bonus complexité
+  const nSauts = questions.filter(function(q) { return q.relevant && q.relevant.trim(); }).length;
+  const nContraintes = questions.filter(function(q) { return (q.numMin && q.numMin !== '') || (q.numMax && q.numMax !== ''); }).length;
+  const bonus = Math.floor(nSauts / 5) * 500 + Math.floor(nContraintes / 3) * 500;
+
+  // Niveau tarifaire
+  let niveau = 'Basique';
+  if (nQ <= 15) niveau = 'Basique';
+  else if (nQ <= 35) niveau = 'Standard';
+  else if (nQ <= 60) niveau = 'Avancé';
+  else if (nQ <= 100) niveau = 'Expert';
+  else if (nQ <= 150) niveau = 'Professionnel';
+  else if (nQ <= 200) niveau = 'Institutionnel';
+  else niveau = 'Sur mesure';
+
+  return { total: prixBase + bonus, base: prixBase, bonus: bonus, niveau: niveau, nQ: nQ, nSauts: nSauts, nContraintes: nContraintes };
+}
+
+// ============ INTERFACE PAIEMENT ============
+let paiementEffectue = false;
+let currentTransactionId = null;
+
+function afficherPaiement(form) {
+  const tarif = calculerTarif(form);
+
+  // Créer le modal de paiement
+  const modal = document.createElement('div');
+  modal.id = 'payment-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:36px;margin-bottom:8px;">💳</div>
+        <div style="font-size:20px;font-weight:800;color:#1A1A1A;">Paiement requis</div>
+        <div style="font-size:13px;color:#767676;margin-top:4px;">Pour déployer votre masque de saisie</div>
+      </div>
+
+      <div style="background:#F8F8F8;border-radius:12px;padding:16px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#767676;">Niveau</span>
+          <span style="font-size:13px;font-weight:600;color:#1A1A1A;">${tarif.niveau}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#767676;">Questions</span>
+          <span style="font-size:13px;color:#1A1A1A;">${tarif.nQ} questions</span>
+        </div>
+        ${tarif.nSauts > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#767676;">Sauts conditionnels</span>
+          <span style="font-size:13px;color:#1A1A1A;">${tarif.nSauts} sauts</span>
+        </div>` : ''}
+        ${tarif.bonus > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#767676;">Bonus complexité</span>
+          <span style="font-size:13px;color:#1A1A1A;">+${tarif.bonus.toLocaleString()} FCFA</span>
+        </div>` : ''}
+        <div style="border-top:1px solid #E8E8E8;margin:10px 0;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="font-size:15px;font-weight:700;color:#1A1A1A;">Total</span>
+          <span style="font-size:20px;font-weight:800;color:#E8132A;">${tarif.total.toLocaleString()} FCFA</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;color:#767676;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Votre email (pour reçu)</div>
+        <input type="email" id="pay-email" placeholder="votre@email.com" style="width:100%;border:1.5px solid #E8E8E8;border-radius:10px;padding:10px 14px;font-size:14px;outline:none;font-family:'Inter',sans-serif;"/>
+      </div>
+
+      <button onclick="lancerPaiement(${tarif.total}, '${tarif.niveau}')" id="btn-pay"
+        style="width:100%;background:#E8132A;color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;">
+        Payer ${tarif.total.toLocaleString()} FCFA par Mobile Money
+      </button>
+
+      <button onclick="document.getElementById('payment-modal').remove()"
+        style="width:100%;background:none;border:1.5px solid #E8E8E8;border-radius:10px;padding:12px;font-size:13px;color:#767676;cursor:pointer;font-family:'Inter',sans-serif;">
+        Annuler
+      </button>
+
+      <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa;">
+        🔒 Paiement sécurisé via FedaPay · MTN MoMo & Moov Money acceptés
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+}
+
+async function lancerPaiement(montant, niveau) {
+  const email = document.getElementById('pay-email').value.trim() || 'client@r2forms.bj';
+  const btn = document.getElementById('btn-pay');
+  btn.textContent = 'Initialisation...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(BACKEND_URL + '/api/payment/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: montant,
+        description: 'R2 Forms - Masque ' + niveau + ' (' + (validatedForm.questions || []).length + ' questions)',
+        customer: { email: email }
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.token) throw new Error(data.message || 'Erreur initialisation');
+
+    currentTransactionId = data.transactionId;
+
+    // Ouvrir FedaPay checkout
+    const checkoutUrl = 'https://checkout.fedapay.com/' + data.token;
+    const popup = window.open(checkoutUrl, 'fedapay-checkout', 'width=520,height=700,scrollbars=yes');
+
+    btn.textContent = 'En attente du paiement...';
+
+    // Vérifier le statut toutes les 5 secondes
+    const verifyInterval = setInterval(async function() {
+      try {
+        const verifyRes = await fetch(BACKEND_URL + '/api/payment/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transactionId: currentTransactionId })
+        });
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.approved) {
+          clearInterval(verifyInterval);
+          if (popup && !popup.closed) popup.close();
+          document.getElementById('payment-modal').remove();
+          paiementEffectue = true;
+          showToast('✅ Paiement confirmé ! Déploiement en cours...');
+          // Lancer le déploiement
+          await lancerDeploiement();
+        } else if (verifyData.status === 'declined') {
+          clearInterval(verifyInterval);
+          btn.textContent = 'Payer ' + montant.toLocaleString() + ' FCFA par Mobile Money';
+          btn.disabled = false;
+          showToast('❌ Paiement refusé. Réessayez.');
+        }
+      } catch(e) {
+        // Continuer à vérifier
+      }
+    }, 5000);
+
+    // Arrêter après 10 minutes
+    setTimeout(function() { clearInterval(verifyInterval); }, 600000);
+
+  } catch(err) {
+    btn.textContent = 'Payer ' + montant.toLocaleString() + ' FCFA par Mobile Money';
+    btn.disabled = false;
+    showToast('❌ ' + err.message);
+  }
+}
+
+async function lancerDeploiement() {
+  // Appeler le vrai déploiement
+  await validateAndDeploy();
 }
 
 async function validateAndDeploy() {
