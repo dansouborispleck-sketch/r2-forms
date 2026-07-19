@@ -1884,7 +1884,7 @@ async function deployToKoboToolbox(form) {
   }
 
   const data = await res.json();
-  return { uid: data.uid, url: data.url, server };
+  return { uid: data.uid, url: data.url, server, images: data.images || [] };
 }
 
 async function deployToJotForm(form) {
