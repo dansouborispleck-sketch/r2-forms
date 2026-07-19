@@ -2042,6 +2042,33 @@ async function preDeployCheck() {
   return true;
 }
 
+// Télécharger les images en ZIP automatiquement
+async function telechargerImagesZip(images, formTitle) {
+  if (!images || images.length === 0) return;
+  try {
+    showToast('📥 Téléchargement des images en cours...');
+    // Télécharger toutes les images et créer un ZIP via le backend
+    const res = await fetch(BACKEND_URL + '/api/download-images-zip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images: images, title: formTitle })
+    });
+    if (!res.ok) throw new Error('Erreur ZIP');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (formTitle || 'formulaire').replace(/[^a-zA-Z0-9_-]/g,'_') + '_images.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    console.log('[ZIP] ' + images.length + ' images téléchargées');
+  } catch(err) {
+    console.error('[ZIP] Erreur:', err.message);
+  }
+}
+
 function demanderPaiement() {
   // Vérifier d'abord les problèmes bloquants
   const issues = [];
@@ -2283,6 +2310,11 @@ async function validateAndDeploy() {
     document.getElementById('progress-fill2').style.width='100%';
     await new Promise(r=>setTimeout(r,400));
 
+    // Télécharger automatiquement les images en ZIP si disponibles
+    if (result.images && result.images.length > 0 && (selectedTool === 'kobo' || selectedTool === 'odk')) {
+      await telechargerImagesZip(result.images, validatedForm.title || 'formulaire');
+    }
+
     goStep(5);
 
     // Mettre a jour le label du bouton selon l'outil
@@ -2303,9 +2335,17 @@ async function validateAndDeploy() {
     document.getElementById('dep-q').textContent = q;
     document.getElementById('dep-g').textContent = g;
     document.getElementById('dep-l').textContent = l;
-    document.getElementById('deploy-sub').textContent = lang==='fr'
-      ? `Votre masque a été déployé avec succès sur ${TOOL_NAMES[selectedTool]}. Cliquez sur "Accéder à mon compte" pour le retrouver.`
-      : `Your form has been successfully deployed to ${TOOL_NAMES[selectedTool]}. Click "Access my account" to find it.`;
+    var deployMsg = lang==='fr'
+      ? 'Votre masque a été déployé avec succès sur ' + TOOL_NAMES[selectedTool] + '. Cliquez sur "Accéder à mon compte" pour le retrouver.'
+      : 'Your form has been successfully deployed to ' + TOOL_NAMES[selectedTool] + '. Click "Access my account" to find it.';
+
+    // Ajouter message pour les images si disponibles
+    if (result && result.images && result.images.length > 0 && (selectedTool === 'kobo' || selectedTool === 'odk')) {
+      deployMsg += lang==='fr'
+        ? ' 📥 ' + result.images.length + ' image(s) téléchargée(s) — uploadez-les dans KoboToolbox → Paramètres → Média → puis redéployez le formulaire.'
+        : ' 📥 ' + result.images.length + ' image(s) downloaded — upload them in KoboToolbox → Settings → Media → then redeploy.';
+    }
+    document.getElementById('deploy-sub').textContent = deployMsg;
 
   } catch(err) {
     clearInterval(iv);
