@@ -794,6 +794,58 @@ function supprimerImage(choiceIdx) {
   }
 }
 
+// ============ SAISIE MANUELLE DES MODALITÉS ============
+function sauvegarderChoixManuels(value) {
+  validationChoices[currentValIdx].manualChoices = value;
+  // Créer les choix à partir du texte
+  var choix = value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
+  validatedForm.questions[currentValIdx].choices = choix;
+  parsedForm.questions[currentValIdx].choices = choix;
+  updateValNext();
+}
+
+// ============ CONSTRUCTEUR DE CONDITIONS ============
+function updateCondition(idx, field, value) {
+  if (!validationChoices[currentValIdx].conditions) validationChoices[currentValIdx].conditions = [{}];
+  if (!validationChoices[currentValIdx].conditions[idx]) validationChoices[currentValIdx].conditions[idx] = {};
+  validationChoices[currentValIdx].conditions[idx][field] = value;
+}
+
+function ajouterCondition() {
+  if (!validationChoices[currentValIdx].conditions) validationChoices[currentValIdx].conditions = [];
+  validationChoices[currentValIdx].conditions.push({});
+  renderValCard();
+}
+
+function supprimerCondition(idx) {
+  if (validationChoices[currentValIdx].conditions) {
+    validationChoices[currentValIdx].conditions.splice(idx, 1);
+    renderValCard();
+  }
+}
+
+function appliquerConditions() {
+  var conditions = validationChoices[currentValIdx].conditions || [];
+  var operator = document.getElementById('condition-operator') ? document.getElementById('condition-operator').value : 'and';
+  var parts = [];
+  conditions.forEach(function(cond) {
+    if (cond.qId && cond.op && cond.val !== undefined && cond.val !== '') {
+      // Construire la formule XLSForm
+      var formula = '\${' + cond.qId + '} ' + cond.op + " '" + cond.val + "'";
+      parts.push(formula);
+    }
+  });
+  if (parts.length > 0) {
+    var relevant = parts.join(' ' + operator + ' ');
+    validatedForm.questions[currentValIdx].relevant = relevant;
+    parsedForm.questions[currentValIdx].relevant = relevant;
+    showToast('✅ Condition appliquée : ' + relevant);
+    renderValCard();
+  } else {
+    showToast('❌ Remplissez au moins une condition complète');
+  }
+}
+
 function toggleAudio() {
   validationChoices[currentValIdx].audioEnabled = !validationChoices[currentValIdx].audioEnabled;
   renderValCard();
@@ -1101,7 +1153,6 @@ function renderValCard() {
     (q.formats && q.formats.length === 1 && q.formats[0] && q.formats[0].type === 'note');
 
   if (isNoteQuestion) {
-    // Auto-sélectionner format 0 et ne rien afficher
     if (validationChoices[currentValIdx].formatIdx === null) {
       validationChoices[currentValIdx].formatIdx = 0;
     }
@@ -1115,6 +1166,82 @@ function renderValCard() {
     document.getElementById('btn-val-prev').style.visibility = currentValIdx===0?'hidden':'visible';
     document.getElementById('btn-val-next').disabled = false;
     return;
+  }
+
+  // Saisie manuelle des modalités si choix manquants
+  var missingChoicesHtml = '';
+  var isChoiceType = (q.selectedType === 'select_one' || q.selectedType === 'select_multiple' ||
+                      q.type === 'select_one' || q.type === 'select_multiple' ||
+                      q.question_class === 'qualitative_choice');
+  if (isChoiceType && (!q.choices || q.choices.length === 0)) {
+    var savedChoices = validationChoices[currentValIdx].manualChoices || '';
+    missingChoicesHtml = `<div style="margin-bottom:16px;padding:14px 16px;background:#FFF3F3;border:1.5px solid #FFB3B3;border-radius:12px;">
+      <div style="font-size:12px;font-weight:700;color:#E8132A;margin-bottom:8px;">❌ Choix manquants — saisissez les modalités</div>
+      <input type="text" id="manual-choices-input" value="${savedChoices}"
+        placeholder="Ex: Rural, Urbain, Semi-urbain"
+        style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:'Inter',sans-serif;"
+        oninput="sauvegarderChoixManuels(this.value)"/>
+      <div style="font-size:11px;color:#767676;margin-top:6px;">Séparez les modalités par des virgules</div>
+    </div>`;
+  }
+
+  // Constructeur de conditions pour les sauts invalides
+  var conditionBuilderHtml = '';
+  if (q.relevant && q.relevant.includes('\${')) {
+    var refs = q.relevant.match(/\\$\{([^}]+)\}/g) || [];
+    var hasInvalidRef = refs.some(function(ref) {
+      var refId = ref.replace('\${','').replace('}','');
+      return !validatedForm.questions.some(function(qq) {
+        return (qq.id || ('q'+qq.num)) === refId ||
+               (qq.id || ('q'+qq.num)).replace(/[^a-zA-Z0-9_]/g,'_') === refId;
+      });
+    });
+
+    if (hasInvalidRef) {
+      var prevQuestions = validatedForm.questions.filter(function(qq) { return qq.num < q.num; });
+      var qOptions = prevQuestions.map(function(qq) {
+        return '<option value="' + (qq.id || ('q'+qq.num)) + '">Q' + qq.num + ' — ' + (qq.label||'').slice(0,40) + '</option>';
+      }).join('');
+
+      var savedConditions = validationChoices[currentValIdx].conditions || [{}];
+      var condRows = savedConditions.map(function(cond, ci) {
+        var choiceQ = prevQuestions.find(function(qq) { return (qq.id||('q'+qq.num)) === cond.qId; });
+        var choiceOptions = choiceQ && choiceQ.choices && choiceQ.choices.length > 0
+          ? choiceQ.choices.map(function(c) {
+              var lbl = typeof c === 'string' ? c : (c.label||String(c));
+              return '<option value="' + lbl + '" ' + (cond.val === lbl ? 'selected' : '') + '>' + lbl + '</option>';
+            }).join('')
+          : '<option>--</option>';
+
+        return '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;" id="cond-row-' + ci + '">' +
+          '<select onchange="updateCondition(' + ci + ',\'qId\',this.value)" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+          '<option value="">-- Question --</option>' + qOptions + '</select>' +
+          '<select onchange="updateCondition(' + ci + ',\'op\',this.value)" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+          '<option value="=" ' + (cond.op==='='?'selected':'') + '>= (égal)</option>' +
+          '<option value="!=" ' + (cond.op==='!='?'selected':'') + '>≠ (différent)</option>' +
+          '<option value=">" ' + (cond.op==='>'?'selected':'') + '>> (supérieur)</option>' +
+          '<option value="<" ' + (cond.op==='<'?'selected':'') + '>< (inférieur)</option>' +
+          '<option value=">=" ' + (cond.op==='>='?'selected':'') + '>>= (sup. ou égal)</option>' +
+          '<option value="<=" ' + (cond.op==='<='?'selected':'') + '>≤ (inf. ou égal)</option>' +
+          '</select>' +
+          '<input type="text" placeholder="Valeur" value="' + (cond.val||'') + '" onchange="updateCondition(' + ci + ',\'val\',this.value)" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;"/>' +
+          '<button onclick="supprimerCondition(' + ci + ')" style="background:#eee;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;">✕</button>' +
+          '</div>';
+      }).join('');
+
+      conditionBuilderHtml = '<div style="margin-bottom:16px;padding:14px 16px;background:#FFFBF0;border:1.5px solid #FCD34D;border-radius:12px;">' +
+        '<div style="font-size:12px;font-weight:700;color:#B45309;margin-bottom:10px;">⚠️ Saut conditionnel invalide — Redéfinir la condition</div>' +
+        '<div style="font-size:11px;color:#92400E;margin-bottom:10px;">Cette question ne s\'affiche que si :</div>' +
+        '<div id="condition-rows">' + condRows + '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:8px;align-items:center;">' +
+        '<button onclick="ajouterCondition()" style="background:#F59E0B;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;">+ Ajouter une condition</button>' +
+        '<select id="condition-operator" style="border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+        '<option value="and">ET (toutes les conditions)</option>' +
+        '<option value="or">OU (au moins une condition)</option>' +
+        '</select>' +
+        '<button onclick="appliquerConditions()" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;">✅ Appliquer</button>' +
+        '</div></div>';
+    }
   }
 
   // Suggestion audio
@@ -1192,6 +1319,8 @@ function renderValCard() {
     <div class="val-question">${q.label}</div>
     ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
     ${suggestionsHtml}
+    ${missingChoicesHtml}
+    ${conditionBuilderHtml}
     ${audioHtml}
     ${choiceImagesHtml}
     <div class="val-format-label" style="margin-top:${suggestions.length>0?'4px':'16px'};">
@@ -1995,6 +2124,102 @@ function downloadXLSForm(form) {
   return filename;
 }
 
+// ============ PANNEAU DES PROBLÈMES ============
+var problemQuestions = [];  // Liste des questions avec problèmes
+var currentProblemIdx = 0;  // Index du problème courant lors de la navigation
+
+function showIssuesPanel(issues, invalidSkips) {
+  // Construire la liste des questions problématiques
+  problemQuestions = [];
+
+  issues.forEach(function(issue) {
+    var match = issue.match(/Q(\d+)/);
+    if (match) {
+      var num = parseInt(match[1]);
+      var q = validatedForm.questions.find(function(qq) { return (qq.num || 0) === num; });
+      if (q) problemQuestions.push({ num: num, type: 'missing_choices', label: q.label, issue: issue, q: q });
+    }
+  });
+
+  (invalidSkips || []).forEach(function(s) {
+    problemQuestions.push({ num: s.num, type: 'invalid_skip', label: s.label, refId: s.refId, formula: s.formula, q: validatedForm.questions.find(function(qq){ return qq.num === s.num; }) });
+  });
+
+  // Afficher le panneau dans la visualisation
+  var existing = document.getElementById('issues-panel');
+  if (existing) existing.remove();
+
+  var panel = document.createElement('div');
+  panel.id = 'issues-panel';
+  panel.style.cssText = 'background:#FFF3F3;border:2px solid #FFB3B3;border-radius:14px;padding:20px;margin-bottom:20px;';
+
+  var html = '<div style="font-size:15px;font-weight:800;color:#E8132A;margin-bottom:12px;">⚠️ ' + problemQuestions.length + ' problème(s) à corriger avant le déploiement</div>';
+
+  problemQuestions.forEach(function(p, idx) {
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:10px;margin-bottom:6px;border:1px solid #FFD0D0;">';
+    html += '<span style="font-size:12px;font-weight:700;color:#E8132A;min-width:32px;">Q' + p.num + '</span>';
+    html += '<span style="flex:1;font-size:12px;color:#1A1A1A;">' + (p.type === 'missing_choices' ? '❌ Choix manquants' : '⚠️ Saut invalide') + ' — ' + (p.label || '').slice(0, 50) + '</span>';
+    html += '<button onclick="allerAuProbleme(' + idx + ')" style="background:#E8132A;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">→ Corriger</button>';
+    html += '</div>';
+  });
+
+  panel.innerHTML = html;
+
+  // Insérer avant la zone de correction
+  var corrSection = document.querySelector('.correction-section');
+  if (corrSection) corrSection.parentNode.insertBefore(panel, corrSection);
+}
+
+function allerAuProbleme(idx) {
+  currentProblemIdx = idx;
+  var problem = problemQuestions[idx];
+  if (!problem) return;
+
+  // Trouver l'index de la question dans le formulaire
+  var qIdx = validatedForm.questions.findIndex(function(q) { return q.num === problem.num; });
+  if (qIdx < 0) return;
+
+  // Aller à l'étape 3 sur cette question
+  currentValIdx = qIdx;
+  goStep(3);
+  renderValCard();
+
+  // Afficher la barre de navigation entre problèmes
+  showProblemNav();
+}
+
+function showProblemNav() {
+  var existing = document.getElementById('problem-nav');
+  if (existing) existing.remove();
+
+  var nav = document.createElement('div');
+  nav.id = 'problem-nav';
+  nav.style.cssText = 'background:#FFF3F3;border:2px solid #FFB3B3;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;';
+
+  var remaining = problemQuestions.length;
+  nav.innerHTML = '<span style="flex:1;font-size:13px;font-weight:700;color:#E8132A;">⚠️ ' + remaining + ' problème(s) à corriger</span>' +
+    '<button onclick="navProbleme(-1)" ' + (currentProblemIdx === 0 ? 'disabled' : '') + ' style="background:#eee;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">← Préc.</button>' +
+    '<span style="font-size:12px;color:#767676;">' + (currentProblemIdx+1) + ' / ' + remaining + '</span>' +
+    '<button onclick="navProbleme(1)" ' + (currentProblemIdx === remaining-1 ? 'disabled' : '') + ' style="background:#eee;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">Suiv. →</button>' +
+    '<button onclick="retourVisualisation()" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">✅ Retour visualisation</button>';
+
+  var valCard = document.getElementById('val-card');
+  if (valCard) valCard.parentNode.insertBefore(nav, valCard);
+}
+
+function navProbleme(dir) {
+  var newIdx = currentProblemIdx + dir;
+  if (newIdx < 0 || newIdx >= problemQuestions.length) return;
+  allerAuProbleme(newIdx);
+}
+
+function retourVisualisation() {
+  var nav = document.getElementById('problem-nav');
+  if (nav) nav.remove();
+  buildVisualization();
+  goStep(4);
+}
+
 async function preDeployCheck() {
   const issues = [];
   const warnings = [];
@@ -2039,27 +2264,31 @@ async function preDeployCheck() {
       ? 'Options :\n- Retournez à la validation pour corriger ou décocher ces sauts\n- Ou continuez sans ces sauts'
       : 'Options:\n- Go back to validation to fix or uncheck these skips\n- Or continue without them');
 
-    const choice = confirm(skipMsg + '\n\n' + (lang==='fr' ? 'Cliquez OK pour continuer sans ces sauts, ou Annuler pour retourner corriger.' : 'Click OK to continue without these skips, or Cancel to go back.'));
-    if (!choice) {
-      // Retourner à la validation
-      goStep(3);
-      renderValCard();
-      return false;
-    } else {
-      // Supprimer les sauts invalides et continuer
+    // Si paiement déjà effectué → continuer automatiquement sans les sauts invalides
+    if (paiementEffectue) {
       invalidSkips.forEach(function(s) {
         var q = validatedForm.questions.find(function(qq) { return (qq.num || 0) === s.num; });
         if (q) q.relevant = '';
       });
+    } else {
+      const choice = confirm(skipMsg + '\n\n' + (lang==='fr' ? 'Cliquez OK pour continuer sans ces sauts, ou Annuler pour retourner corriger.' : 'Click OK to continue without these skips, or Cancel to go back.'));
+      if (!choice) {
+        goStep(3);
+        renderValCard();
+        return false;
+      } else {
+        invalidSkips.forEach(function(s) {
+          var q = validatedForm.questions.find(function(qq) { return (qq.num || 0) === s.num; });
+          if (q) q.relevant = '';
+        });
+      }
     }
   }
 
-  // Problèmes bloquants
-  if (issues.length > 0) {
-    let msg = '❌ ' + (lang==='fr' ? 'Problèmes à corriger :' : 'Issues to fix:') + '\n\n';
-    msg += issues.map(function(i){ return '• ' + i; }).join('\n');
-    msg += '\n\n' + (lang==='fr' ? 'Corrigez ces problèmes avant de déployer.' : 'Fix these issues before deploying.');
-    alert(msg);
+  // Problèmes bloquants — si paiement effectué, tenter quand même
+  if (issues.length > 0 && !paiementEffectue) {
+    // Afficher dans le panel visualisation plutôt qu'une alerte
+    showIssuesPanel(issues, invalidSkips);
     return false;
   }
 
