@@ -796,11 +796,21 @@ function supprimerImage(choiceIdx) {
 
 // ============ SAISIE MANUELLE DES MODALITÉS ============
 function sauvegarderChoixManuels(value) {
+  // parsedForm existe toujours à l'étape 3
+  if (!parsedForm || !parsedForm.questions) return;
+  if (!validationChoices[currentValIdx]) return;
+
   validationChoices[currentValIdx].manualChoices = value;
-  // Créer les choix à partir du texte
   var choix = value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
-  validatedForm.questions[currentValIdx].choices = choix;
-  parsedForm.questions[currentValIdx].choices = choix;
+
+  // Sauvegarder dans parsedForm (disponible à l'étape 3)
+  if (parsedForm.questions[currentValIdx]) {
+    parsedForm.questions[currentValIdx].choices = choix;
+  }
+  // Sauvegarder aussi dans validatedForm si disponible (étape 4)
+  if (validatedForm && validatedForm.questions && validatedForm.questions[currentValIdx]) {
+    validatedForm.questions[currentValIdx].choices = choix;
+  }
   updateValNext();
 }
 
