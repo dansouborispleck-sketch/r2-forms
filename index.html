@@ -1157,12 +1157,9 @@ function renderValCard() {
         </div>
         <span style="flex:1;font-size:13px;color:#1A1A1A;">${label}</span>
         <div style="display:flex;gap:6px;">
-          <button onclick="genererImage(${ci}, '${label.replace(/'/g,"\'")}', '${(q.label||'').replace(/'/g,"\'")}' )"
-            style="background:${imgData ? '#10B981' : '#E8132A'};color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;">
-            ${imgData ? '✅ Image' : '🎨 Générer'}
-          </button>
-          <label style="background:#1E40AF;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;">
-            📤 Upload
+          ${imgData ? `<span style="background:#10B981;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;">✅ Image</span>` : ''}
+          <label style="background:#E8132A;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;">
+            📤 ${imgData ? 'Changer' : 'Uploader une image'}
             <input type="file" accept="image/*" onchange="uploaderImage(event, ${ci})" style="display:none;"/>
           </label>
           ${imgData ? `<button onclick="supprimerImage(${ci})" style="background:#eee;color:#666;border:none;border-radius:8px;padding:5px 8px;font-size:11px;cursor:pointer;">✕</button>` : ''}
@@ -1172,7 +1169,7 @@ function renderValCard() {
 
     choiceImagesHtml = `<div style="margin-bottom:16px;">
       <div style="font-size:11px;font-weight:700;color:#767676;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-        🖼️ Images pour les modalités (optionnel)
+        🖼️ Illustrer les modalités avec des images (optionnel)
       </div>
       ${imgChoices}
     </div>`;
