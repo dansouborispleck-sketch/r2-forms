@@ -723,7 +723,12 @@ async function genererImage(choiceIdx, label, questionLabel) {
     const res = await fetch(BACKEND_URL + '/api/generate-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ label: label, context: questionLabel })
+      body: JSON.stringify({
+        label: label,
+        context: questionLabel,
+        questionnaireTitle: parsedForm ? parsedForm.title : '',
+        questionnaireContext: parsedForm ? (parsedForm.summary || parsedForm.coherence_report && parsedForm.coherence_report[0] || '') : ''
+      })
     });
     const data = await res.json();
     if (data.success && data.url) {
@@ -739,19 +744,40 @@ async function genererImage(choiceIdx, label, questionLabel) {
   }
 }
 
+// Générer un ID de session unique pour isoler les uploads de chaque utilisateur
+var sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
 async function uploaderImage(event, choiceIdx) {
   const file = event.target.files[0];
   if (!file) return;
+
+  // Construire le nom normalisé basé sur la modalité
+  const q = parsedForm.questions[currentValIdx];
+  const choices = q.choices || [];
+  const choiceLabel = typeof choices[choiceIdx] === 'string' ? choices[choiceIdx] : (choices[choiceIdx] && choices[choiceIdx].label) || ('choice_' + choiceIdx);
+  const normalizedKey = choiceLabel.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 50);
+
   const formData = new FormData();
   formData.append('image', file);
-  formData.append('key', 'upload_' + Date.now() + '_' + choiceIdx);
+  formData.append('key', normalizedKey);           // Nom normalisé basé sur la modalité
+  formData.append('sessionId', sessionId);          // Dossier privé unique par session
+  formData.append('originalLabel', choiceLabel);
+
   try {
     showToast('⏳ Upload en cours...');
     const res = await fetch(BACKEND_URL + '/api/upload-image', { method: 'POST', body: formData });
     const data = await res.json();
     if (data.success && data.url) {
       if (!validationChoices[currentValIdx].choiceImages) validationChoices[currentValIdx].choiceImages = {};
-      validationChoices[currentValIdx].choiceImages[choiceIdx] = { url: data.url, label: '', fromCache: false, userUploaded: true };
+      validationChoices[currentValIdx].choiceImages[choiceIdx] = {
+        url: data.url,
+        label: choiceLabel,
+        fromCache: false,
+        userUploaded: true,
+        filename: normalizedKey + '.png'
+      };
       renderValCard();
       showToast('✅ Image uploadée');
     }
@@ -2100,11 +2126,6 @@ function calculerTarif(form) {
   else if (nQ <= 200) prixBase = 10000;
   else prixBase = 15000;
 
-  // Bonus complexité
-  const nSauts = questions.filter(function(q) { return q.relevant && q.relevant.trim(); }).length;
-  const nContraintes = questions.filter(function(q) { return (q.numMin && q.numMin !== '') || (q.numMax && q.numMax !== ''); }).length;
-  const bonus = Math.floor(nSauts / 5) * 500 + Math.floor(nContraintes / 3) * 500;
-
   // Niveau tarifaire
   let niveau = 'Basique';
   if (nQ <= 15) niveau = 'Basique';
@@ -2115,7 +2136,37 @@ function calculerTarif(form) {
   else if (nQ <= 200) niveau = 'Institutionnel';
   else niveau = 'Sur mesure';
 
-  return { total: prixBase + bonus, base: prixBase, bonus: bonus, niveau: niveau, nQ: nQ, nSauts: nSauts, nContraintes: nContraintes };
+  // Bonus complexité
+  const nSauts = questions.filter(function(q) { return q.relevant && q.relevant.trim(); }).length;
+  const nContraintes = questions.filter(function(q) { return (q.numMin && q.numMin !== '') || (q.numMax && q.numMax !== ''); }).length;
+  const bonusComplexite = Math.floor(nSauts / 5) * 500 + Math.floor(nContraintes / 3) * 500;
+
+  // Bonus images — l'utilisateur ne sait pas si générées ou en cache
+  var nImages = 0;
+  questions.forEach(function(q) {
+    var choiceImages = q.choiceImages || {};
+    nImages += Object.keys(choiceImages).length;
+  });
+  var bonusImages = 0;
+  if (nImages >= 1 && nImages <= 5) bonusImages = 500;
+  else if (nImages >= 6 && nImages <= 10) bonusImages = 1000;
+  else if (nImages >= 11 && nImages <= 20) bonusImages = 1500;
+  else if (nImages > 20) bonusImages = 2000;
+
+  const bonus = bonusComplexite + bonusImages;
+
+  return {
+    total: prixBase + bonus,
+    base: prixBase,
+    bonus: bonus,
+    bonusComplexite: bonusComplexite,
+    bonusImages: bonusImages,
+    niveau: niveau,
+    nQ: nQ,
+    nSauts: nSauts,
+    nContraintes: nContraintes,
+    nImages: nImages
+  };
 }
 
 // ============ INTERFACE PAIEMENT ============
