@@ -477,6 +477,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       <div class="correction-title" data-fr="Des corrections à apporter ? Décrivez-les librement :" data-en="Corrections needed? Describe them freely:">Des corrections à apporter ? Décrivez-les librement :</div>
       <textarea class="correction-textarea" id="correction-input" placeholder="Ex: La question 3 doit être obligatoire. Ajouter une question GPS après la question 5. Changer les choix de Q7 en choix multiple..." rows="3"></textarea>
       <div class="correction-actions">
+        <button class="btn-back" onclick="goBackToValidation()" style="flex:0 0 auto;">← <span data-fr="Retour validation" data-en="Back">Retour</span></button>
         <button class="btn-correction apply" id="btn-apply-correction" onclick="applyCorrection()" disabled data-fr="Appliquer les corrections" data-en="Apply corrections">Appliquer les corrections</button>
         <button class="btn-correction validate" onclick="demanderPaiement()" data-fr="✅ Valider & déployer" data-en="✅ Validate & deploy">✅ Valider & déployer</button>
       </div>
