@@ -1344,7 +1344,7 @@ function renderValCard() {
         ? (lang==='fr'?'Mode de calcul :':'Calculation mode:')
         : (lang==='fr'?'Choisissez le format de réponse :':'Choose response format:')}
     </div>
-    <div class="format-cols">${colsHtml}</div>
+    <div class="format-cols" style="grid-template-columns:repeat(${nFormats > 3 ? 3 : nFormats},1fr);">${colsHtml}</div>
     ${numericHtml}
     ${requiredHtml}`;
 
