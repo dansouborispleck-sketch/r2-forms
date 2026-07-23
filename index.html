@@ -1096,8 +1096,38 @@ function renderValCard() {
     : (lang==='fr'?'Suivant':'Next');
 
   const formats = q.formats || [];
-  const suggestions = (q.suggestions || []).filter(s => s.type !== 'required_override' && s.type !== 'audio');
-  const audioSuggestion = (q.suggestions || []).find(s => s.type === 'audio');
+  // Fusionner q.relevant (passe 2) avec les suggestions existantes
+  var allSuggestions = (q.suggestions || []).slice();
+  if (q.relevant && q.relevant.trim()) {
+    // Vérifier si le relevant n'est pas déjà dans les suggestions
+    var alreadyInSuggestions = allSuggestions.some(function(s) {
+      return s.type === 'skip_logic' && s.value === q.relevant;
+    });
+    if (!alreadyInSuggestions) {
+      // Ajouter le relevant de la passe 2 comme suggestion auto-confirmée
+      allSuggestions.unshift({
+        type: 'skip_logic',
+        label: 'Saut conditionnel',
+        description: 'Généré automatiquement par analyse du questionnaire',
+        value: q.relevant,
+        confidence: 'high',
+        _fromPasse2: true  // Marqueur pour auto-confirmation
+      });
+    }
+  }
+  const suggestions = allSuggestions.filter(s => s.type !== 'required_override' && s.type !== 'audio');
+  const audioSuggestion = allSuggestions.find(s => s.type === 'audio');
+
+  // Auto-confirmer les suggestions de la passe 2
+  suggestions.forEach(function(s, si) {
+    if (s._fromPasse2 && !validationChoices[currentValIdx].confirmedSuggestions) {
+      validationChoices[currentValIdx].confirmedSuggestions = {};
+    }
+    if (s._fromPasse2 && validationChoices[currentValIdx].confirmedSuggestions &&
+        validationChoices[currentValIdx].confirmedSuggestions[si] === undefined) {
+      validationChoices[currentValIdx].confirmedSuggestions[si] = true;
+    }
+  });
   const isNumeric = q.question_class === 'quantitative' || q.is_numeric || ['integer','decimal'].includes(q.type);
 
   // Suggestions HTML
@@ -1559,8 +1589,8 @@ function buildVisualization() {
     const fmtIdx = (autoFormatClasses.includes(q.question_class) || isNoteQ) ? 0 : (ch.formatIdx !== null ? ch.formatIdx : (q.suggested_format_idx || 0));
     const fmt = q.formats?.[fmtIdx] || q.formats?.[0];
 
-    // Appliquer les suggestions confirmées
-    let relevant = '';
+    // Appliquer les relevants — priorité: passe 2 > suggestions confirmées > vide
+    let relevant = q.relevant || '';  // Relevant de la passe 2 (généré par Claude)
     let calculation = '';
     let constraint = '';
     let selectedType = fmt?.type || q.type;
@@ -1568,7 +1598,7 @@ function buildVisualization() {
     const confirmed = ch.confirmedSuggestions || {};
     (q.suggestions || []).forEach((s, si) => {
       if (confirmed[si]) {
-        if (s.type === 'skip_logic' && s.value) relevant = s.value;
+        if (s.type === 'skip_logic' && s.value) relevant = s.value; // Override si suggestion confirmée
         if (s.type === 'calculate' && s.value) {
           calculation = s.value;
           selectedType = 'calculate'; // override type
