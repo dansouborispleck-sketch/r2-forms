@@ -1084,7 +1084,10 @@ function renderValCard() {
   const total = parsedForm.questions.length;
   const pct = (currentValIdx / total) * 100;
   document.getElementById('val-progress-fill').style.width = pct + '%';
-  document.getElementById('val-progress-label').textContent = `Q ${currentValIdx+1} / ${total}`;
+  // Utiliser q.num (numéro Claude) pour l'affichage — Lebo s'aligne sur Claude
+  // Pour les questions dérivées (q3.1, q3_autre), afficher le numéro entier parent
+  var displayNum = q.num ? Math.floor(q.num) : (currentValIdx + 1);
+  document.getElementById('val-progress-label').textContent = 'Q ' + displayNum + ' / ' + total;
 
   const choice = validationChoices[currentValIdx];
   const isLast = currentValIdx === total - 1;
@@ -1185,7 +1188,7 @@ function renderValCard() {
       validationChoices[currentValIdx].formatIdx = 0;
     }
     document.getElementById('val-card-body').innerHTML = `
-      <div class="val-question-num">Question ${q.num}${q.group?' · '+q.group:''}</div>
+      <div class="val-question-num">Question ${q.num ? Math.floor(q.num) : (currentValIdx+1)}${q.group?' · '+q.group:''}</div>
       <div class="val-question">${q.label}</div>
       <div style="margin-top:16px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;font-size:13px;color:#166534;">
         📋 ${lang==='fr'?'Texte informatif — aucune saisie requise':'Informational text — no input required'}
@@ -1328,7 +1331,7 @@ function renderValCard() {
   }).join('');
 
   document.getElementById('val-card-body').innerHTML = `
-    <div class="val-question-num">Question ${q.num}${q.group?' · '+q.group:''}</div>
+    <div class="val-question-num">Question ${q.num ? Math.floor(q.num) : (currentValIdx+1)}${q.group?' · '+q.group:''}</div>
     <div class="val-question">${q.label}</div>
     ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
     ${suggestionsHtml}
