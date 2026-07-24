@@ -902,17 +902,32 @@ function ouvrirEditeurSaut(si) {
     return '<option value="' + qq.id + '">' + 'Q' + qq.num + ' — ' + (qq.label||'').slice(0,40) + '</option>';
   }).join('');
 
+  // Construire les options de modalités pour la question sélectionnée
+  function getModalitesOptions(qId) {
+    var tq = parsedForm.questions.find(function(qq){ return qq.id === qId; });
+    if (!tq || !tq.choices || tq.choices.length === 0) return '<option value="">-- Valeur libre --</option>';
+    return tq.choices.map(function(c, ci) {
+      var lbl = typeof c === 'string' ? c : (c.label || String(c));
+      var val = tq.choice_values && tq.choice_values[ci] !== undefined ? String(tq.choice_values[ci]) : String(ci);
+      return '<option value="' + val + '">' + val + ' = ' + lbl + '</option>';
+    }).join('');
+  }
+
   editeur.innerHTML = '<div style="font-size:12px;font-weight:700;color:#E8132A;margin-bottom:8px;">✏️ Modifier le saut</div>' +
     '<div style="font-size:11px;color:#767676;margin-bottom:8px;">Formule actuelle: <code>' + (s.value||'') + '</code></div>' +
-    '<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">' +
-    '<select id="edit-qid-' + si + '" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+    '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">' +
+    '<select id="edit-qid-' + si + '" onchange="majModalitesEditeur(' + si + ')" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
     '<option value="">-- Question déclencheur --</option>' + qOptions + '</select>' +
     '<select id="edit-op-' + si + '" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
     '<option value="=">=</option><option value="!=">≠</option>' +
     '<option value=">">&gt;</option><option value="<">&lt;</option>' +
     '<option value=">=">&gt;=</option><option value="<=">&lt;=</option>' +
     '</select>' +
-    '<input id="edit-val-' + si + '" type="text" placeholder="Valeur" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;"/>' +
+    '</div>' +
+    '<div style="margin-bottom:8px;">' +
+    '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+    "<option value=\"\">-- Selectionnez une question d'abord --</option>" +
+    '</select>' +
     '</div>' +
     '<div style="display:flex;gap:6px;">' +
     '<button onclick="appliquerEditSaut(' + si + ')" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">✅ Appliquer</button>' +
@@ -920,13 +935,46 @@ function ouvrirEditeurSaut(si) {
     '<button onclick="document.getElementById(\'editeur-saut-' + si + '\').style.display=\'none\'" style="background:#eee;color:#666;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;">✕ Annuler</button>' +
     '</div>';
 
+  // Stocker getModalitesOptions pour usage dans majModalitesEditeur
+  editeur._siKey = si;
+
   editeur.style.display = 'block';
 }
 
-function appliquerEditSaut(si) {
+function majModalitesEditeur(si) {
   var qId = document.getElementById('edit-qid-' + si) ? document.getElementById('edit-qid-' + si).value : '';
-  var op = document.getElementById('edit-op-' + si) ? document.getElementById('edit-op-' + si).value : '=';
-  var val = document.getElementById('edit-val-' + si) ? document.getElementById('edit-val-' + si).value : '';
+  var valSelect = document.getElementById('edit-val-' + si);
+  if (!valSelect) return;
+
+  if (!qId) {
+    valSelect.innerHTML = "<option value=''>" + "-- Selectionnez une question d'abord --</option>";
+    return;
+  }
+
+  var tq = parsedForm.questions.find(function(qq){ return qq.id === qId; });
+  if (!tq || !tq.choices || tq.choices.length === 0) {
+    // Pas de choix — afficher un champ texte libre
+    valSelect.outerHTML = '<input id="edit-val-' + si + '" type="text" placeholder="Entrez la valeur" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;margin-bottom:8px;"/>';
+    return;
+  }
+
+  var options = tq.choices.map(function(c, ci) {
+    var lbl = typeof c === 'string' ? c : (c.label || String(c));
+    var val = tq.choice_values && tq.choice_values[ci] !== undefined ? String(tq.choice_values[ci]) : String(ci);
+    return '<option value="' + val + '">' + val + ' = ' + lbl + '</option>';
+  }).join('');
+
+  valSelect.innerHTML = "<option value=''>-- Choisir une modalite --</option>" + options;
+}
+
+function appliquerEditSaut(si) {
+  var qIdEl = document.getElementById('edit-qid-' + si);
+  var opEl = document.getElementById('edit-op-' + si);
+  var valEl = document.getElementById('edit-val-' + si);
+
+  var qId = qIdEl ? qIdEl.value : '';
+  var op = opEl ? opEl.value : '=';
+  var val = valEl ? valEl.value : '';
 
   if (!qId || val === '') {
     showToast('❌ Remplissez tous les champs');
@@ -935,13 +983,20 @@ function appliquerEditSaut(si) {
 
   var newFormula = '${' + qId + '} ' + op + " '" + val + "'";
 
-  // Appliquer au relevant de la question
-  parsedForm.questions[currentValIdx].relevant = newFormula;
-  if (validatedForm && validatedForm.questions && validatedForm.questions[currentValIdx]) {
-    validatedForm.questions[currentValIdx].relevant = newFormula;
+  // Appliquer au relevant ET aux suggestions de la question dans parsedForm ET validatedForm
+  var qIdx = currentValIdx;
+  parsedForm.questions[qIdx].relevant = newFormula;
+
+  // Mettre à jour aussi la suggestion correspondante
+  if (parsedForm.questions[qIdx].suggestions) {
+    var skipSuggestions = parsedForm.questions[qIdx].suggestions.filter(function(s){ return s.type === 'skip_logic'; });
+    if (skipSuggestions.length > 0) skipSuggestions[0].value = newFormula;
   }
 
-  // Fermer l'éditeur et rafraîchir
+  if (validatedForm && validatedForm.questions && validatedForm.questions[qIdx]) {
+    validatedForm.questions[qIdx].relevant = newFormula;
+  }
+
   showToast('✅ Saut modifié : ' + newFormula);
   renderValCard();
 }
@@ -1130,20 +1185,43 @@ function buildDemoForm(content) {
 }
 
 // ============ VALIDATION STEP ============
+// Types à format unique légitimes (pas d'alternative possible)
+var SINGLE_FORMAT_TYPES = ['geopoint','geotrace','geoshape','image','audio','video','file','barcode','note','calculate'];
+
 function ensureFormats(q) {
-  // Garantir que chaque question a ses formats selon sa classe
-  if (q.formats && q.formats.length > 0) return;
   const cls = q.question_class || 'qualitative_open';
   const t = q.type || 'text';
-  if (cls === 'quantitative' || t === 'integer' || t === 'decimal') {
-    q.formats = [{id:'A',name:'Nombre entier',type:'integer',note:'Ex: 25'},{id:'B',name:'Nombre décimal',type:'decimal',note:'Ex: 65,5'},{id:'C',name:'Échelle',type:'range',note:'Ex: 1 à 10'}];
+
+  // Toujours recalculer si formats manquants ou insuffisants
+  var isSingleType = SINGLE_FORMAT_TYPES.includes(t) || SINGLE_FORMAT_TYPES.includes(cls) ||
+                     cls === 'note' || cls === 'media_photo' || cls === 'media_audio' ||
+                     cls === 'media_video' || cls === 'media_file' || cls === 'geopoint';
+
+  if (q.formats && q.formats.length >= 2) return; // Déjà OK
+  if (q.formats && q.formats.length === 1 && isSingleType) return; // Exception légitime
+
+  // Assigner les formats selon le type
+  if (cls === 'quantitative' || t === 'integer' || t === 'decimal' || t === 'range') {
+    q.formats = [
+      {id:'A',name:'Nombre entier',type:'integer',note:'Ex: 25'},
+      {id:'B',name:'Nombre décimal',type:'decimal',note:'Ex: 65,5'},
+      {id:'C',name:'Échelle',type:'range',note:'Ex: 1 à 10'}
+    ];
     q.question_class = 'quantitative';
   } else if (cls === 'qualitative_choice' || t === 'select_one' || t === 'select_multiple') {
-    q.formats = [{id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse'},{id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses'},{id:'C',name:'Texte libre',type:'text',note:'Réponse libre'}];
+    q.formats = [
+      {id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse'},
+      {id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses'},
+      {id:'C',name:'Texte libre',type:'text',note:'Réponse libre'}
+    ];
     q.question_class = 'qualitative_choice';
-    if (!q.suggested_format_idx) q.suggested_format_idx = 0;
+    if (q.suggested_format_idx === undefined) q.suggested_format_idx = 0;
   } else if (cls === 'date_time' || t === 'date' || t === 'time' || t === 'datetime') {
-    q.formats = [{id:'A',name:'Date',type:'date',note:'jj/mm/aaaa'},{id:'B',name:'Heure',type:'time',note:'hh:mm'},{id:'C',name:'Date et heure',type:'datetime',note:'jj/mm/aaaa hh:mm'}];
+    q.formats = [
+      {id:'A',name:'Date',type:'date',note:'jj/mm/aaaa'},
+      {id:'B',name:'Heure',type:'time',note:'hh:mm'},
+      {id:'C',name:'Date et heure',type:'datetime',note:'jj/mm/aaaa hh:mm'}
+    ];
     q.question_class = 'date_time';
   } else if (cls === 'geopoint' || t === 'geopoint') {
     q.formats = [{id:'A',name:'GPS automatique',type:'geopoint',note:'Capture GPS'}];
@@ -1153,13 +1231,22 @@ function ensureFormats(q) {
     q.question_class = 'note';
   } else if (cls === 'media_photo' || t === 'image') {
     q.formats = [{id:'A',name:'Photo',type:'image',note:'Prendre une photo'}];
+  } else if (cls === 'media_audio' || t === 'audio') {
+    q.formats = [{id:'A',name:'Audio',type:'audio',note:'Enregistrement vocal'}];
+  } else if (cls === 'media_video' || t === 'video') {
+    q.formats = [{id:'A',name:'Vidéo',type:'video',note:'Enregistrement vidéo'}];
+  } else if (cls === 'media_file' || t === 'file') {
+    q.formats = [{id:'A',name:'Fichier',type:'file',note:'Pièce jointe'}];
+  } else if (cls === 'barcode' || t === 'barcode') {
+    q.formats = [{id:'A',name:'Code-barres',type:'barcode',note:'Scan code-barres'}];
   } else if (cls === 'acknowledge' || t === 'acknowledge') {
-    q.formats = [{id:'A',name:'Confirmation',type:'acknowledge',note:'Case à cocher'}];
-  } else if (cls === 'scale' || t === 'range') {
-    q.formats = [{id:'A',name:'Échelle',type:'range',note:'Curseur'}];
+    q.formats = [{id:'A',name:'Confirmation',type:'acknowledge',note:'Case à cocher'},{id:'B',name:'Texte libre',type:'text',note:'Réponse libre'}];
   } else {
-    // Défaut: texte libre
-    q.formats = [{id:'A',name:'Réponse courte',type:'text',note:'Quelques mots'},{id:'B',name:'Réponse longue',type:'text',note:'Plusieurs phrases'}];
+    // Défaut: qualitative_open — toujours 2 formats minimum
+    q.formats = [
+      {id:'A',name:'Réponse courte',type:'text',note:'Quelques mots'},
+      {id:'B',name:'Réponse longue',type:'text',note:'Plusieurs phrases'}
+    ];
     q.question_class = 'qualitative_open';
   }
 }
