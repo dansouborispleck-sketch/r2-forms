@@ -894,12 +894,13 @@ function ouvrirEditeurSaut(si) {
   if (!s) return;
 
   // Construire la liste des questions précédentes
-  var prevQuestions = parsedForm.questions.filter(function(qq) {
-    return qq.num < q.num;
+  // Questions jusqu'à la question actuelle incluse
+  var questionsJusquIci = parsedForm.questions.filter(function(qq) {
+    return qq.num <= q.num;
   });
 
-  var qOptions = prevQuestions.map(function(qq) {
-    return '<option value="' + qq.id + '">' + 'Q' + qq.num + ' — ' + (qq.label||'').slice(0,40) + '</option>';
+  var qOptions = questionsJusquIci.map(function(qq) {
+    return '<option value="' + qq.id + '">' + 'Q' + Math.floor(qq.num) + ' — ' + (qq.label||'').slice(0,40) + '</option>';
   }).join('');
 
   // Construire les options de modalités pour la question sélectionnée
@@ -972,23 +973,50 @@ function appliquerEditSaut(si) {
   var opEl = document.getElementById('edit-op-' + si);
   var valEl = document.getElementById('edit-val-' + si);
 
-  var qId = qIdEl ? qIdEl.value : '';
-  var op = opEl ? opEl.value : '=';
-  var val = valEl ? valEl.value : '';
+  // Lire les valeurs exactes au moment du clic — strictement depuis le DOM
+  var qId = qIdEl ? qIdEl.options[qIdEl.selectedIndex].value : '';
+  var op = opEl ? opEl.options[opEl.selectedIndex].value : '=';
+  var val = valEl ? (valEl.tagName === 'SELECT' ? valEl.options[valEl.selectedIndex].value : valEl.value) : '';
 
-  if (!qId || val === '') {
-    showToast('❌ Remplissez tous les champs');
+  if (!qId) {
+    showToast('❌ Choisissez une question déclencheur');
+    return;
+  }
+  if (val === '' || val === undefined) {
+    showToast('❌ Choisissez ou entrez une valeur');
     return;
   }
 
+  // Construire la formule avec les valeurs exactes sélectionnées
   var newFormula = '${' + qId + '} ' + op + " '" + val + "'";
+  console.log('[EDIT SAUT] Formule appliquée: ' + newFormula);
 
   var qIdx = currentValIdx;
 
-  // Mettre à jour uniquement q.relevant — ne pas toucher aux suggestions
+  // 1. Supprimer définitivement l'ancienne formule
   parsedForm.questions[qIdx].relevant = newFormula;
 
-  // Mettre à jour validatedForm si disponible
+  // 2. Supprimer toutes les anciennes suggestions skip_logic pour éviter confusion
+  parsedForm.questions[qIdx].suggestions = (parsedForm.questions[qIdx].suggestions || []).filter(function(s){
+    return s.type !== 'skip_logic';
+  });
+
+  // 3. Ajouter la nouvelle formule comme seule suggestion skip_logic
+  parsedForm.questions[qIdx].suggestions.unshift({
+    type: 'skip_logic',
+    label: 'Saut conditionnel',
+    description: 'Modifié manuellement',
+    value: newFormula,
+    confidence: 'high',
+    _fromPasse2: true,
+    _userModified: true
+  });
+
+  // 4. Auto-confirmer
+  if (!validationChoices[qIdx].confirmedSuggestions) validationChoices[qIdx].confirmedSuggestions = {};
+  validationChoices[qIdx].confirmedSuggestions[0] = true;
+
+  // 5. Mettre à jour validatedForm
   if (validatedForm && validatedForm.questions && validatedForm.questions[qIdx]) {
     validatedForm.questions[qIdx].relevant = newFormula;
   }
@@ -1265,22 +1293,25 @@ function renderValCard() {
     : (lang==='fr'?'Suivant':'Next');
 
   const formats = q.formats || [];
-  // Fusionner q.relevant (passe 2) avec les suggestions existantes
+  // Fusionner q.relevant (passe 2 ou modifié) avec les suggestions existantes
   var allSuggestions = (q.suggestions || []).slice();
-  if (q.relevant && q.relevant.trim()) {
+
+  // Si l'utilisateur a modifié manuellement, les suggestions ont déjà été nettoyées
+  var hasUserModified = allSuggestions.some(function(s){ return s._userModified; });
+
+  if (!hasUserModified && q.relevant && q.relevant.trim()) {
     // Vérifier si le relevant n'est pas déjà dans les suggestions
     var alreadyInSuggestions = allSuggestions.some(function(s) {
       return s.type === 'skip_logic' && s.value === q.relevant;
     });
     if (!alreadyInSuggestions) {
-      // Ajouter le relevant de la passe 2 comme suggestion auto-confirmée
       allSuggestions.unshift({
         type: 'skip_logic',
         label: 'Saut conditionnel',
         description: 'Généré automatiquement par analyse du questionnaire',
         value: q.relevant,
         confidence: 'high',
-        _fromPasse2: true  // Marqueur pour auto-confirmation
+        _fromPasse2: true
       });
     }
   }
