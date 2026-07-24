@@ -983,16 +983,30 @@ function appliquerEditSaut(si) {
 
   var newFormula = '${' + qId + '} ' + op + " '" + val + "'";
 
-  // Appliquer au relevant ET aux suggestions de la question dans parsedForm ET validatedForm
   var qIdx = currentValIdx;
+
+  // 1. Mettre à jour q.relevant dans parsedForm
   parsedForm.questions[qIdx].relevant = newFormula;
 
-  // Mettre à jour aussi la suggestion correspondante
-  if (parsedForm.questions[qIdx].suggestions) {
-    var skipSuggestions = parsedForm.questions[qIdx].suggestions.filter(function(s){ return s.type === 'skip_logic'; });
-    if (skipSuggestions.length > 0) skipSuggestions[0].value = newFormula;
-  }
+  // 2. Supprimer toutes les anciennes suggestions skip_logic et mettre la nouvelle
+  if (!parsedForm.questions[qIdx].suggestions) parsedForm.questions[qIdx].suggestions = [];
+  parsedForm.questions[qIdx].suggestions = parsedForm.questions[qIdx].suggestions.filter(function(s){
+    return s.type !== 'skip_logic';
+  });
+  parsedForm.questions[qIdx].suggestions.unshift({
+    type: 'skip_logic',
+    label: 'Saut conditionnel',
+    description: 'Modifié manuellement',
+    value: newFormula,
+    confidence: 'high',
+    _fromPasse2: true
+  });
 
+  // 3. Auto-confirmer cette suggestion
+  if (!validationChoices[qIdx].confirmedSuggestions) validationChoices[qIdx].confirmedSuggestions = {};
+  validationChoices[qIdx].confirmedSuggestions[0] = true;
+
+  // 4. Mettre à jour validatedForm si disponible
   if (validatedForm && validatedForm.questions && validatedForm.questions[qIdx]) {
     validatedForm.questions[qIdx].relevant = newFormula;
   }
