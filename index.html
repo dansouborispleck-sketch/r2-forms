@@ -985,28 +985,10 @@ function appliquerEditSaut(si) {
 
   var qIdx = currentValIdx;
 
-  // 1. Mettre à jour q.relevant dans parsedForm
+  // Mettre à jour uniquement q.relevant — ne pas toucher aux suggestions
   parsedForm.questions[qIdx].relevant = newFormula;
 
-  // 2. Supprimer toutes les anciennes suggestions skip_logic et mettre la nouvelle
-  if (!parsedForm.questions[qIdx].suggestions) parsedForm.questions[qIdx].suggestions = [];
-  parsedForm.questions[qIdx].suggestions = parsedForm.questions[qIdx].suggestions.filter(function(s){
-    return s.type !== 'skip_logic';
-  });
-  parsedForm.questions[qIdx].suggestions.unshift({
-    type: 'skip_logic',
-    label: 'Saut conditionnel',
-    description: 'Modifié manuellement',
-    value: newFormula,
-    confidence: 'high',
-    _fromPasse2: true
-  });
-
-  // 3. Auto-confirmer cette suggestion
-  if (!validationChoices[qIdx].confirmedSuggestions) validationChoices[qIdx].confirmedSuggestions = {};
-  validationChoices[qIdx].confirmedSuggestions[0] = true;
-
-  // 4. Mettre à jour validatedForm si disponible
+  // Mettre à jour validatedForm si disponible
   if (validatedForm && validatedForm.questions && validatedForm.questions[qIdx]) {
     validatedForm.questions[qIdx].relevant = newFormula;
   }
