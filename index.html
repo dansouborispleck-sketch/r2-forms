@@ -917,9 +917,9 @@ function ouvrirEditeurSaut(si) {
   editeur.innerHTML = '<div style="font-size:12px;font-weight:700;color:#E8132A;margin-bottom:8px;">✏️ Modifier le saut</div>' +
     '<div style="font-size:11px;color:#767676;margin-bottom:8px;">Formule actuelle: <code>' + (s.value||'') + '</code></div>' +
     '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">' +
-    '<select id="edit-qid-' + si + '" onchange="majModalitesEditeur(' + si + ')" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+    '<select id="edit-qid-' + si + '" onchange="majModalitesEditeur(' + si + ');onEditChange(' + si + ')" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
     '<option value="">-- Question déclencheur --</option>' + qOptions + '</select>' +
-    '<select id="edit-op-' + si + '" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
+    '<select id="edit-op-' + si + '" onchange="onEditChange(' + si + ')" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
     '<option value="=">=</option><option value="!=">≠</option>' +
     '<option value=">">&gt;</option><option value="<">&lt;</option>' +
     '<option value=">=">&gt;=</option><option value="<=">&lt;=</option>' +
@@ -943,40 +943,72 @@ function ouvrirEditeurSaut(si) {
 }
 
 function majModalitesEditeur(si) {
-  var qId = document.getElementById('edit-qid-' + si) ? document.getElementById('edit-qid-' + si).value : '';
-  var valSelect = document.getElementById('edit-val-' + si);
-  if (!valSelect) return;
+  var qIdEl = document.getElementById('edit-qid-' + si);
+  var qId = qIdEl ? qIdEl.options[qIdEl.selectedIndex].value : '';
+
+  // Conteneur de la valeur — toujours un SELECT qu'on remplit
+  var valContainer = document.getElementById('edit-val-container-' + si);
+  if (!valContainer) return;
 
   if (!qId) {
-    valSelect.innerHTML = "<option value=''>" + "-- Selectionnez une question d'abord --</option>";
+    valContainer.innerHTML = '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" onchange="onEditChange(' + si + ')"><option value="">-- Selectionnez une question --</option></select>';
     return;
   }
 
   var tq = parsedForm.questions.find(function(qq){ return qq.id === qId; });
+
   if (!tq || !tq.choices || tq.choices.length === 0) {
-    // Pas de choix — afficher un champ texte libre
-    valSelect.outerHTML = '<input id="edit-val-' + si + '" type="text" placeholder="Entrez la valeur" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;margin-bottom:8px;"/>';
-    return;
+    // Pas de choix — champ texte libre
+    valContainer.innerHTML = '<input id="edit-val-' + si + '" type="text" placeholder="Entrez la valeur" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" oninput="onEditChange(' + si + ')"/>';
+  } else {
+    // Avec choix — liste déroulante des modalités
+    var options = tq.choices.map(function(c, ci) {
+      var lbl = typeof c === 'string' ? c : (c.label || String(c));
+      var val = tq.choice_values && tq.choice_values[ci] !== undefined ? String(tq.choice_values[ci]) : String(ci);
+      return '<option value="' + val + '">' + val + ' = ' + lbl + '</option>';
+    }).join('');
+    valContainer.innerHTML = '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" onchange="onEditChange(' + si + ')"><option value="">-- Choisir une modalite --</option>' + options + '</select>';
   }
 
-  var options = tq.choices.map(function(c, ci) {
-    var lbl = typeof c === 'string' ? c : (c.label || String(c));
-    var val = tq.choice_values && tq.choice_values[ci] !== undefined ? String(tq.choice_values[ci]) : String(ci);
-    return '<option value="' + val + '">' + val + ' = ' + lbl + '</option>';
-  }).join('');
+  // Sauvegarder immédiatement
+  onEditChange(si);
+}
 
-  valSelect.innerHTML = "<option value=''>-- Choisir une modalite --</option>" + options;
+// Stockage global des valeurs de l'éditeur pour éviter la perte lors du re-render
+var _editSautValues = {};
+
+function onEditChange(si) {
+  var qIdEl = document.getElementById('edit-qid-' + si);
+  var opEl = document.getElementById('edit-op-' + si);
+  var valEl = document.getElementById('edit-val-' + si);
+  _editSautValues[si] = {
+    qId: qIdEl ? qIdEl.options[qIdEl.selectedIndex].value : '',
+    op: opEl ? opEl.options[opEl.selectedIndex].value : '=',
+    val: valEl ? (valEl.tagName === 'SELECT' ? valEl.options[valEl.selectedIndex].value : valEl.value) : ''
+  };
 }
 
 function appliquerEditSaut(si) {
+  // D'abord lire depuis le DOM si disponible
   var qIdEl = document.getElementById('edit-qid-' + si);
   var opEl = document.getElementById('edit-op-' + si);
   var valEl = document.getElementById('edit-val-' + si);
 
-  // Lire les valeurs exactes au moment du clic — strictement depuis le DOM
-  var qId = qIdEl ? qIdEl.options[qIdEl.selectedIndex].value : '';
-  var op = opEl ? opEl.options[opEl.selectedIndex].value : '=';
-  var val = valEl ? (valEl.tagName === 'SELECT' ? valEl.options[valEl.selectedIndex].value : valEl.value) : '';
+  var qId, op, val;
+  if (qIdEl) {
+    qId = qIdEl.options[qIdEl.selectedIndex].value;
+    op = opEl ? opEl.options[opEl.selectedIndex].value : '=';
+    val = valEl ? (valEl.tagName === 'SELECT' ? valEl.options[valEl.selectedIndex].value : valEl.value) : '';
+    // Sauvegarder dans le stockage global
+    _editSautValues[si] = { qId: qId, op: op, val: val };
+  } else if (_editSautValues[si]) {
+    // Fallback sur le stockage global si DOM détruit
+    qId = _editSautValues[si].qId;
+    op = _editSautValues[si].op;
+    val = _editSautValues[si].val;
+  } else {
+    qId = ''; op = '='; val = '';
+  }
 
   if (!qId) {
     showToast('❌ Choisissez une question déclencheur');
