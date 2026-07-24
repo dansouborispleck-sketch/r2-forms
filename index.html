@@ -925,9 +925,9 @@ function ouvrirEditeurSaut(si) {
     '<option value=">=">&gt;=</option><option value="<=">&lt;=</option>' +
     '</select>' +
     '</div>' +
-    '<div style="margin-bottom:8px;">' +
-    '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
-    "<option value=\"\">-- Selectionnez une question d'abord --</option>" +
+    '<div id="edit-val-container-' + si + '" style="margin-bottom:8px;">' +
+    '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" onchange="onEditChange(' + si + ')">' +
+    "<option value=''>-- Choisir apres selection question --</option>" +
     '</select>' +
     '</div>' +
     '<div style="display:flex;gap:6px;">' +
