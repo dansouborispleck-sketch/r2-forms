@@ -690,7 +690,7 @@ function showAuthModal() {
   modal.style.display = 'flex';
 }
 
-function showAuthTab(tab) {
+window.showAuthTab = function(tab) {
   var isLogin = tab === 'login';
   document.getElementById('tab-login').style.background = isLogin ? '#E8132A' : '#fff';
   document.getElementById('tab-login').style.color = isLogin ? '#fff' : '#767676';
@@ -704,14 +704,14 @@ function showAuthTab(tab) {
   document.getElementById('auth-modal').dataset.tab = tab;
 }
 
-async function signInWithGoogle() {
+window.signInWithGoogle = async function() {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.href }
   });
 }
 
-async function submitAuth() {
+window.submitAuth = async function() {
   var email = document.getElementById('auth-email').value.trim();
   var password = document.getElementById('auth-password').value;
   var tab = document.getElementById('auth-modal').dataset.tab || 'login';
@@ -737,7 +737,7 @@ async function submitAuth() {
   if (result.error) { errorEl.style.color = '#E8132A'; errorEl.textContent = result.error.message; errorEl.style.display = 'block'; }
 }
 
-async function signOut() {
+window.signOut = async function() {
   await supabase.auth.signOut();
 }
 
@@ -800,7 +800,7 @@ async function debiterSolde(coutFcfa, titre, nbQuestions, nbSauts, tokensConsomm
 }
 
 // ============ RECHARGE ============
-function showRechargeModal() {
+window.showRechargeModal = function() {
   selectedPack = null;
   document.getElementById('recharge-selected').style.display = 'none';
   document.getElementById('btn-recharge').disabled = true;
@@ -808,7 +808,7 @@ function showRechargeModal() {
   document.getElementById('recharge-modal').style.display = 'flex';
 }
 
-function selectPack(prix, credits, bonus) {
+window.selectPack = function(prix, credits, bonus) {
   selectedPack = { prix, credits, bonus };
   document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
   event.currentTarget.style.borderColor = '#E8132A';
@@ -818,7 +818,7 @@ function selectPack(prix, credits, bonus) {
   document.getElementById('btn-recharge').disabled = false;
 }
 
-async function procederRecharge() {
+window.procederRecharge = async function() {
   if (!selectedPack) return;
   document.getElementById('recharge-modal').style.display = 'none';
   // Déclencher le paiement FedaPay existant
