@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lebo — Plateforme de collecte de données</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -270,8 +270,85 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;animation:fadeUp .3s ease;white-space:nowrap;pointer-events:none;}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<!-- Modal Authentification -->
+<div id="auth-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <svg width="40" height="40" viewBox="0 0 600 600" style="display:block;margin:0 auto 8px;"><rect x="35" y="35" width="530" height="530" fill="none" stroke="#E8132A" stroke-width="10"/><circle cx="175" cy="175" r="30" fill="none" stroke="#E8132A" stroke-width="15"/><circle cx="425" cy="175" r="30" fill="none" stroke="#E8132A" stroke-width="15"/><circle cx="175" cy="425" r="30" fill="none" stroke="#E8132A" stroke-width="15"/><circle cx="425" cy="425" r="30" fill="none" stroke="#E8132A" stroke-width="15"/></svg>
+      <div style="font-size:22px;font-weight:900;color:#1A1A1A;">Lebo Deploy</div>
+      <div style="font-size:13px;color:#767676;margin-top:4px;" id="auth-subtitle">Connectez-vous pour continuer</div>
+    </div>
+    <div id="auth-tabs" style="display:flex;gap:8px;margin-bottom:20px;">
+      <button onclick="showAuthTab('login')" id="tab-login" style="flex:1;padding:8px;border-radius:8px;border:2px solid #E8132A;background:#E8132A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;">Connexion</button>
+      <button onclick="showAuthTab('signup')" id="tab-signup" style="flex:1;padding:8px;border-radius:8px;border:2px solid #E8E8E8;background:#fff;color:#767676;font-weight:700;cursor:pointer;font-size:13px;">Inscription</button>
+    </div>
+    <button onclick="signInWithGoogle()" style="width:100%;padding:12px;border:1.5px solid #E8E8E8;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:16px;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuer avec Google
+    </button>
+    <div style="text-align:center;color:#aaa;font-size:12px;margin-bottom:16px;">— ou —</div>
+    <input id="auth-email" type="email" placeholder="Email" style="width:100%;padding:10px 14px;border:1.5px solid #E8E8E8;border-radius:10px;font-size:14px;margin-bottom:10px;box-sizing:border-box;"/>
+    <input id="auth-password" type="password" placeholder="Mot de passe" style="width:100%;padding:10px 14px;border:1.5px solid #E8E8E8;border-radius:10px;font-size:14px;margin-bottom:16px;box-sizing:border-box;"/>
+    <div id="auth-name-field" style="display:none;margin-bottom:10px;">
+      <input id="auth-name" type="text" placeholder="Nom complet" style="width:100%;padding:10px 14px;border:1.5px solid #E8E8E8;border-radius:10px;font-size:14px;box-sizing:border-box;"/>
+    </div>
+    <button onclick="submitAuth()" style="width:100%;padding:12px;background:#E8132A;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;" id="auth-submit-btn">Se connecter</button>
+    <div id="auth-error" style="color:#E8132A;font-size:12px;margin-top:10px;text-align:center;display:none;"></div>
+  </div>
+</div>
+
+<!-- Barre utilisateur (portefeuille) -->
+<div id="user-bar" style="display:none;background:#1A1A1A;color:#fff;padding:8px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="user-name" style="font-weight:600;"></span>
+    <span style="color:#aaa;">|</span>
+    <span>Solde : <strong id="user-solde" style="color:#10B981;">0 FCFA</strong></span>
+    <span style="color:#aaa;font-size:11px;" id="user-analyses-restantes"></span>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="showRechargeModal()" style="background:#E8132A;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600;">+ Recharger</button>
+    <button onclick="signOut()" style="background:transparent;color:#aaa;border:1px solid #444;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;">Déconnexion</button>
+  </div>
+</div>
+
+<!-- Modal Recharge -->
+<div id="recharge-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:90%;max-width:460px;">
+    <div style="font-size:18px;font-weight:700;margin-bottom:20px;">Recharger mon solde</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div onclick="selectPack(1000,1000,0)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
+        <div style="font-size:13px;color:#767676;font-weight:600;">Découverte</div>
+        <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">1 000</div>
+        <div style="font-size:11px;color:#aaa;">FCFA</div>
+      </div>
+      <div onclick="selectPack(2500,2750,10)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;position:relative;">
+        <div style="position:absolute;top:-8px;right:8px;background:#E8132A;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">POPULAIRE</div>
+        <div style="font-size:13px;color:#767676;font-weight:600;">Standard</div>
+        <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">2 500</div>
+        <div style="font-size:11px;color:#10B981;font-weight:600;">+10% bonus → 2 750 FCFA</div>
+      </div>
+      <div onclick="selectPack(5000,5750,15)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
+        <div style="font-size:13px;color:#767676;font-weight:600;">Chercheur</div>
+        <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">5 000</div>
+        <div style="font-size:11px;color:#10B981;font-weight:600;">+15% bonus → 5 750 FCFA</div>
+      </div>
+      <div onclick="selectPack(10000,12000,20)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
+        <div style="font-size:13px;color:#767676;font-weight:600;">Institution</div>
+        <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">10 000</div>
+        <div style="font-size:11px;color:#10B981;font-weight:600;">+20% bonus → 12 000 FCFA</div>
+      </div>
+    </div>
+    <div id="recharge-selected" style="display:none;background:#f8f8f8;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('recharge-modal').style.display='none'" style="flex:1;padding:12px;background:#f0f0f0;border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
+      <button onclick="procederRecharge()" id="btn-recharge" style="flex:2;padding:12px;background:#E8132A;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;" disabled>Payer via Mobile Money</button>
+    </div>
+  </div>
+</div>
+
 
 <header>
   <div class="logo" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
@@ -542,6 +619,238 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
   <div class="foot-text" data-fr="La lebo qui structure et protège vos données de terrain" data-en="Form conversion and deployment platform">La lebo qui structure et protège vos données de terrain</div>
 </footer>
 
+<script>
+// ============ SUPABASE AUTH & CREDITS ============
+const SUPABASE_URL = 'https://ysnmnasyngjbycdzubcp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_DJWonC2DgWdNyn8VeGHkqQ_M8VYSsG9';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let selectedPack = null;
+
+// Initialisation
+async function initAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadProfile();
+    showUserBar();
+  } else {
+    showAuthModal();
+  }
+  
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      await loadProfile();
+      showUserBar();
+      document.getElementById('auth-modal').style.display = 'none';
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      currentProfile = null;
+      hideUserBar();
+      showAuthModal();
+    }
+  });
+}
+
+async function loadProfile() {
+  if (!currentUser) return;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', currentUser.id)
+    .single();
+  if (data) {
+    currentProfile = data;
+    updateUserBar();
+  }
+}
+
+function showUserBar() {
+  document.getElementById('user-bar').style.display = 'flex';
+}
+
+function hideUserBar() {
+  document.getElementById('user-bar').style.display = 'none';
+}
+
+function updateUserBar() {
+  if (!currentProfile) return;
+  var name = currentProfile.full_name || currentProfile.email || 'Utilisateur';
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-solde').textContent = (currentProfile.solde || 0).toLocaleString('fr-FR') + ' FCFA';
+  var restantes = currentProfile.analyses_gratuites_restantes || 0;
+  document.getElementById('user-analyses-restantes').textContent = restantes > 0 ? '(' + restantes + ' analyse(s) gratuite(s) restante(s))' : '';
+}
+
+function showAuthModal() {
+  var modal = document.getElementById('auth-modal');
+  modal.style.display = 'flex';
+}
+
+function showAuthTab(tab) {
+  var isLogin = tab === 'login';
+  document.getElementById('tab-login').style.background = isLogin ? '#E8132A' : '#fff';
+  document.getElementById('tab-login').style.color = isLogin ? '#fff' : '#767676';
+  document.getElementById('tab-login').style.borderColor = isLogin ? '#E8132A' : '#E8E8E8';
+  document.getElementById('tab-signup').style.background = !isLogin ? '#E8132A' : '#fff';
+  document.getElementById('tab-signup').style.color = !isLogin ? '#fff' : '#767676';
+  document.getElementById('tab-signup').style.borderColor = !isLogin ? '#E8132A' : '#E8E8E8';
+  document.getElementById('auth-name-field').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('auth-submit-btn').textContent = isLogin ? 'Se connecter' : "S'inscrire";
+  document.getElementById('auth-subtitle').textContent = isLogin ? 'Connectez-vous pour continuer' : 'Créez votre compte';
+  document.getElementById('auth-modal').dataset.tab = tab;
+}
+
+async function signInWithGoogle() {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+
+async function submitAuth() {
+  var email = document.getElementById('auth-email').value.trim();
+  var password = document.getElementById('auth-password').value;
+  var tab = document.getElementById('auth-modal').dataset.tab || 'login';
+  var errorEl = document.getElementById('auth-error');
+  errorEl.style.display = 'none';
+
+  if (!email || !password) { errorEl.textContent = 'Remplissez tous les champs'; errorEl.style.display = 'block'; return; }
+
+  var result;
+  if (tab === 'signup') {
+    var name = document.getElementById('auth-name').value.trim();
+    result = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
+    if (!result.error) {
+      errorEl.style.color = '#10B981';
+      errorEl.textContent = 'Compte créé ! Vérifiez votre email pour confirmer.';
+      errorEl.style.display = 'block';
+      return;
+    }
+  } else {
+    result = await supabase.auth.signInWithPassword({ email, password });
+  }
+
+  if (result.error) { errorEl.style.color = '#E8132A'; errorEl.textContent = result.error.message; errorEl.style.display = 'block'; }
+}
+
+async function signOut() {
+  await supabase.auth.signOut();
+}
+
+// ============ GESTION DES CREDITS ============
+async function verifierSolde(coutEstime) {
+  await loadProfile();
+  if (!currentProfile) return false;
+  
+  // Analyses gratuites
+  if (currentProfile.analyses_gratuites_restantes > 0) return true;
+  
+  // Solde suffisant
+  return (currentProfile.solde || 0) >= coutEstime;
+}
+
+async function debiterSolde(coutFcfa, titre, nbQuestions, nbSauts, tokensConsommes, outil) {
+  if (!currentUser || !currentProfile) return;
+  
+  // Analyses gratuites d'abord
+  if (currentProfile.analyses_gratuites_restantes > 0) {
+    await supabase.from('profiles').update({
+      analyses_gratuites_restantes: currentProfile.analyses_gratuites_restantes - 1,
+      updated_at: new Date().toISOString()
+    }).eq('id', currentUser.id);
+    
+    await supabase.from('analyses').insert({
+      user_id: currentUser.id, titre, nb_questions: nbQuestions,
+      nb_sauts: nbSauts, cout_fcfa: 0, tokens_consommes: tokensConsommes, outil, statut: 'gratuit'
+    });
+    
+    await supabase.from('transactions').insert({
+      user_id: currentUser.id, type: 'bonus_gratuit', montant: 0,
+      solde_avant: currentProfile.solde, solde_apres: currentProfile.solde,
+      description: 'Analyse gratuite : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
+    });
+    await loadProfile();
+    return;
+  }
+  
+  // Débit du solde
+  var soldeBefore = currentProfile.solde || 0;
+  var soldeAfter = soldeBefore - coutFcfa;
+  
+  await supabase.from('profiles').update({
+    solde: soldeAfter, updated_at: new Date().toISOString()
+  }).eq('id', currentUser.id);
+  
+  await supabase.from('analyses').insert({
+    user_id: currentUser.id, titre, nb_questions: nbQuestions,
+    nb_sauts: nbSauts, cout_fcfa: coutFcfa, tokens_consommes: tokensConsommes, outil, statut: 'complete'
+  });
+  
+  await supabase.from('transactions').insert({
+    user_id: currentUser.id, type: 'debit', montant: coutFcfa,
+    solde_avant: soldeBefore, solde_apres: soldeAfter,
+    description: 'Analyse : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
+  });
+  
+  await loadProfile();
+}
+
+// ============ RECHARGE ============
+function showRechargeModal() {
+  selectedPack = null;
+  document.getElementById('recharge-selected').style.display = 'none';
+  document.getElementById('btn-recharge').disabled = true;
+  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
+  document.getElementById('recharge-modal').style.display = 'flex';
+}
+
+function selectPack(prix, credits, bonus) {
+  selectedPack = { prix, credits, bonus };
+  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
+  event.currentTarget.style.borderColor = '#E8132A';
+  var info = document.getElementById('recharge-selected');
+  info.style.display = 'block';
+  info.innerHTML = 'Pack sélectionné : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → Crédit : <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong>' + (bonus > 0 ? ' (+' + bonus + '% bonus)' : '');
+  document.getElementById('btn-recharge').disabled = false;
+}
+
+async function procederRecharge() {
+  if (!selectedPack) return;
+  document.getElementById('recharge-modal').style.display = 'none';
+  // Déclencher le paiement FedaPay existant
+  window._rechargeEnCours = selectedPack;
+  lancerPaiementRecharge(selectedPack.prix, selectedPack.credits);
+}
+
+async function crediterSolde(credits, fedapayId) {
+  if (!currentUser || !currentProfile) return;
+  var soldeBefore = currentProfile.solde || 0;
+  var soldeAfter = soldeBefore + credits;
+  
+  await supabase.from('profiles').update({
+    solde: soldeAfter, updated_at: new Date().toISOString()
+  }).eq('id', currentUser.id);
+  
+  await supabase.from('transactions').insert({
+    user_id: currentUser.id, type: 'recharge', montant: credits,
+    solde_avant: soldeBefore, solde_apres: soldeAfter,
+    description: 'Recharge Mobile Money', fedapay_transaction_id: fedapayId
+  });
+  
+  await loadProfile();
+  showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+}
+
+// Démarrer l'auth au chargement
+window.addEventListener('DOMContentLoaded', function() {
+  initAuth();
+});
+
+</script>
 <script>
 // ============ CONFIG ============
 // Mets ta clé API Anthropic ici
