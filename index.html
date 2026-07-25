@@ -270,7 +270,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;animation:fadeUp .3s ease;white-space:nowrap;pointer-events:none;}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <!-- Modal Authentification -->
@@ -3052,14 +3052,16 @@ function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove()
 // ============ SUPABASE AUTH & CREDITS ============
 const SUPABASE_URL = 'https://ysnmnasyngjbycdzubcp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_DJWonC2DgWdNyn8VeGHkqQ_M8VYSsG9';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+let supabase = null;
 let currentUser = null;
 let currentProfile = null;
 let selectedPack = null;
 
 // Initialisation
 async function initAuth() {
+  if (!supabase && window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     currentUser = session.user;
