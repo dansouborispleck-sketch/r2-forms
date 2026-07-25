@@ -619,238 +619,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
   <div class="foot-text" data-fr="La lebo qui structure et protège vos données de terrain" data-en="Form conversion and deployment platform">La lebo qui structure et protège vos données de terrain</div>
 </footer>
 
-<script>
-// ============ SUPABASE AUTH & CREDITS ============
-const SUPABASE_URL = 'https://ysnmnasyngjbycdzubcp.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_DJWonC2DgWdNyn8VeGHkqQ_M8VYSsG9';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
-let currentProfile = null;
-let selectedPack = null;
-
-// Initialisation
-async function initAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await loadProfile();
-    showUserBar();
-  } else {
-    showAuthModal();
-  }
-  
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      currentUser = session.user;
-      await loadProfile();
-      showUserBar();
-      document.getElementById('auth-modal').style.display = 'none';
-    } else if (event === 'SIGNED_OUT') {
-      currentUser = null;
-      currentProfile = null;
-      hideUserBar();
-      showAuthModal();
-    }
-  });
-}
-
-async function loadProfile() {
-  if (!currentUser) return;
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', currentUser.id)
-    .single();
-  if (data) {
-    currentProfile = data;
-    updateUserBar();
-  }
-}
-
-function showUserBar() {
-  document.getElementById('user-bar').style.display = 'flex';
-}
-
-function hideUserBar() {
-  document.getElementById('user-bar').style.display = 'none';
-}
-
-function updateUserBar() {
-  if (!currentProfile) return;
-  var name = currentProfile.full_name || currentProfile.email || 'Utilisateur';
-  document.getElementById('user-name').textContent = name;
-  document.getElementById('user-solde').textContent = (currentProfile.solde || 0).toLocaleString('fr-FR') + ' FCFA';
-  var restantes = currentProfile.analyses_gratuites_restantes || 0;
-  document.getElementById('user-analyses-restantes').textContent = restantes > 0 ? '(' + restantes + ' analyse(s) gratuite(s) restante(s))' : '';
-}
-
-function showAuthModal() {
-  var modal = document.getElementById('auth-modal');
-  modal.style.display = 'flex';
-}
-
-window.showAuthTab = function(tab) {
-  var isLogin = tab === 'login';
-  document.getElementById('tab-login').style.background = isLogin ? '#E8132A' : '#fff';
-  document.getElementById('tab-login').style.color = isLogin ? '#fff' : '#767676';
-  document.getElementById('tab-login').style.borderColor = isLogin ? '#E8132A' : '#E8E8E8';
-  document.getElementById('tab-signup').style.background = !isLogin ? '#E8132A' : '#fff';
-  document.getElementById('tab-signup').style.color = !isLogin ? '#fff' : '#767676';
-  document.getElementById('tab-signup').style.borderColor = !isLogin ? '#E8132A' : '#E8E8E8';
-  document.getElementById('auth-name-field').style.display = isLogin ? 'none' : 'block';
-  document.getElementById('auth-submit-btn').textContent = isLogin ? 'Se connecter' : "S'inscrire";
-  document.getElementById('auth-subtitle').textContent = isLogin ? 'Connectez-vous pour continuer' : 'Créez votre compte';
-  document.getElementById('auth-modal').dataset.tab = tab;
-}
-
-window.signInWithGoogle = async function() {
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.href }
-  });
-}
-
-window.submitAuth = async function() {
-  var email = document.getElementById('auth-email').value.trim();
-  var password = document.getElementById('auth-password').value;
-  var tab = document.getElementById('auth-modal').dataset.tab || 'login';
-  var errorEl = document.getElementById('auth-error');
-  errorEl.style.display = 'none';
-
-  if (!email || !password) { errorEl.textContent = 'Remplissez tous les champs'; errorEl.style.display = 'block'; return; }
-
-  var result;
-  if (tab === 'signup') {
-    var name = document.getElementById('auth-name').value.trim();
-    result = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
-    if (!result.error) {
-      errorEl.style.color = '#10B981';
-      errorEl.textContent = 'Compte créé ! Vérifiez votre email pour confirmer.';
-      errorEl.style.display = 'block';
-      return;
-    }
-  } else {
-    result = await supabase.auth.signInWithPassword({ email, password });
-  }
-
-  if (result.error) { errorEl.style.color = '#E8132A'; errorEl.textContent = result.error.message; errorEl.style.display = 'block'; }
-}
-
-window.signOut = async function() {
-  await supabase.auth.signOut();
-}
-
-// ============ GESTION DES CREDITS ============
-async function verifierSolde(coutEstime) {
-  await loadProfile();
-  if (!currentProfile) return false;
-  
-  // Analyses gratuites
-  if (currentProfile.analyses_gratuites_restantes > 0) return true;
-  
-  // Solde suffisant
-  return (currentProfile.solde || 0) >= coutEstime;
-}
-
-async function debiterSolde(coutFcfa, titre, nbQuestions, nbSauts, tokensConsommes, outil) {
-  if (!currentUser || !currentProfile) return;
-  
-  // Analyses gratuites d'abord
-  if (currentProfile.analyses_gratuites_restantes > 0) {
-    await supabase.from('profiles').update({
-      analyses_gratuites_restantes: currentProfile.analyses_gratuites_restantes - 1,
-      updated_at: new Date().toISOString()
-    }).eq('id', currentUser.id);
-    
-    await supabase.from('analyses').insert({
-      user_id: currentUser.id, titre, nb_questions: nbQuestions,
-      nb_sauts: nbSauts, cout_fcfa: 0, tokens_consommes: tokensConsommes, outil, statut: 'gratuit'
-    });
-    
-    await supabase.from('transactions').insert({
-      user_id: currentUser.id, type: 'bonus_gratuit', montant: 0,
-      solde_avant: currentProfile.solde, solde_apres: currentProfile.solde,
-      description: 'Analyse gratuite : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
-    });
-    await loadProfile();
-    return;
-  }
-  
-  // Débit du solde
-  var soldeBefore = currentProfile.solde || 0;
-  var soldeAfter = soldeBefore - coutFcfa;
-  
-  await supabase.from('profiles').update({
-    solde: soldeAfter, updated_at: new Date().toISOString()
-  }).eq('id', currentUser.id);
-  
-  await supabase.from('analyses').insert({
-    user_id: currentUser.id, titre, nb_questions: nbQuestions,
-    nb_sauts: nbSauts, cout_fcfa: coutFcfa, tokens_consommes: tokensConsommes, outil, statut: 'complete'
-  });
-  
-  await supabase.from('transactions').insert({
-    user_id: currentUser.id, type: 'debit', montant: coutFcfa,
-    solde_avant: soldeBefore, solde_apres: soldeAfter,
-    description: 'Analyse : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
-  });
-  
-  await loadProfile();
-}
-
-// ============ RECHARGE ============
-window.showRechargeModal = function() {
-  selectedPack = null;
-  document.getElementById('recharge-selected').style.display = 'none';
-  document.getElementById('btn-recharge').disabled = true;
-  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
-  document.getElementById('recharge-modal').style.display = 'flex';
-}
-
-window.selectPack = function(prix, credits, bonus) {
-  selectedPack = { prix, credits, bonus };
-  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
-  event.currentTarget.style.borderColor = '#E8132A';
-  var info = document.getElementById('recharge-selected');
-  info.style.display = 'block';
-  info.innerHTML = 'Pack sélectionné : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → Crédit : <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong>' + (bonus > 0 ? ' (+' + bonus + '% bonus)' : '');
-  document.getElementById('btn-recharge').disabled = false;
-}
-
-window.procederRecharge = async function() {
-  if (!selectedPack) return;
-  document.getElementById('recharge-modal').style.display = 'none';
-  // Déclencher le paiement FedaPay existant
-  window._rechargeEnCours = selectedPack;
-  lancerPaiementRecharge(selectedPack.prix, selectedPack.credits);
-}
-
-async function crediterSolde(credits, fedapayId) {
-  if (!currentUser || !currentProfile) return;
-  var soldeBefore = currentProfile.solde || 0;
-  var soldeAfter = soldeBefore + credits;
-  
-  await supabase.from('profiles').update({
-    solde: soldeAfter, updated_at: new Date().toISOString()
-  }).eq('id', currentUser.id);
-  
-  await supabase.from('transactions').insert({
-    user_id: currentUser.id, type: 'recharge', montant: credits,
-    solde_avant: soldeBefore, solde_apres: soldeAfter,
-    description: 'Recharge Mobile Money', fedapay_transaction_id: fedapayId
-  });
-  
-  await loadProfile();
-  showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
-}
-
-// Démarrer l'auth au chargement
-window.addEventListener('DOMContentLoaded', function() {
-  initAuth();
-});
-
-</script>
 <script>
 // ============ CONFIG ============
 // Mets ta clé API Anthropic ici
@@ -3278,6 +3047,238 @@ function restart(){location.reload();}
 
 let _tt=null;
 function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();if(_tt)clearTimeout(_tt);const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);_tt=setTimeout(()=>t.remove(),3200);}
+</script>
+<script>
+// ============ SUPABASE AUTH & CREDITS ============
+const SUPABASE_URL = 'https://ysnmnasyngjbycdzubcp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_DJWonC2DgWdNyn8VeGHkqQ_M8VYSsG9';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let selectedPack = null;
+
+// Initialisation
+async function initAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadProfile();
+    showUserBar();
+  } else {
+    showAuthModal();
+  }
+  
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      await loadProfile();
+      showUserBar();
+      document.getElementById('auth-modal').style.display = 'none';
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      currentProfile = null;
+      hideUserBar();
+      showAuthModal();
+    }
+  });
+}
+
+async function loadProfile() {
+  if (!currentUser) return;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', currentUser.id)
+    .single();
+  if (data) {
+    currentProfile = data;
+    updateUserBar();
+  }
+}
+
+function showUserBar() {
+  document.getElementById('user-bar').style.display = 'flex';
+}
+
+function hideUserBar() {
+  document.getElementById('user-bar').style.display = 'none';
+}
+
+function updateUserBar() {
+  if (!currentProfile) return;
+  var name = currentProfile.full_name || currentProfile.email || 'Utilisateur';
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-solde').textContent = (currentProfile.solde || 0).toLocaleString('fr-FR') + ' FCFA';
+  var restantes = currentProfile.analyses_gratuites_restantes || 0;
+  document.getElementById('user-analyses-restantes').textContent = restantes > 0 ? '(' + restantes + ' analyse(s) gratuite(s) restante(s))' : '';
+}
+
+function showAuthModal() {
+  var modal = document.getElementById('auth-modal');
+  modal.style.display = 'flex';
+}
+
+window.showAuthTab = function(tab) {
+  var isLogin = tab === 'login';
+  document.getElementById('tab-login').style.background = isLogin ? '#E8132A' : '#fff';
+  document.getElementById('tab-login').style.color = isLogin ? '#fff' : '#767676';
+  document.getElementById('tab-login').style.borderColor = isLogin ? '#E8132A' : '#E8E8E8';
+  document.getElementById('tab-signup').style.background = !isLogin ? '#E8132A' : '#fff';
+  document.getElementById('tab-signup').style.color = !isLogin ? '#fff' : '#767676';
+  document.getElementById('tab-signup').style.borderColor = !isLogin ? '#E8132A' : '#E8E8E8';
+  document.getElementById('auth-name-field').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('auth-submit-btn').textContent = isLogin ? 'Se connecter' : "S'inscrire";
+  document.getElementById('auth-subtitle').textContent = isLogin ? 'Connectez-vous pour continuer' : 'Créez votre compte';
+  document.getElementById('auth-modal').dataset.tab = tab;
+}
+
+window.signInWithGoogle = async function() {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+
+window.submitAuth = async function() {
+  var email = document.getElementById('auth-email').value.trim();
+  var password = document.getElementById('auth-password').value;
+  var tab = document.getElementById('auth-modal').dataset.tab || 'login';
+  var errorEl = document.getElementById('auth-error');
+  errorEl.style.display = 'none';
+
+  if (!email || !password) { errorEl.textContent = 'Remplissez tous les champs'; errorEl.style.display = 'block'; return; }
+
+  var result;
+  if (tab === 'signup') {
+    var name = document.getElementById('auth-name').value.trim();
+    result = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
+    if (!result.error) {
+      errorEl.style.color = '#10B981';
+      errorEl.textContent = 'Compte créé ! Vérifiez votre email pour confirmer.';
+      errorEl.style.display = 'block';
+      return;
+    }
+  } else {
+    result = await supabase.auth.signInWithPassword({ email, password });
+  }
+
+  if (result.error) { errorEl.style.color = '#E8132A'; errorEl.textContent = result.error.message; errorEl.style.display = 'block'; }
+}
+
+window.signOut = async function() {
+  await supabase.auth.signOut();
+}
+
+// ============ GESTION DES CREDITS ============
+async function verifierSolde(coutEstime) {
+  await loadProfile();
+  if (!currentProfile) return false;
+  
+  // Analyses gratuites
+  if (currentProfile.analyses_gratuites_restantes > 0) return true;
+  
+  // Solde suffisant
+  return (currentProfile.solde || 0) >= coutEstime;
+}
+
+async function debiterSolde(coutFcfa, titre, nbQuestions, nbSauts, tokensConsommes, outil) {
+  if (!currentUser || !currentProfile) return;
+  
+  // Analyses gratuites d'abord
+  if (currentProfile.analyses_gratuites_restantes > 0) {
+    await supabase.from('profiles').update({
+      analyses_gratuites_restantes: currentProfile.analyses_gratuites_restantes - 1,
+      updated_at: new Date().toISOString()
+    }).eq('id', currentUser.id);
+    
+    await supabase.from('analyses').insert({
+      user_id: currentUser.id, titre, nb_questions: nbQuestions,
+      nb_sauts: nbSauts, cout_fcfa: 0, tokens_consommes: tokensConsommes, outil, statut: 'gratuit'
+    });
+    
+    await supabase.from('transactions').insert({
+      user_id: currentUser.id, type: 'bonus_gratuit', montant: 0,
+      solde_avant: currentProfile.solde, solde_apres: currentProfile.solde,
+      description: 'Analyse gratuite : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
+    });
+    await loadProfile();
+    return;
+  }
+  
+  // Débit du solde
+  var soldeBefore = currentProfile.solde || 0;
+  var soldeAfter = soldeBefore - coutFcfa;
+  
+  await supabase.from('profiles').update({
+    solde: soldeAfter, updated_at: new Date().toISOString()
+  }).eq('id', currentUser.id);
+  
+  await supabase.from('analyses').insert({
+    user_id: currentUser.id, titre, nb_questions: nbQuestions,
+    nb_sauts: nbSauts, cout_fcfa: coutFcfa, tokens_consommes: tokensConsommes, outil, statut: 'complete'
+  });
+  
+  await supabase.from('transactions').insert({
+    user_id: currentUser.id, type: 'debit', montant: coutFcfa,
+    solde_avant: soldeBefore, solde_apres: soldeAfter,
+    description: 'Analyse : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
+  });
+  
+  await loadProfile();
+}
+
+// ============ RECHARGE ============
+window.showRechargeModal = function() {
+  selectedPack = null;
+  document.getElementById('recharge-selected').style.display = 'none';
+  document.getElementById('btn-recharge').disabled = true;
+  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
+  document.getElementById('recharge-modal').style.display = 'flex';
+}
+
+window.selectPack = function(prix, credits, bonus) {
+  selectedPack = { prix, credits, bonus };
+  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
+  event.currentTarget.style.borderColor = '#E8132A';
+  var info = document.getElementById('recharge-selected');
+  info.style.display = 'block';
+  info.innerHTML = 'Pack sélectionné : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → Crédit : <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong>' + (bonus > 0 ? ' (+' + bonus + '% bonus)' : '');
+  document.getElementById('btn-recharge').disabled = false;
+}
+
+window.procederRecharge = async function() {
+  if (!selectedPack) return;
+  document.getElementById('recharge-modal').style.display = 'none';
+  // Déclencher le paiement FedaPay existant
+  window._rechargeEnCours = selectedPack;
+  lancerPaiementRecharge(selectedPack.prix, selectedPack.credits);
+}
+
+async function crediterSolde(credits, fedapayId) {
+  if (!currentUser || !currentProfile) return;
+  var soldeBefore = currentProfile.solde || 0;
+  var soldeAfter = soldeBefore + credits;
+  
+  await supabase.from('profiles').update({
+    solde: soldeAfter, updated_at: new Date().toISOString()
+  }).eq('id', currentUser.id);
+  
+  await supabase.from('transactions').insert({
+    user_id: currentUser.id, type: 'recharge', montant: credits,
+    solde_avant: soldeBefore, solde_apres: soldeAfter,
+    description: 'Recharge Mobile Money', fedapay_transaction_id: fedapayId
+  });
+  
+  await loadProfile();
+  showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+}
+
+// Démarrer l'auth au chargement
+window.addEventListener('DOMContentLoaded', function() {
+  initAuth();
+});
+
 </script>
 </body>
 </html>
