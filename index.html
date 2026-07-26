@@ -270,7 +270,6 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;animation:fadeUp .3s ease;white-space:nowrap;pointer-events:none;}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
 <body>
 <!-- Modal Authentification -->
@@ -1188,17 +1187,15 @@ function goStep(s) {
 
 // ============ ANALYSIS ============
 async function startAnalysis() {
-  // Vérifier les crédits avant de lancer l'analyse
+  // Vérifier crédits avant analyse
   if (window.verifierSolde) {
-    // Estimation du coût (sera précisé après l'analyse)
-    var soldeOk = await window.verifierSolde(1000);
-    if (!soldeOk) {
+    var ok = await window.verifierSolde(1000);
+    if (!ok) {
       showToast('❌ Solde insuffisant — rechargez votre compte');
       if (window.showRechargeModal) window.showRechargeModal();
       return;
     }
   }
-
   showPanel('panel-processing');
   animateProcessing();
   const content = fileContent||pasteContent;
@@ -1206,16 +1203,13 @@ async function startAnalysis() {
     parsedForm = await analyseQuestionnaire(content);
     validationChoices = parsedForm.questions.map(()=>({formatIdx:null,linked:false,linkText:''}));
     currentValIdx = 0;
-
-    // Débiter le solde après analyse réussie
+    // Débiter après analyse réussie
     if (window.debiterSolde && parsedForm.questions) {
       var nbQ = parsedForm.questions.length;
       var nbS = parsedForm.questions.filter(function(q){ return q.relevant && q.relevant.trim(); }).length;
-      var tokensConsommes = parsedForm.tokens_consommes || 0;
       var cout = calculerCout(nbQ, nbS, 0, 0);
-      await window.debiterSolde(cout, parsedForm.title || 'Questionnaire', nbQ, nbS, tokensConsommes, selectedTool);
+      await window.debiterSolde(cout, parsedForm.title || 'Questionnaire', nbQ, nbS, parsedForm.tokens_consommes || 0, selectedTool);
     }
-
     await new Promise(r=>setTimeout(r,1000));
     goStep(3);
     renderValCard();
@@ -3070,75 +3064,32 @@ let _tt=null;
 function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();if(_tt)clearTimeout(_tt);const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);_tt=setTimeout(()=>t.remove(),3200);}
 </script>
 <script>
-// ============ SUPABASE AUTH & CREDITS ============
+// ============ SUPABASE AUTH & CREDITS (REST) ============
 const SUPABASE_URL = 'https://ysnmnasyngjbycdzubcp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_DJWonC2DgWdNyn8VeGHkqQ_M8VYSsG9';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+let _accessToken = null;
 let currentUser = null;
 let currentProfile = null;
 let selectedPack = null;
 
-// Initialisation
-async function initAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await loadProfile();
-    showUserBar();
-  } else {
-    showAuthModal();
-  }
-  
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      currentUser = session.user;
-      await loadProfile();
-      showUserBar();
-      document.getElementById('auth-modal').style.display = 'none';
-    } else if (event === 'SIGNED_OUT') {
-      currentUser = null;
-      currentProfile = null;
-      hideUserBar();
-      showAuthModal();
-    }
+async function sbFetch(path, method, body, token) {
+  var r = await fetch(SUPABASE_URL + path, {
+    method: method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + (token || _accessToken || SUPABASE_KEY)
+    },
+    body: body ? JSON.stringify(body) : undefined
   });
+  try { return await r.json(); } catch(e) { return {}; }
 }
 
-async function loadProfile() {
-  if (!currentUser) return;
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', currentUser.id)
-    .single();
-  if (data) {
-    currentProfile = data;
-    updateUserBar();
-  }
-}
-
-function showUserBar() {
-  document.getElementById('user-bar').style.display = 'flex';
-}
-
-function hideUserBar() {
-  document.getElementById('user-bar').style.display = 'none';
-}
-
-function updateUserBar() {
-  if (!currentProfile) return;
-  var name = currentProfile.full_name || currentProfile.email || 'Utilisateur';
-  document.getElementById('user-name').textContent = name;
-  document.getElementById('user-solde').textContent = (currentProfile.solde || 0).toLocaleString('fr-FR') + ' FCFA';
-  var restantes = currentProfile.analyses_gratuites_restantes || 0;
-  document.getElementById('user-analyses-restantes').textContent = restantes > 0 ? '(' + restantes + ' analyse(s) gratuite(s) restante(s))' : '';
-}
-
-function showAuthModal() {
-  var modal = document.getElementById('auth-modal');
-  modal.style.display = 'flex';
-}
+window.signInWithGoogle = function() {
+  var redirectUrl = encodeURIComponent(window.location.href.split('#')[0]);
+  window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + redirectUrl;
+};
 
 window.showAuthTab = function(tab) {
   var isLogin = tab === 'login';
@@ -3152,14 +3103,7 @@ window.showAuthTab = function(tab) {
   document.getElementById('auth-submit-btn').textContent = isLogin ? 'Se connecter' : "S'inscrire";
   document.getElementById('auth-subtitle').textContent = isLogin ? 'Connectez-vous pour continuer' : 'Créez votre compte';
   document.getElementById('auth-modal').dataset.tab = tab;
-}
-
-window.signInWithGoogle = async function() {
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.href }
-  });
-}
+};
 
 window.submitAuth = async function() {
   var email = document.getElementById('auth-email').value.trim();
@@ -3167,139 +3111,192 @@ window.submitAuth = async function() {
   var tab = document.getElementById('auth-modal').dataset.tab || 'login';
   var errorEl = document.getElementById('auth-error');
   errorEl.style.display = 'none';
-
-  if (!email || !password) { errorEl.textContent = 'Remplissez tous les champs'; errorEl.style.display = 'block'; return; }
-
-  var result;
-  if (tab === 'signup') {
-    var name = document.getElementById('auth-name').value.trim();
-    result = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
-    if (!result.error) {
-      errorEl.style.color = '#10B981';
-      errorEl.textContent = 'Compte créé ! Vérifiez votre email pour confirmer.';
-      errorEl.style.display = 'block';
-      return;
-    }
-  } else {
-    result = await supabase.auth.signInWithPassword({ email, password });
-  }
-
-  if (result.error) { errorEl.style.color = '#E8132A'; errorEl.textContent = result.error.message; errorEl.style.display = 'block'; }
-}
-
-window.signOut = async function() {
-  await supabase.auth.signOut();
-}
-
-// ============ GESTION DES CREDITS ============
-async function verifierSolde(coutEstime) {
-  await loadProfile();
-  if (!currentProfile) return false;
-  
-  // Analyses gratuites
-  if (currentProfile.analyses_gratuites_restantes > 0) return true;
-  
-  // Solde suffisant
-  return (currentProfile.solde || 0) >= coutEstime;
-}
-
-async function debiterSolde(coutFcfa, titre, nbQuestions, nbSauts, tokensConsommes, outil) {
-  if (!currentUser || !currentProfile) return;
-  
-  // Analyses gratuites d'abord
-  if (currentProfile.analyses_gratuites_restantes > 0) {
-    await supabase.from('profiles').update({
-      analyses_gratuites_restantes: currentProfile.analyses_gratuites_restantes - 1,
-      updated_at: new Date().toISOString()
-    }).eq('id', currentUser.id);
-    
-    await supabase.from('analyses').insert({
-      user_id: currentUser.id, titre, nb_questions: nbQuestions,
-      nb_sauts: nbSauts, cout_fcfa: 0, tokens_consommes: tokensConsommes, outil, statut: 'gratuit'
-    });
-    
-    await supabase.from('transactions').insert({
-      user_id: currentUser.id, type: 'bonus_gratuit', montant: 0,
-      solde_avant: currentProfile.solde, solde_apres: currentProfile.solde,
-      description: 'Analyse gratuite : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
-    });
-    await loadProfile();
+  if (!email || !password) {
+    errorEl.textContent = 'Remplissez tous les champs';
+    errorEl.style.color = '#E8132A';
+    errorEl.style.display = 'block';
     return;
   }
-  
-  // Débit du solde
-  var soldeBefore = currentProfile.solde || 0;
-  var soldeAfter = soldeBefore - coutFcfa;
-  
-  await supabase.from('profiles').update({
-    solde: soldeAfter, updated_at: new Date().toISOString()
-  }).eq('id', currentUser.id);
-  
-  await supabase.from('analyses').insert({
-    user_id: currentUser.id, titre, nb_questions: nbQuestions,
-    nb_sauts: nbSauts, cout_fcfa: coutFcfa, tokens_consommes: tokensConsommes, outil, statut: 'complete'
-  });
-  
-  await supabase.from('transactions').insert({
-    user_id: currentUser.id, type: 'debit', montant: coutFcfa,
-    solde_avant: soldeBefore, solde_apres: soldeAfter,
-    description: 'Analyse : ' + titre, questionnaire_titre: titre, tokens_consommes: tokensConsommes
-  });
-  
+  var endpoint = tab === 'signup' ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password';
+  var body = { email: email, password: password };
+  if (tab === 'signup') {
+    var name = document.getElementById('auth-name') ? document.getElementById('auth-name').value : '';
+    body.data = { full_name: name };
+  }
+  var result = await sbFetch(endpoint, 'POST', body, SUPABASE_KEY);
+  if (result.error || result.error_description) {
+    errorEl.style.color = '#E8132A';
+    errorEl.textContent = result.error_description || result.error || 'Erreur';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (tab === 'signup' && !result.access_token) {
+    errorEl.style.color = '#10B981';
+    errorEl.textContent = 'Compte créé ! Vérifiez votre email.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  _accessToken = result.access_token;
+  currentUser = result.user;
+  localStorage.setItem('lebo_token', _accessToken);
+  localStorage.setItem('lebo_user', JSON.stringify(currentUser));
   await loadProfile();
+  showUserBar();
+  document.getElementById('auth-modal').style.display = 'none';
+};
+
+window.signOut = async function() {
+  await sbFetch('/auth/v1/logout', 'POST', {}, _accessToken);
+  _accessToken = null; currentUser = null; currentProfile = null;
+  localStorage.removeItem('lebo_token');
+  localStorage.removeItem('lebo_user');
+  document.getElementById('user-bar').style.display = 'none';
+  document.getElementById('auth-modal').style.display = 'flex';
+};
+
+async function loadProfile() {
+  if (!currentUser || !_accessToken) return;
+  var data = await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id + '&select=*', 'GET', null, _accessToken);
+  if (Array.isArray(data) && data.length > 0) {
+    currentProfile = data[0];
+    updateUserBar();
+  } else if (!currentProfile) {
+    await sbFetch('/rest/v1/profiles', 'POST', {
+      id: currentUser.id, email: currentUser.email,
+      full_name: currentUser.user_metadata ? currentUser.user_metadata.full_name : '',
+      solde: 0, analyses_gratuites_restantes: 3
+    }, _accessToken);
+    var data2 = await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id + '&select=*', 'GET', null, _accessToken);
+    if (Array.isArray(data2) && data2.length > 0) { currentProfile = data2[0]; updateUserBar(); }
+  }
 }
 
-// ============ RECHARGE ============
+function updateUserBar() {
+  if (!currentProfile) return;
+  document.getElementById('user-name').textContent = currentProfile.full_name || currentProfile.email || 'Utilisateur';
+  document.getElementById('user-solde').textContent = (currentProfile.solde || 0).toLocaleString('fr-FR') + ' FCFA';
+  var r = currentProfile.analyses_gratuites_restantes || 0;
+  document.getElementById('user-analyses-restantes').textContent = r > 0 ? '(' + r + ' analyse(s) gratuite(s))' : '';
+}
+
+function showUserBar() {
+  document.getElementById('user-bar').style.display = 'flex';
+}
+window.showUserBar = showUserBar;
+
+window.verifierSolde = async function(coutEstime) {
+  await loadProfile();
+  if (!currentProfile) return true;
+  if (currentProfile.analyses_gratuites_restantes > 0) return true;
+  return (currentProfile.solde || 0) >= coutEstime;
+};
+
+window.debiterSolde = async function(coutFcfa, titre, nbQuestions, nbSauts, tokensConsommes, outil) {
+  if (!currentUser || !currentProfile) return;
+  if (currentProfile.analyses_gratuites_restantes > 0) {
+    await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH',
+      { analyses_gratuites_restantes: currentProfile.analyses_gratuites_restantes - 1 }, _accessToken);
+    await sbFetch('/rest/v1/analyses', 'POST', {
+      user_id: currentUser.id, titre: titre, nb_questions: nbQuestions,
+      nb_sauts: nbSauts, cout_fcfa: 0, tokens_consommes: tokensConsommes, outil: outil, statut: 'gratuit'
+    }, _accessToken);
+  } else {
+    var sb = currentProfile.solde || 0;
+    var sa = sb - coutFcfa;
+    await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH', { solde: sa }, _accessToken);
+    await sbFetch('/rest/v1/analyses', 'POST', {
+      user_id: currentUser.id, titre: titre, nb_questions: nbQuestions,
+      nb_sauts: nbSauts, cout_fcfa: coutFcfa, tokens_consommes: tokensConsommes, outil: outil, statut: 'complete'
+    }, _accessToken);
+    await sbFetch('/rest/v1/transactions', 'POST', {
+      user_id: currentUser.id, type: 'debit', montant: coutFcfa,
+      solde_avant: sb, solde_apres: sa, description: 'Analyse : ' + titre,
+      questionnaire_titre: titre, tokens_consommes: tokensConsommes
+    }, _accessToken);
+  }
+  await loadProfile();
+};
+
+window.crediterSolde = async function(credits, fedapayId) {
+  if (!currentUser || !currentProfile) return;
+  var sb = currentProfile.solde || 0;
+  var sa = sb + credits;
+  await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH', { solde: sa }, _accessToken);
+  await sbFetch('/rest/v1/transactions', 'POST', {
+    user_id: currentUser.id, type: 'recharge', montant: credits,
+    solde_avant: sb, solde_apres: sa, description: 'Recharge Mobile Money',
+    fedapay_transaction_id: fedapayId
+  }, _accessToken);
+  await loadProfile();
+  showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+};
+
 window.showRechargeModal = function() {
   selectedPack = null;
   document.getElementById('recharge-selected').style.display = 'none';
   document.getElementById('btn-recharge').disabled = true;
-  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
+  document.querySelectorAll('.pack-card').forEach(function(c) { c.style.borderColor = '#E8E8E8'; });
   document.getElementById('recharge-modal').style.display = 'flex';
-}
+};
 
 window.selectPack = function(prix, credits, bonus) {
-  selectedPack = { prix, credits, bonus };
-  document.querySelectorAll('.pack-card').forEach(c => c.style.borderColor = '#E8E8E8');
+  selectedPack = { prix: prix, credits: credits, bonus: bonus };
+  document.querySelectorAll('.pack-card').forEach(function(c) { c.style.borderColor = '#E8E8E8'; });
   event.currentTarget.style.borderColor = '#E8132A';
   var info = document.getElementById('recharge-selected');
   info.style.display = 'block';
-  info.innerHTML = 'Pack sélectionné : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → Crédit : <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong>' + (bonus > 0 ? ' (+' + bonus + '% bonus)' : '');
+  info.innerHTML = 'Pack : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong>' + (bonus > 0 ? ' (+' + bonus + '%)' : '');
   document.getElementById('btn-recharge').disabled = false;
-}
+};
 
 window.procederRecharge = async function() {
   if (!selectedPack) return;
   document.getElementById('recharge-modal').style.display = 'none';
-  // Déclencher le paiement FedaPay existant
   window._rechargeEnCours = selectedPack;
   lancerPaiementRecharge(selectedPack.prix, selectedPack.credits);
+};
+
+async function initAuth() {
+  var modal = document.getElementById('auth-modal');
+  // 1. Token dans URL hash (retour Google OAuth)
+  var hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    if (modal) modal.style.display = 'none';
+    var params = new URLSearchParams(hash.substring(1));
+    _accessToken = params.get('access_token');
+    if (_accessToken) {
+      localStorage.setItem('lebo_token', _accessToken);
+      var userData = await sbFetch('/auth/v1/user', 'GET', null, _accessToken);
+      if (userData && userData.id) {
+        currentUser = userData;
+        localStorage.setItem('lebo_user', JSON.stringify(currentUser));
+        await loadProfile();
+        showUserBar();
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
+    }
+  }
+  // 2. Session sauvegardée
+  var savedToken = localStorage.getItem('lebo_token');
+  var savedUser = localStorage.getItem('lebo_user');
+  if (savedToken && savedUser) {
+    _accessToken = savedToken;
+    currentUser = JSON.parse(savedUser);
+    await loadProfile();
+    if (currentProfile) {
+      showUserBar();
+      if (modal) modal.style.display = 'none';
+      return;
+    }
+  }
+  // 3. Pas connecté
+  if (modal) modal.style.display = 'flex';
 }
 
-async function crediterSolde(credits, fedapayId) {
-  if (!currentUser || !currentProfile) return;
-  var soldeBefore = currentProfile.solde || 0;
-  var soldeAfter = soldeBefore + credits;
-  
-  await supabase.from('profiles').update({
-    solde: soldeAfter, updated_at: new Date().toISOString()
-  }).eq('id', currentUser.id);
-  
-  await supabase.from('transactions').insert({
-    user_id: currentUser.id, type: 'recharge', montant: credits,
-    solde_avant: soldeBefore, solde_apres: soldeAfter,
-    description: 'Recharge Mobile Money', fedapay_transaction_id: fedapayId
-  });
-  
-  await loadProfile();
-  showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
-}
-
-// Démarrer l'auth au chargement
 window.addEventListener('DOMContentLoaded', function() {
   initAuth();
 });
-
 </script>
 </body>
 </html>
