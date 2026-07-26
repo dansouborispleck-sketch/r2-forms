@@ -3297,6 +3297,54 @@ async function initAuth() {
   if (modal) modal.style.display = 'flex';
 }
 
+async function lancerPaiementRecharge(prix, credits) {
+  try {
+    var email = currentUser ? currentUser.email : 'client@lebo.bj';
+    var res = await fetch(BACKEND_URL + '/api/payment/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: prix,
+        description: 'Lebo Deploy - Recharge ' + prix.toLocaleString('fr-FR') + ' FCFA',
+        customer: { email: email }
+      })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.token) throw new Error(data.message || 'Erreur initialisation');
+
+    var checkoutUrl = data.checkoutUrl || data.token;
+    var popup = window.open(checkoutUrl, 'fedapay-recharge', 'width=520,height=700,scrollbars=yes');
+
+    showToast('⏳ En attente du paiement...');
+
+    // Vérifier le statut toutes les 5 secondes
+    var verifyInterval = setInterval(async function() {
+      try {
+        var verifyRes = await fetch(BACKEND_URL + '/api/payment/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transactionId: data.transactionId })
+        });
+        var verifyData = await verifyRes.json();
+
+        if (verifyData.approved) {
+          clearInterval(verifyInterval);
+          if (popup && !popup.closed) popup.close();
+          // Créditer le solde
+          await window.crediterSolde(credits, data.transactionId);
+        } else if (verifyData.status === 'declined') {
+          clearInterval(verifyInterval);
+          if (popup && !popup.closed) popup.close();
+          showToast('❌ Paiement refusé. Réessayez.');
+        }
+      } catch(e) { console.error('[RECHARGE] Erreur vérification:', e); }
+    }, 5000);
+
+  } catch(e) {
+    showToast('❌ Erreur : ' + e.message);
+  }
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   initAuth();
 });
