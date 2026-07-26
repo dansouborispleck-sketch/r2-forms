@@ -1207,7 +1207,10 @@ async function startAnalysis() {
     if (window.debiterSolde && parsedForm.questions) {
       var nbQ = parsedForm.questions.length;
       var nbS = parsedForm.questions.filter(function(q){ return q.relevant && q.relevant.trim(); }).length;
-      var cout = calculerCout(nbQ, nbS, 0, 0);
+      // Utiliser calculerTarif avec un formulaire simplifié
+      var fakeForm = { questions: parsedForm.questions, sauts: nbS, contraintes: 0, images: 0 };
+      var tarif = typeof calculerTarif === 'function' ? calculerTarif(fakeForm) : { total: 0 };
+      var cout = tarif.total || 0;
       await window.debiterSolde(cout, parsedForm.title || 'Questionnaire', nbQ, nbS, parsedForm.tokens_consommes || 0, selectedTool);
     }
     await new Promise(r=>setTimeout(r,1000));
