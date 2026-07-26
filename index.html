@@ -3158,16 +3158,21 @@ async function loadProfile() {
   if (Array.isArray(data) && data.length > 0) {
     currentProfile = data[0];
     updateUserBar();
-  } else {
-    // Créer le profil s'il n'existe pas
-    await sbFetch('/rest/v1/profiles', 'POST', {
+  } else if (!currentProfile) {
+    // Créer le profil une seule fois — pas de récursion
+    var created = await sbFetch('/rest/v1/profiles', 'POST', {
       id: currentUser.id,
       email: currentUser.email,
       full_name: currentUser.user_metadata ? currentUser.user_metadata.full_name : '',
       solde: 0,
       analyses_gratuites_restantes: 3
     }, _accessToken);
-    await loadProfile();
+    // Lire directement sans récursion
+    var data2 = await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id + '&select=*', 'GET', null, _accessToken);
+    if (Array.isArray(data2) && data2.length > 0) {
+      currentProfile = data2[0];
+      updateUserBar();
+    }
   }
 }
 
