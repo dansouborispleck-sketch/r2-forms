@@ -3130,12 +3130,32 @@ window.submitAuth = async function() {
     errorEl.style.display = 'block';
     return;
   }
-  if (tab === 'signup' && !result.access_token) {
+  if (tab === 'signup') {
+    // Email envoyé — attendre confirmation
     errorEl.style.color = '#10B981';
-    errorEl.textContent = 'Compte créé ! Vérifiez votre email.';
+    errorEl.textContent = '✅ Compte créé ! Un email de confirmation vous a été envoyé. Vérifiez votre boîte mail et cliquez sur le lien avant de vous connecter.';
+    errorEl.style.display = 'block';
+    // Passer à l'onglet connexion après 3 secondes
+    setTimeout(function() { window.showAuthTab('login'); }, 3000);
+    return;
+  }
+
+  // Connexion — vérifier si email confirmé
+  if (!result.access_token) {
+    errorEl.style.color = '#E8132A';
+    errorEl.textContent = result.error_description || 'Erreur de connexion';
     errorEl.style.display = 'block';
     return;
   }
+
+  // Vérifier confirmation email
+  if (result.user && !result.user.email_confirmed_at && result.user.app_metadata && result.user.app_metadata.provider === 'email') {
+    errorEl.style.color = '#E8A000';
+    errorEl.textContent = '⚠️ Email non confirmé. Vérifiez votre boîte mail et cliquez sur le lien de confirmation.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   _accessToken = result.access_token;
   currentUser = result.user;
   localStorage.setItem('lebo_token', _accessToken);
@@ -3161,10 +3181,14 @@ async function loadProfile() {
     currentProfile = data[0];
     updateUserBar();
   } else if (!currentProfile) {
+    // Crédit gratuit activé seulement si email confirmé ou Google OAuth
+    var isGoogleUser = currentUser.app_metadata && currentUser.app_metadata.provider === 'google';
+    var isEmailConfirmed = currentUser.email_confirmed_at;
+    var creditGratuit = (isGoogleUser || isEmailConfirmed) ? 2500 : 0;
     await sbFetch('/rest/v1/profiles', 'POST', {
       id: currentUser.id, email: currentUser.email,
       full_name: currentUser.user_metadata ? currentUser.user_metadata.full_name : '',
-      solde: 0, credit_gratuit: 2500
+      solde: 0, credit_gratuit: creditGratuit
     }, _accessToken);
     var data2 = await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id + '&select=*', 'GET', null, _accessToken);
     if (Array.isArray(data2) && data2.length > 0) { currentProfile = data2[0]; updateUserBar(); }
