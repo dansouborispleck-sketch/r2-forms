@@ -3201,6 +3201,40 @@ function updateUserBar() {
   document.getElementById('user-solde').textContent = (currentProfile.solde || 0).toLocaleString('fr-FR') + ' FCFA';
   var cg = currentProfile.credit_gratuit || 0;
   document.getElementById('user-analyses-restantes').textContent = cg > 0 ? '(Crédit gratuit : ' + cg.toLocaleString('fr-FR') + ' FCFA)' : '';
+
+  // Vérifier expiration des crédits
+  if (currentProfile.credit_expire_at && currentProfile.solde > 0) {
+    var expireAt = new Date(currentProfile.credit_expire_at);
+    var now = new Date();
+    var joursRestants = Math.ceil((expireAt - now) / (1000 * 60 * 60 * 24));
+    
+    var warningEl = document.getElementById('user-expiration-warning');
+    if (!warningEl) {
+      warningEl = document.createElement('span');
+      warningEl.id = 'user-expiration-warning';
+      warningEl.style.cssText = 'font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;';
+      document.getElementById('user-bar').querySelector('div').appendChild(warningEl);
+    }
+
+    if (joursRestants <= 1) {
+      warningEl.textContent = '⚠️ Crédits expirent demain !';
+      warningEl.style.background = '#E8132A';
+      warningEl.style.color = '#fff';
+      warningEl.style.display = 'inline';
+    } else if (joursRestants <= 7) {
+      warningEl.textContent = '⚠️ Crédits expirent dans ' + joursRestants + ' jours';
+      warningEl.style.background = '#F59E0B';
+      warningEl.style.color = '#fff';
+      warningEl.style.display = 'inline';
+    } else if (joursRestants <= 30) {
+      warningEl.textContent = '⏰ Crédits expirent dans ' + joursRestants + ' jours';
+      warningEl.style.background = '#E8E8E8';
+      warningEl.style.color = '#666';
+      warningEl.style.display = 'inline';
+    } else if (warningEl) {
+      warningEl.style.display = 'none';
+    }
+  }
 }
 
 function showUserBar() {
@@ -3260,7 +3294,12 @@ window.crediterSolde = async function(credits, fedapayId) {
   if (!currentUser || !currentProfile) return;
   var sb = currentProfile.solde || 0;
   var sa = sb + credits;
-  await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH', { solde: sa }, _accessToken);
+  // Renouveler l'expiration à 12 mois glissants
+  var newExpireAt = new Date(Date.now() + 12 * 30 * 24 * 60 * 60 * 1000).toISOString();
+  await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH', { 
+    solde: sa,
+    credit_expire_at: newExpireAt
+  }, _accessToken);
   await sbFetch('/rest/v1/transactions', 'POST', {
     user_id: currentUser.id, type: 'recharge', montant: credits,
     solde_avant: sb, solde_apres: sa, description: 'Recharge Mobile Money',
