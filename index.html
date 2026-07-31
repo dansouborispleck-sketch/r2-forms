@@ -712,7 +712,9 @@ async function startAnalysis() {
   }
   showPanel('panel-processing');
   animateProcessing();
-  const payload = pdfBase64Content ? { pdfBase64: pdfBase64Content } : { text: fileContent||pasteContent };
+  const payload = pdfBase64Content
+    ? Object.assign({ pdfBase64: pdfBase64Content }, (sourceImages && sourceImages.length > 0) ? { images: sourceImages } : {})
+    : { text: fileContent||pasteContent };
   try {
     parsedForm = await analyseQuestionnaire(payload);
     validatedForm = parsedForm; // le xlsform produit par l'analyse est deja final, aucune etape de revue
@@ -817,7 +819,8 @@ async function analyseQuestionnaire(payload) {
     title: data.title,
     xlsform: data.xlsform,
     needs_review: data.needs_review || [],
-    coherence_report: data.coherence_report || []
+    coherence_report: data.coherence_report || [],
+    media: data.media_associations || []
   };
 }
 
@@ -980,7 +983,8 @@ async function deployToKoboToolbox(form) {
     body: JSON.stringify({
       xlsform: form.xlsform,
       title: form.title,
-      credentials: { username, password, server }
+      credentials: { username, password, server },
+      media: form.media || []
     })
   });
 
@@ -990,7 +994,7 @@ async function deployToKoboToolbox(form) {
   }
 
   const data = await res.json();
-  return { uid: data.uid, url: data.url, server, images: data.images || [] };
+  return { uid: data.uid, url: data.url, server, mediaAssociated: data.mediaAssociated || 0 };
 }
 
 async function deployToJotForm(form) {
@@ -1308,11 +1312,17 @@ async function validateAndDeploy() {
       ? 'Votre masque a été déployé avec succès sur ' + TOOL_NAMES[selectedTool] + '. Cliquez sur "Accéder à mon compte" pour le retrouver.'
       : 'Your form has been successfully deployed to ' + TOOL_NAMES[selectedTool] + '. Click "Access my account" to find it.';
 
+    // Signaler les images associees automatiquement aux modalites (Kobo uniquement)
+    if (result && result.mediaAssociated > 0) {
+      deployMsg += lang==='fr'
+        ? ' 🖼️ ' + result.mediaAssociated + ' image(s) associee(s) automatiquement a leur modalite dans ' + TOOL_NAMES[selectedTool] + '.'
+        : ' 🖼️ ' + result.mediaAssociated + ' image(s) automatically matched to their answer choice in ' + TOOL_NAMES[selectedTool] + '.';
+    }
     // Ajouter message pour les images du document source si disponibles
     if (sourceImages && sourceImages.length > 0) {
       deployMsg += lang==='fr'
-        ? ' 🖼️ ' + sourceImages.length + ' image(s) du document telechargee(s) en ZIP — a integrer manuellement dans ' + TOOL_NAMES[selectedTool] + '.'
-        : ' 🖼️ ' + sourceImages.length + ' document image(s) downloaded as ZIP — add them manually in ' + TOOL_NAMES[selectedTool] + '.';
+        ? ' 📦 ' + sourceImages.length + ' image(s) du document telechargee(s) en ZIP — a integrer manuellement si besoin dans ' + TOOL_NAMES[selectedTool] + '.'
+        : ' 📦 ' + sourceImages.length + ' document image(s) downloaded as ZIP — add them manually if needed in ' + TOOL_NAMES[selectedTool] + '.';
     }
     // Signaler les elements a revoir si non deja fait
     if (validatedForm && validatedForm.needs_review && validatedForm.needs_review.length > 0) {
