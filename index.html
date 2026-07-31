@@ -478,6 +478,7 @@ let authMode = 'existing';
 let fileContent = '';
 let fileObject = null;
 let pasteContent = '';
+let pdfBase64Content = null;  // PDF lu nativement par Claude (pas d'extraction texte cote serveur)
 let parsedForm = null;       // {title, xlsform:{survey,choices,settings}, needs_review, coherence_report} apres /api/analyse
 let validatedForm = null;    // alias de parsedForm — le xlsform produit par l'analyse est deja final
 
@@ -611,15 +612,27 @@ function processFile(file) {
         showToast('⚠️ ' + (data.message || 'Erreur'));
         return;
       }
-      // Succès — texte extrait par le backend
-      fileContent = data.text;
+      // Succès
       fileObject = file;
-      const chars = data.metadata?.chars?.toLocaleString() || data.text?.length?.toLocaleString();
-      zone.innerHTML = `
-        <div style="font-size:26px;margin-bottom:7px;">✅</div>
-        <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · ${chars} ${lang==='fr'?'caractères extraits':'characters extracted'} · ${lang==='fr'?'Cliquez pour changer':'Click to change'}</div>
-        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+      if (data.isPdf) {
+        // PDF lu nativement par Claude a l'analyse — pas de texte extrait cote serveur
+        pdfBase64Content = data.pdfBase64;
+        fileContent = '';
+        zone.innerHTML = `
+          <div style="font-size:26px;margin-bottom:7px;">✅</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · ${lang==='fr'?'PDF pret — lu directement par Claude':'PDF ready — read directly by Claude'} · ${lang==='fr'?'Cliquez pour changer':'Click to change'}</div>
+          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+      } else {
+        pdfBase64Content = null;
+        fileContent = data.text;
+        const chars = data.metadata?.chars?.toLocaleString() || data.text?.length?.toLocaleString();
+        zone.innerHTML = `
+          <div style="font-size:26px;margin-bottom:7px;">✅</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · ${chars} ${lang==='fr'?'caractères extraits':'characters extracted'} · ${lang==='fr'?'Cliquez pour changer':'Click to change'}</div>
+          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
+      }
       checkReady1();
     })
     .catch(err => {
@@ -633,11 +646,12 @@ function processFile(file) {
 }
 function updateCharCount(){
   pasteContent=document.getElementById('paste-input').value;
+  if (pasteContent.trim().length > 0) pdfBase64Content = null; // saisie manuelle prioritaire sur un PDF deja importe
   document.getElementById('char-count').textContent=pasteContent.length+(lang==='fr'?' caractères':' characters');
   checkReady1();
 }
 function checkReady1(){
-  document.getElementById('btn-next1').disabled=!(fileContent.length>0||pasteContent.trim().length>20);
+  document.getElementById('btn-next1').disabled=!(fileContent.length>0||pasteContent.trim().length>20||!!pdfBase64Content);
 }
 
 // ============ STEPS NAVIGATION ============
@@ -693,9 +707,9 @@ async function startAnalysis() {
   }
   showPanel('panel-processing');
   animateProcessing();
-  const content = fileContent||pasteContent;
+  const payload = pdfBase64Content ? { pdfBase64: pdfBase64Content } : { text: fileContent||pasteContent };
   try {
-    parsedForm = await analyseQuestionnaire(content);
+    parsedForm = await analyseQuestionnaire(payload);
     validatedForm = parsedForm; // le xlsform produit par l'analyse est deja final, aucune etape de revue
 
     if (window.debiterSolde) {
@@ -776,16 +790,16 @@ function animateProcessing() {
   });
 }
 
-async function analyseQuestionnaire(content) {
+async function analyseQuestionnaire(payload) {
   if(DEMO_MODE){
     await new Promise(r=>setTimeout(r,4500));
-    return buildDemoForm(content);
+    return buildDemoForm(payload.text || '');
   }
   // Passe par le backend Railway — évite le CORS
   const res = await fetch(BACKEND_URL + '/api/analyse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: content, tool: selectedTool })
+    body: JSON.stringify(Object.assign({ tool: selectedTool }, payload))
   });
   if (!res.ok) {
     const err = await res.json().catch(()=>({message:'Erreur serveur'}));
