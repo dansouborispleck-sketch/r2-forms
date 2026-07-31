@@ -479,6 +479,7 @@ let fileContent = '';
 let fileObject = null;
 let pasteContent = '';
 let pdfBase64Content = null;  // PDF lu nativement par Claude (pas d'extraction texte cote serveur)
+let sourceImages = [];  // images extraites telles quelles du document source (DOCX/PDF) — /api/import
 let parsedForm = null;       // {title, xlsform:{survey,choices,settings}, needs_review, coherence_report} apres /api/analyse
 let validatedForm = null;    // alias de parsedForm — le xlsform produit par l'analyse est deja final
 
@@ -614,6 +615,10 @@ function processFile(file) {
       }
       // Succès
       fileObject = file;
+      sourceImages = data.images || [];
+      if (sourceImages.length > 0) {
+        showToast((lang==='fr'?'🖼️ ':'🖼️ ') + sourceImages.length + (lang==='fr'?' image(s) trouvee(s) dans le document — proposees au telechargement au deploiement':' image(s) found in the document — offered for download at deployment'));
+      }
       if (data.isPdf) {
         // PDF lu nativement par Claude a l'analyse — pas de texte extrait cote serveur
         pdfBase64Content = data.pdfBase64;
@@ -1272,9 +1277,10 @@ async function validateAndDeploy() {
     document.getElementById('progress-fill2').style.width='100%';
     await new Promise(r=>setTimeout(r,400));
 
-    // Télécharger automatiquement les images en ZIP si disponibles
-    if (result.images && result.images.length > 0 && (selectedTool === 'kobo' || selectedTool === 'odk')) {
-      await telechargerImagesZip(result.images, validatedForm.title || 'formulaire');
+    // Télécharger automatiquement en ZIP les images du document source (DOCX/PDF,
+    // extraites telles quelles a l'import)
+    if (sourceImages && sourceImages.length > 0) {
+      await telechargerImagesZip(sourceImages, validatedForm.title || 'formulaire');
     }
 
     goStep(3);
@@ -1302,11 +1308,11 @@ async function validateAndDeploy() {
       ? 'Votre masque a été déployé avec succès sur ' + TOOL_NAMES[selectedTool] + '. Cliquez sur "Accéder à mon compte" pour le retrouver.'
       : 'Your form has been successfully deployed to ' + TOOL_NAMES[selectedTool] + '. Click "Access my account" to find it.';
 
-    // Ajouter message pour les images si disponibles
-    if (result && result.images && result.images.length > 0 && (selectedTool === 'kobo' || selectedTool === 'odk')) {
+    // Ajouter message pour les images du document source si disponibles
+    if (sourceImages && sourceImages.length > 0) {
       deployMsg += lang==='fr'
-        ? ' 📥 ' + result.images.length + ' image(s) téléchargée(s) — uploadez-les dans KoboToolbox → Paramètres → Média → puis redéployez le formulaire.'
-        : ' 📥 ' + result.images.length + ' image(s) downloaded — upload them in KoboToolbox → Settings → Media → then redeploy.';
+        ? ' 🖼️ ' + sourceImages.length + ' image(s) du document telechargee(s) en ZIP — a integrer manuellement dans ' + TOOL_NAMES[selectedTool] + '.'
+        : ' 🖼️ ' + sourceImages.length + ' document image(s) downloaded as ZIP — add them manually in ' + TOOL_NAMES[selectedTool] + '.';
     }
     // Signaler les elements a revoir si non deja fait
     if (validatedForm && validatedForm.needs_review && validatedForm.needs_review.length > 0) {
