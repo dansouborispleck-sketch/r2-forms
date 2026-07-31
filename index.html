@@ -115,129 +115,6 @@ header{background:#fff;padding:12px 40px;display:flex;align-items:center;gap:14p
 .proc-step.done{color:var(--green);}
 .proc-step.active{color:var(--ink);font-weight:600;}
 
-/* ===== PANEL 3 — VALIDATION ===== */
-#panel3{display:none;padding:0;}
-.val-progress{background:#F8FAFC;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;}
-.val-progress-bar{flex:1;background:var(--paper3);border-radius:20px;height:6px;overflow:hidden;}
-.val-progress-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .4s ease;}
-.val-progress-label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
-.val-card{padding:24px;}
-.val-question{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.4;}
-.val-question-num{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
-.val-format-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
-
-/* 3-column format selector */
-.format-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-@media(max-width:520px){.format-cols{grid-template-columns:1fr;}}
-.format-col{background:var(--paper);border:2px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;user-select:none;}
-.format-col:hover{border-color:rgba(14,15,17,.25);}
-.format-col.selected{border-color:var(--accent);background:#fff3f3;}
-.format-col-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
-.format-col-desc{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;font-style:italic;}
-
-/* KoboToolbox style choices */
-.kobo-choice{display:flex;align-items:center;gap:7px;padding:5px 0;font-size:13px;color:var(--ink);}
-.kobo-radio{width:16px;height:16px;border-radius:50%;border:2px solid #aaa;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-.kobo-radio.filled{border-color:var(--blue);}
-.kobo-radio.filled::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);}
-.kobo-check{width:14px;height:14px;border-radius:3px;border:2px solid #aaa;flex-shrink:0;}
-.kobo-check.filled{border-color:var(--blue);background:var(--blue);}
-.kobo-text-field{background:#fff;border:1.5px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:12px;color:#aaa;width:100%;}
-
-/* JotForm style */
-.jot-choice{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:var(--ink);}
-.jot-radio{width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;background:#f9fafb;flex-shrink:0;}
-.jot-check{width:16px;height:16px;border-radius:4px;border:2px solid #e5e7eb;background:#f9fafb;flex-shrink:0;}
-.jot-text{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:12px;color:#aaa;width:100%;}
-
-/* Tally style */
-.tally-choice{background:#f3f4f6;border-radius:8px;padding:7px 12px;margin-bottom:5px;font-size:13px;color:var(--ink);border:1.5px solid transparent;}
-.tally-choice.sel{background:#eff6ff;border-color:#3b82f6;color:#1d4ed8;}
-.tally-text{background:#f3f4f6;border:none;border-radius:8px;padding:10px 14px;font-size:12px;color:#aaa;width:100%;}
-
-/* Link question section */
-.link-section{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
-.link-check-row{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
-.link-checkbox{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
-.link-checkbox.checked{background:var(--ink);border-color:var(--ink);}
-.link-checkbox.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
-.link-label{font-size:13px;color:var(--ink);}
-.link-input-wrap{margin-top:12px;display:none;}
-.link-input-wrap.open{display:block;}
-.link-textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);resize:none;outline:none;transition:border-color .2s;line-height:1.6;}
-.link-textarea:focus{border-color:var(--accent);}
-.link-textarea::placeholder{color:#bbb;}
-.link-hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
-
-/* val nav */
-.val-nav{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;}
-.val-nav-left{display:flex;gap:8px;}
-
-/* ===== PANEL 4 — VISUALISATION ===== */
-#panel4{display:none;padding:0;}
-.viz-toolbar{background:var(--paper);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:10px;}
-.viz-title{font-size:13px;font-weight:700;color:var(--ink);flex:1;}
-.viz-tool-badge{background:var(--ink);color:var(--paper);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
-.viz-body{padding:24px;max-height:520px;overflow-y:auto;}
-
-/* Mock form viewer */
-.mock-form{border-radius:14px;overflow:hidden;border:1px solid var(--border);}
-
-/* KoboToolbox mock */
-.kobo-mock{background:#fff;}
-.kobo-mock-header{background:#006eba;padding:16px 20px;}
-.kobo-mock-title{font-size:16px;font-weight:700;color:#fff;}
-.kobo-mock-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:3px;}
-.kobo-mock-body{padding:0;}
-.kobo-mock-group{border-bottom:1px solid #e5e7eb;}
-.kobo-mock-group-title{background:#f3f6f9;padding:10px 16px;font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;}
-.kobo-mock-question{padding:14px 16px;border-bottom:1px solid #f3f4f6;}
-.kobo-mock-question:last-child{border:none;}
-.kobo-mock-q-label{font-size:14px;color:#111827;margin-bottom:3px;font-weight:500;}
-.kobo-mock-required{color:#dc2626;margin-left:3px;}
-.kobo-mock-hint{font-size:11px;color:#9ca3af;margin-bottom:8px;}
-.kobo-mock-choices{display:flex;flex-direction:column;gap:4px;}
-.kobo-mock-choice{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;}
-.kobo-mock-choice .r{width:16px;height:16px;border-radius:50%;border:2px solid #9ca3af;flex-shrink:0;}
-.kobo-mock-choice .c{width:14px;height:14px;border-radius:3px;border:2px solid #9ca3af;flex-shrink:0;}
-.kobo-mock-input{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-size:13px;color:#9ca3af;width:100%;}
-
-/* JotForm mock */
-.jot-mock{background:#fff;}
-.jot-mock-header{background:linear-gradient(135deg,#ff6100,#ff8c00);padding:20px 24px;}
-.jot-mock-title{font-size:18px;font-weight:700;color:#fff;}
-.jot-mock-body{padding:20px;}
-.jot-mock-question{margin-bottom:20px;}
-.jot-mock-q-label{font-size:14px;font-weight:600;color:#1f2937;margin-bottom:8px;}
-.jot-mock-choices{display:flex;flex-direction:column;gap:6px;}
-.jot-mock-choice{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;cursor:pointer;}
-.jot-mock-choice .r{width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;flex-shrink:0;}
-.jot-mock-input{background:#fff;border:1.5px solid #d1d5db;border-radius:10px;padding:10px 14px;font-size:13px;color:#9ca3af;width:100%;}
-
-/* Tally mock */
-.tally-mock{background:#fff;font-family:'Inter',sans-serif;}
-.tally-mock-body{padding:32px 28px;}
-.tally-mock-q{margin-bottom:28px;}
-.tally-mock-label{font-size:16px;font-weight:700;color:#111827;margin-bottom:12px;}
-.tally-mock-choices{display:flex;flex-direction:column;gap:8px;}
-.tally-mock-choice{padding:10px 16px;background:#f3f4f6;border-radius:10px;font-size:14px;color:#374151;cursor:pointer;border:2px solid transparent;}
-.tally-mock-choice:hover{border-color:#6b7280;}
-.tally-mock-input{background:#f3f4f6;border:none;border-radius:10px;padding:12px 16px;font-size:14px;color:#9ca3af;width:100%;}
-
-/* Correction box */
-.correction-box{padding:20px 24px;border-top:1px solid var(--border);background:var(--paper);}
-.correction-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;}
-.correction-textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);resize:none;outline:none;transition:border-color .2s;line-height:1.7;min-height:90px;}
-.correction-textarea:focus{border-color:var(--accent);}
-.correction-textarea::placeholder{color:#bbb;}
-.correction-actions{display:flex;gap:8px;margin-top:10px;}
-.btn-correction{flex:1;border:none;border-radius:10px;padding:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
-.btn-correction.apply{background:var(--accent);color:#fff;}
-.btn-correction.apply:hover{background:var(--accent2);}
-.btn-correction.apply:disabled{background:var(--paper3);color:var(--muted);cursor:not-allowed;}
-.btn-correction.validate{background:var(--green);color:#fff;}
-.btn-correction.validate:hover{background:#15803d;}
-
 /* PANEL 5 — DEPLOIEMENT */
 #panel5{display:none;text-align:center;padding:52px 24px;}
 .deploy-icon{font-size:52px;margin-bottom:16px;}
@@ -392,11 +269,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
   <div class="step-line" id="line1"></div>
   <div class="step"><div class="step-num" id="sn2">2</div><div class="step-label" id="sl2" data-fr="Connexion" data-en="Connect">Connexion</div></div>
   <div class="step-line" id="line2"></div>
-  <div class="step"><div class="step-num" id="sn3">3</div><div class="step-label" id="sl3" data-fr="Validation" data-en="Validation">Validation</div></div>
-  <div class="step-line" id="line3"></div>
-  <div class="step"><div class="step-num" id="sn4">4</div><div class="step-label" id="sl4" data-fr="Visualisation" data-en="Preview">Visualisation</div></div>
-  <div class="step-line" id="line4"></div>
-  <div class="step"><div class="step-num" id="sn5">5</div><div class="step-label" id="sl5" data-fr="Déploiement" data-en="Deploy">Déploiement</div></div>
+  <div class="step"><div class="step-num" id="sn3">3</div><div class="step-label" id="sl3" data-fr="Déploiement" data-en="Deploy">Déploiement</div></div>
 </div>
 
 <div style="padding:0 32px;">
@@ -537,49 +410,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
       <div class="proc-step" id="ps1"><span style="margin-right:8px;">⏳</span><span data-fr="Lecture du document..." data-en="Reading document...">Lecture du document...</span></div>
       <div class="proc-step" id="ps2"><span style="margin-right:8px;">⏳</span><span data-fr="Identification des questions..." data-en="Identifying questions...">Identification des questions...</span></div>
       <div class="proc-step" id="ps3"><span style="margin-right:8px;">⏳</span><span data-fr="Détection des types de réponses..." data-en="Detecting response types...">Détection des types de réponses...</span></div>
-      <div class="proc-step" id="ps4"><span style="margin-right:8px;">⏳</span><span data-fr="Préparation de la validation..." data-en="Preparing validation...">Préparation de la validation...</span></div>
-    </div>
-  </div>
-
-  <!-- PANEL 3 — VALIDATION -->
-  <div id="panel3">
-    <div class="card-head">
-      <div class="card-step-label" data-fr="Étape 3 — Validation" data-en="Step 3 — Validation">Étape 3 — Validation</div>
-      <div class="card-step-sub" data-fr="Choisissez le format de réponse pour chaque question" data-en="Choose the response format for each question">Choisissez le format de réponse pour chaque question</div>
-    </div>
-    <div class="val-progress">
-      <div class="val-progress-bar"><div class="val-progress-fill" id="val-progress-fill" style="width:0%"></div></div>
-      <div class="val-progress-label" id="val-progress-label">Q 1 / 1</div>
-    </div>
-    <div class="val-card" id="val-card-body"></div>
-    <div class="val-nav">
-      <div class="val-nav-left">
-        <button class="btn-back" onclick="goStep(selectedTool==='excel'?1:2)" style="font-size:12px;opacity:.7;">⬅ <span data-fr="Étape préc." data-en="Prev step">Étape préc.</span></button>
-        <button class="btn-back" id="btn-val-prev" onclick="valPrev()">← <span data-fr="Précédent" data-en="Previous">Précédent</span></button>
-      </div>
-      <button class="btn-next" id="btn-val-next" onclick="valNext()"><span id="val-next-label" data-fr="Suivant" data-en="Next">Suivant</span> →</button>
-    </div>
-  </div>
-
-  <!-- PANEL 4 — VISUALISATION -->
-  <div id="panel4">
-    <div class="card-head">
-      <div class="card-step-label" data-fr="Étape 4 — Visualisation" data-en="Step 4 — Preview">Étape 4 — Visualisation</div>
-      <div class="card-step-sub" data-fr="Vérifiez l'apparence de votre masque avant déploiement" data-en="Check how your form looks before deployment">Vérifiez l'apparence de votre masque avant déploiement</div>
-    </div>
-    <div class="viz-toolbar">
-      <div class="viz-title" id="viz-form-title">Formulaire</div>
-      <div class="viz-tool-badge" id="viz-tool-badge">KoboToolbox</div>
-    </div>
-    <div class="viz-body" id="viz-body"></div>
-    <div class="correction-box">
-      <div class="correction-title" data-fr="Des corrections à apporter ? Décrivez-les librement :" data-en="Corrections needed? Describe them freely:">Des corrections à apporter ? Décrivez-les librement :</div>
-      <textarea class="correction-textarea" id="correction-input" placeholder="Ex: La question 3 doit être obligatoire. Ajouter une question GPS après la question 5. Changer les choix de Q7 en choix multiple..." rows="3"></textarea>
-      <div class="correction-actions">
-        <button class="btn-back" onclick="goBackToValidation()" style="flex:0 0 auto;">← <span data-fr="Retour validation" data-en="Back">Retour</span></button>
-        <button class="btn-correction apply" id="btn-apply-correction" onclick="applyCorrection()" disabled data-fr="Appliquer les corrections" data-en="Apply corrections">Appliquer les corrections</button>
-        <button class="btn-correction validate" onclick="demanderPaiement()" data-fr="✅ Valider & déployer" data-en="✅ Validate & deploy">✅ Valider & déployer</button>
-      </div>
+      <div class="proc-step" id="ps4"><span style="margin-right:8px;">⏳</span><span data-fr="Finalisation du formulaire..." data-en="Finalizing form...">Finalisation du formulaire...</span></div>
     </div>
   </div>
 
@@ -647,10 +478,8 @@ let authMode = 'existing';
 let fileContent = '';
 let fileObject = null;
 let pasteContent = '';
-let parsedForm = null;       // form after analysis
-let validatedForm = null;    // form after validation
-let currentValIdx = 0;
-let validationChoices = [];  // per question: {formatIdx, linked, linkText}
+let parsedForm = null;       // {title, xlsform:{survey,choices,settings}, needs_review, coherence_report} apres /api/analyse
+let validatedForm = null;    // alias de parsedForm — le xlsform produit par l'analyse est deja final
 
 const TOOL_NAMES = {kobo:'KoboToolbox',odk:'ODK Central',jotform:'JotForm',tally:'Tally.so',xlsform:'XLSForm',google:'Google Forms',excel:'Excel'};
 const TOOL_URLS  = {kobo:'https://kf.kobotoolbox.org',odk:'https://your-server.com',jotform:'https://www.jotform.com/myforms/',tally:'https://tally.so/forms',xlsform:null,google:'https://docs.google.com/forms'};
@@ -814,7 +643,7 @@ function checkReady1(){
 // ============ STEPS NAVIGATION ============
 function showPanel(id) {
   // Hide everything
-  ['panel1','panel2','panel3','panel4','panel5',
+  ['panel1','panel2','panel5',
    'panel-processing','panel-processing2'].forEach(pid=>{
     const el=document.getElementById(pid);
     if(el) el.style.display='none';
@@ -822,356 +651,6 @@ function showPanel(id) {
   // Show target
   const t=document.getElementById(id);
   if(t) t.style.display='block';
-}
-
-// ============ GESTION IMAGES MODALITES ============
-async function genererImage(choiceIdx, label, questionLabel) {
-  const btn = event.target;
-  btn.textContent = '⏳ Génération...';
-  btn.disabled = true;
-  try {
-    const res = await fetch(BACKEND_URL + '/api/generate-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        label: label,
-        context: questionLabel,
-        questionnaireTitle: parsedForm ? parsedForm.title : '',
-        questionnaireContext: parsedForm ? (parsedForm.summary || parsedForm.coherence_report && parsedForm.coherence_report[0] || '') : ''
-      })
-    });
-    const data = await res.json();
-    if (data.success && data.url) {
-      if (!validationChoices[currentValIdx].choiceImages) validationChoices[currentValIdx].choiceImages = {};
-      validationChoices[currentValIdx].choiceImages[choiceIdx] = { url: data.url, label: label, fromCache: data.fromCache };
-      renderValCard();
-      showToast(data.fromCache ? '✅ Image trouvée en cache' : '✅ Image générée avec succès');
-    }
-  } catch(err) {
-    btn.textContent = '🎨 Générer';
-    btn.disabled = false;
-    showToast('❌ Erreur génération image');
-  }
-}
-
-// Générer un ID de session unique pour isoler les uploads de chaque utilisateur
-var sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-
-async function uploaderImage(event, choiceIdx) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  // Construire le nom normalisé basé sur la modalité
-  const q = parsedForm.questions[currentValIdx];
-  const choices = q.choices || [];
-  const choiceLabel = typeof choices[choiceIdx] === 'string' ? choices[choiceIdx] : (choices[choiceIdx] && choices[choiceIdx].label) || ('choice_' + choiceIdx);
-  const normalizedKey = choiceLabel.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 50);
-
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('key', normalizedKey);           // Nom normalisé basé sur la modalité
-  formData.append('sessionId', sessionId);          // Dossier privé unique par session
-  formData.append('originalLabel', choiceLabel);
-
-  try {
-    showToast('⏳ Upload en cours...');
-    const res = await fetch(BACKEND_URL + '/api/upload-image', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (data.success && data.url) {
-      if (!validationChoices[currentValIdx].choiceImages) validationChoices[currentValIdx].choiceImages = {};
-      validationChoices[currentValIdx].choiceImages[choiceIdx] = {
-        url: data.url,
-        label: choiceLabel,
-        fromCache: false,
-        userUploaded: true,
-        filename: normalizedKey + '.png'
-      };
-      renderValCard();
-      showToast('✅ Image uploadée');
-    }
-  } catch(err) {
-    showToast('❌ Erreur upload');
-  }
-}
-
-function supprimerImage(choiceIdx) {
-  if (validationChoices[currentValIdx].choiceImages) {
-    delete validationChoices[currentValIdx].choiceImages[choiceIdx];
-    renderValCard();
-  }
-}
-
-// ============ SAISIE MANUELLE DES MODALITÉS ============
-function sauvegarderChoixManuels(value) {
-  // parsedForm existe toujours à l'étape 3
-  if (!parsedForm || !parsedForm.questions) return;
-  if (!validationChoices[currentValIdx]) return;
-
-  validationChoices[currentValIdx].manualChoices = value;
-  var choix = value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
-
-  // Sauvegarder dans parsedForm (disponible à l'étape 3)
-  if (parsedForm.questions[currentValIdx]) {
-    parsedForm.questions[currentValIdx].choices = choix;
-  }
-  // Sauvegarder aussi dans validatedForm si disponible (étape 4)
-  if (validatedForm && validatedForm.questions && validatedForm.questions[currentValIdx]) {
-    validatedForm.questions[currentValIdx].choices = choix;
-  }
-  updateValNext();
-}
-
-// ============ CONSTRUCTEUR DE CONDITIONS ============
-function updateCondition(idx, field, value) {
-  if (!validationChoices[currentValIdx].conditions) validationChoices[currentValIdx].conditions = [{}];
-  if (!validationChoices[currentValIdx].conditions[idx]) validationChoices[currentValIdx].conditions[idx] = {};
-  validationChoices[currentValIdx].conditions[idx][field] = value;
-}
-
-function ajouterCondition() {
-  if (!validationChoices[currentValIdx].conditions) validationChoices[currentValIdx].conditions = [];
-  validationChoices[currentValIdx].conditions.push({});
-  renderValCard();
-}
-
-function supprimerCondition(idx) {
-  if (validationChoices[currentValIdx].conditions) {
-    validationChoices[currentValIdx].conditions.splice(idx, 1);
-    renderValCard();
-  }
-}
-
-function appliquerConditions() {
-  var conditions = validationChoices[currentValIdx].conditions || [];
-  var operator = document.getElementById('condition-operator') ? document.getElementById('condition-operator').value : 'and';
-  var parts = [];
-  conditions.forEach(function(cond) {
-    if (cond.qId && cond.op && cond.val !== undefined && cond.val !== '') {
-      // Construire la formule XLSForm
-      var formula = '\${' + cond.qId + '} ' + cond.op + " '" + cond.val + "'";
-      parts.push(formula);
-    }
-  });
-  if (parts.length > 0) {
-    var relevant = parts.join(' ' + operator + ' ');
-    validatedForm.questions[currentValIdx].relevant = relevant;
-    parsedForm.questions[currentValIdx].relevant = relevant;
-    showToast('✅ Condition appliquée : ' + relevant);
-    renderValCard();
-  } else {
-    showToast('❌ Remplissez au moins une condition complète');
-  }
-}
-
-// ============ EDITEUR DE SAUTS ============
-function ouvrirEditeurSaut(si) {
-  var editeurId = 'editeur-saut-' + si;
-  var editeur = document.getElementById(editeurId);
-  if (!editeur) return;
-
-  // Toggle
-  if (editeur.style.display !== 'none') {
-    editeur.style.display = 'none';
-    return;
-  }
-
-  var q = parsedForm.questions[currentValIdx];
-  var suggestions = (q.suggestions || []).concat(
-    q.relevant ? [{type:'skip_logic', value: q.relevant, _fromPasse2: true}] : []
-  ).filter(function(s){ return s.type !== 'required_override' && s.type !== 'audio'; });
-  var s = suggestions[si];
-  if (!s) return;
-
-  // Construire la liste des questions précédentes
-  // Questions jusqu'à la question actuelle incluse
-  var questionsJusquIci = parsedForm.questions.filter(function(qq) {
-    return qq.num <= q.num;
-  });
-
-  var qOptions = questionsJusquIci.map(function(qq) {
-    return '<option value="' + qq.id + '">' + 'Q' + Math.floor(qq.num) + ' — ' + (qq.label||'').slice(0,40) + '</option>';
-  }).join('');
-
-  // Construire les options de modalités pour la question sélectionnée
-  function getModalitesOptions(qId) {
-    var tq = parsedForm.questions.find(function(qq){ return qq.id === qId; });
-    if (!tq || !tq.choices || tq.choices.length === 0) return '<option value="">-- Valeur libre --</option>';
-    return tq.choices.map(function(c, ci) {
-      var lbl = typeof c === 'string' ? c : (c.label || String(c));
-      var val = tq.choice_values && tq.choice_values[ci] !== undefined ? String(tq.choice_values[ci]) : String(ci);
-      return '<option value="' + val + '">' + val + ' = ' + lbl + '</option>';
-    }).join('');
-  }
-
-  editeur.innerHTML = '<div style="font-size:12px;font-weight:700;color:#E8132A;margin-bottom:8px;">✏️ Modifier le saut</div>' +
-    '<div style="font-size:11px;color:#767676;margin-bottom:8px;">Formule actuelle: <code>' + (s.value||'') + '</code></div>' +
-    '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">' +
-    '<select id="edit-qid-' + si + '" onchange="majModalitesEditeur(' + si + ');onEditChange(' + si + ')" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
-    '<option value="">-- Question déclencheur --</option>' + qOptions + '</select>' +
-    '<select id="edit-op-' + si + '" onchange="onEditChange(' + si + ')" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
-    '<option value="=">=</option><option value="!=">≠</option>' +
-    '<option value=">">&gt;</option><option value="<">&lt;</option>' +
-    '<option value=">=">&gt;=</option><option value="<=">&lt;=</option>' +
-    '</select>' +
-    '</div>' +
-    '<div id="edit-val-container-' + si + '" style="margin-bottom:8px;">' +
-    '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" onchange="onEditChange(' + si + ')">' +
-    "<option value=''>-- Choisir apres selection question --</option>" +
-    '</select>' +
-    '</div>' +
-    '<div style="display:flex;gap:6px;">' +
-    '<button onclick="appliquerEditSaut(' + si + ')" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">✅ Appliquer</button>' +
-    '<button onclick="supprimerSaut(' + si + ')" style="background:#eee;color:#666;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;">🗑️ Supprimer</button>' +
-    '<button onclick="document.getElementById(\'editeur-saut-' + si + '\').style.display=\'none\'" style="background:#eee;color:#666;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;">✕ Annuler</button>' +
-    '</div>';
-
-  // Stocker getModalitesOptions pour usage dans majModalitesEditeur
-  editeur._siKey = si;
-
-  editeur.style.display = 'block';
-}
-
-function majModalitesEditeur(si) {
-  var qIdEl = document.getElementById('edit-qid-' + si);
-  var qId = qIdEl ? qIdEl.options[qIdEl.selectedIndex].value : '';
-
-  // Conteneur de la valeur — toujours un SELECT qu'on remplit
-  var valContainer = document.getElementById('edit-val-container-' + si);
-  if (!valContainer) return;
-
-  if (!qId) {
-    valContainer.innerHTML = '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" onchange="onEditChange(' + si + ')"><option value="">-- Selectionnez une question --</option></select>';
-    return;
-  }
-
-  var tq = parsedForm.questions.find(function(qq){ return qq.id === qId; });
-
-  if (!tq || !tq.choices || tq.choices.length === 0) {
-    // Pas de choix — champ texte libre
-    valContainer.innerHTML = '<input id="edit-val-' + si + '" type="text" placeholder="Entrez la valeur" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" oninput="onEditChange(' + si + ')"/>';
-  } else {
-    // Avec choix — liste déroulante des modalités
-    var options = tq.choices.map(function(c, ci) {
-      var lbl = typeof c === 'string' ? c : (c.label || String(c));
-      var val = tq.choice_values && tq.choice_values[ci] !== undefined ? String(tq.choice_values[ci]) : String(ci);
-      return '<option value="' + val + '">' + val + ' = ' + lbl + '</option>';
-    }).join('');
-    valContainer.innerHTML = '<select id="edit-val-' + si + '" style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;" onchange="onEditChange(' + si + ')"><option value="">-- Choisir une modalite --</option>' + options + '</select>';
-  }
-
-  // Sauvegarder immédiatement
-  onEditChange(si);
-}
-
-// Stockage global des valeurs de l'éditeur pour éviter la perte lors du re-render
-var _editSautValues = {};
-
-function onEditChange(si) {
-  var qIdEl = document.getElementById('edit-qid-' + si);
-  var opEl = document.getElementById('edit-op-' + si);
-  var valEl = document.getElementById('edit-val-' + si);
-  _editSautValues[si] = {
-    qId: qIdEl ? qIdEl.options[qIdEl.selectedIndex].value : '',
-    op: opEl ? opEl.options[opEl.selectedIndex].value : '=',
-    val: valEl ? (valEl.tagName === 'SELECT' ? valEl.options[valEl.selectedIndex].value : valEl.value) : ''
-  };
-}
-
-function appliquerEditSaut(si) {
-  // D'abord lire depuis le DOM si disponible
-  var qIdEl = document.getElementById('edit-qid-' + si);
-  var opEl = document.getElementById('edit-op-' + si);
-  var valEl = document.getElementById('edit-val-' + si);
-
-  var qId, op, val;
-  if (qIdEl) {
-    qId = qIdEl.options[qIdEl.selectedIndex].value;
-    op = opEl ? opEl.options[opEl.selectedIndex].value : '=';
-    val = valEl ? (valEl.tagName === 'SELECT' ? valEl.options[valEl.selectedIndex].value : valEl.value) : '';
-    // Sauvegarder dans le stockage global
-    _editSautValues[si] = { qId: qId, op: op, val: val };
-  } else if (_editSautValues[si]) {
-    // Fallback sur le stockage global si DOM détruit
-    qId = _editSautValues[si].qId;
-    op = _editSautValues[si].op;
-    val = _editSautValues[si].val;
-  } else {
-    qId = ''; op = '='; val = '';
-  }
-
-  if (!qId) {
-    showToast('❌ Choisissez une question déclencheur');
-    return;
-  }
-  if (val === '' || val === undefined) {
-    showToast('❌ Choisissez ou entrez une valeur');
-    return;
-  }
-
-  // Construire la formule avec les valeurs exactes sélectionnées
-  var newFormula = '${' + qId + '} ' + op + " '" + val + "'";
-  console.log('[EDIT SAUT] Formule appliquée: ' + newFormula);
-
-  var qIdx = currentValIdx;
-
-  // 1. Supprimer définitivement l'ancienne formule
-  parsedForm.questions[qIdx].relevant = newFormula;
-
-  // 2. Supprimer toutes les anciennes suggestions skip_logic pour éviter confusion
-  parsedForm.questions[qIdx].suggestions = (parsedForm.questions[qIdx].suggestions || []).filter(function(s){
-    return s.type !== 'skip_logic';
-  });
-
-  // 3. Ajouter la nouvelle formule comme seule suggestion skip_logic
-  parsedForm.questions[qIdx].suggestions.unshift({
-    type: 'skip_logic',
-    label: 'Saut conditionnel',
-    description: 'Modifié manuellement',
-    value: newFormula,
-    confidence: 'high',
-    _fromPasse2: true,
-    _userModified: true
-  });
-
-  // 4. Auto-confirmer
-  if (!validationChoices[qIdx].confirmedSuggestions) validationChoices[qIdx].confirmedSuggestions = {};
-  validationChoices[qIdx].confirmedSuggestions[0] = true;
-
-  // 5. Mettre à jour validatedForm
-  if (validatedForm && validatedForm.questions && validatedForm.questions[qIdx]) {
-    validatedForm.questions[qIdx].relevant = newFormula;
-  }
-
-  showToast('✅ Saut modifié : ' + newFormula);
-  renderValCard();
-}
-
-function supprimerSaut(si) {
-  parsedForm.questions[currentValIdx].relevant = '';
-  if (validatedForm && validatedForm.questions && validatedForm.questions[currentValIdx]) {
-    validatedForm.questions[currentValIdx].relevant = '';
-  }
-  if (parsedForm.questions[currentValIdx].suggestions) {
-    parsedForm.questions[currentValIdx].suggestions = parsedForm.questions[currentValIdx].suggestions.filter(function(s, i) {
-      return i !== si;
-    });
-  }
-  showToast('✅ Saut supprimé');
-  renderValCard();
-}
-
-function toggleAudio() {
-  validationChoices[currentValIdx].audioEnabled = !validationChoices[currentValIdx].audioEnabled;
-  renderValCard();
-}
-
-function goBackToValidation() {
-  // Retourner à l'étape 3 (validation) depuis l'étape 4 (visualisation)
-  currentValIdx = parsedForm.questions.length - 1; // Aller à la dernière question
-  goStep(3);
-  renderValCard();
 }
 
 function goNextFromStep1() {
@@ -1183,10 +662,13 @@ function goNextFromStep1() {
   }
 }
 
+// Etape 3 = ecran de succes (panel5) — plus d'etapes intermediaires de
+// validation/visualisation, l'analyse produit directement le xlsform final.
+const STEP_PANELS = {1:'panel1', 2:'panel2', 3:'panel5'};
 function goStep(s) {
-  showPanel('panel'+s);
+  showPanel(STEP_PANELS[s] || ('panel'+s));
   // Update steps bar
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=3;i++){
     const num=document.getElementById('sn'+i);
     const lbl=document.getElementById('sl'+i);
     if(!num||!lbl) continue;
@@ -1202,9 +684,7 @@ function goStep(s) {
 // ============ ANALYSIS ============
 async function startAnalysis() {
   if (window.verifierSolde) {
-    var fakeForm = { questions: [], sauts: 0, contraintes: 0, images: 0 };
-    var tarif = typeof calculerTarif === 'function' ? calculerTarif(fakeForm) : { total: 2500 };
-    var ok = await window.verifierSolde(tarif.total || 2500);
+    var ok = await window.verifierSolde(2500);
     if (!ok) {
       showToast('❌ Solde insuffisant — rechargez votre compte');
       if (window.showRechargeModal) window.showRechargeModal();
@@ -1216,17 +696,14 @@ async function startAnalysis() {
   const content = fileContent||pasteContent;
   try {
     parsedForm = await analyseQuestionnaire(content);
-    validationChoices = parsedForm.questions.map(()=>({formatIdx:null,linked:false,linkText:''}));
-    currentValIdx = 0;
-    if (window.debiterSolde && parsedForm.questions) {
-      var fakeForm2 = { questions: parsedForm.questions, sauts: 0, contraintes: 0, images: 0 };
-      var tarif2 = typeof calculerTarif === 'function' ? calculerTarif(fakeForm2) : { total: 2500 };
-      await window.debiterSolde(tarif2.total || 2500, parsedForm.title || 'Questionnaire',
-        parsedForm.questions.length, 0, parsedForm.tokens_consommes || 0, selectedTool);
+    validatedForm = parsedForm; // le xlsform produit par l'analyse est deja final, aucune etape de revue
+
+    if (window.debiterSolde) {
+      var tarif = calculerTarif(parsedForm);
+      await window.debiterSolde(tarif.total, parsedForm.title || 'Questionnaire',
+        tarif.nQ, 0, 0, selectedTool);
     }
     await new Promise(r=>setTimeout(r,1000));
-    goStep(3);
-    renderValCard();
 
     // Afficher rapport de cohérence si présent
     if (parsedForm.coherence_report && parsedForm.coherence_report.length > 0) {
@@ -1254,7 +731,14 @@ async function startAnalysis() {
       }, 600);
     }
 
-    // Afficher avertissement de sections manquantes si nécessaire
+    // Signaler les elements a revoir (needs_review) — non bloquant
+    if (parsedForm.needs_review && parsedForm.needs_review.length > 0) {
+      setTimeout(function() {
+        showToast((lang==='fr'?'⚠️ ':'⚠️ ') + parsedForm.needs_review.length + (lang==='fr'?' element(s) a verifier apres deploiement':' item(s) to review after deployment'));
+      }, 900);
+    }
+
+    // Afficher avertissement si l'analyse a signale un probleme non bloquant
     if (window._analyseWarning) {
       setTimeout(() => {
         const warnDiv = document.createElement('div');
@@ -1267,6 +751,9 @@ async function startAnalysis() {
         setTimeout(() => warnDiv.remove(), 12000);
       }, 500);
     }
+
+    // Plus de phase de validation/visualisation — on passe directement au paiement + déploiement
+    demanderPaiement();
   } catch(e) {
     console.error('Error:', e);
     goStep(2);
@@ -1305,922 +792,49 @@ async function analyseQuestionnaire(content) {
     throw new Error(err.message || 'Erreur analyse');
   }
   const data = await res.json();
+  window._analyseWarning = data.warning || null;
 
-  // Afficher avertissement si des sections ont échoué
-  if (data.warning) {
-    // Stocker pour affichage après validation
-    window._analyseWarning = data.warning;
-    window._chunksFailed = data.chunks_failed;
-    window._chunksTotal = data.chunks_total;
-  } else {
-    window._analyseWarning = null;
-    window._chunksFailed = 0;
-    window._chunksTotal = data.chunks_total || 1;
-  }
-
-  return data.form;
+  return {
+    title: data.title,
+    xlsform: data.xlsform,
+    needs_review: data.needs_review || [],
+    coherence_report: data.coherence_report || []
+  };
 }
 
 function buildDemoForm(content) {
-  const questions=[
-    {id:'q1',num:1,label:'Quel est le nom complet du répondant ?',type:'text',required:true,hint:'',choices:[],group:'Informations générales',
-      formats:[{id:'A',name:'Texte libre',type:'text',note:'Le répondant écrit son nom'},{id:'B',name:'Réponse courte',type:'text',note:'Champ court, max 50 caractères'}]},
-    {id:'q2',num:2,label:'Quel est l\'âge du répondant ?',type:'integer',required:true,hint:'En années révolues',choices:[],group:'Informations générales',
-      formats:[{id:'A',name:'Nombre entier',type:'integer',note:'Saisie numérique uniquement'},{id:'B',name:'Texte libre',type:'text',note:'Le répondant écrit l\'âge en toutes lettres'}]},
-    {id:'q3',num:3,label:'Quel est le sexe du répondant ?',type:'select_one',required:true,hint:'',choices:['Masculin','Féminin'],group:'Informations générales',
-      formats:[
-        {id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse possible'},
-        {id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses possibles'},
-        {id:'C',name:'Texte libre',type:'text',note:'Le répondant écrit sa réponse'}
-      ]},
-    {id:'q4',num:4,label:'Quel est le niveau d\'instruction du répondant ?',type:'select_one',required:false,hint:'',choices:['Aucune instruction','Primaire','Secondaire','Supérieur'],group:'Informations générales',
-      formats:[
-        {id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse possible'},
-        {id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses possibles'},
-        {id:'C',name:'Texte libre',type:'text',note:'Le répondant écrit sa réponse'}
-      ]},
-    {id:'q5',num:5,label:'Quelle est la position GPS du ménage ?',type:'geopoint',required:false,hint:'Capturez automatiquement via le GPS',choices:[],group:'Localisation',
-      formats:[{id:'A',name:'GPS automatique',type:'geopoint',note:'Capture la position via le GPS du téléphone'},{id:'B',name:'Coordonnées manuelles',type:'text',note:'L\'enquêteur saisit les coordonnées'}]},
-    {id:'q6',num:6,label:'Photo du répondant',type:'image',required:false,hint:'',choices:[],group:'Localisation',
-      formats:[{id:'A',name:'Photo',type:'image',note:'Prendre une photo avec l\'appareil'},{id:'B',name:'Ignorer',type:'note',note:'Ne pas inclure cette question'}]},
+  const survey = [
+    { type: 'begin_group', name: 'grp_info', label: 'Informations générales' },
+    { type: 'text', name: 'q1', label: 'Quel est le nom complet du répondant ?', required: 'true' },
+    { type: 'integer', name: 'q2', label: "Quel est l'âge du répondant ?", required: 'true', hint: 'En années révolues' },
+    { type: 'select_one list_q3', name: 'q3', label: 'Quel est le sexe du répondant ?', required: 'true' },
+    { type: 'select_one list_q4', name: 'q4', label: "Quel est le niveau d'instruction du répondant ?", required: 'false' },
+    { type: 'end_group' },
+    { type: 'begin_group', name: 'grp_loc', label: 'Localisation' },
+    { type: 'geopoint', name: 'q5', label: 'Quelle est la position GPS du ménage ?', required: 'false', hint: 'Capturez automatiquement via le GPS' },
+    { type: 'image', name: 'q6', label: 'Photo du répondant', required: 'false' },
+    { type: 'end_group' }
   ];
-  return {title:'Formulaire de collecte de données',questions,groups:['Informations générales','Localisation']};
+  const choices = [
+    { list_name: 'list_q3', name: '1', label: 'Masculin' },
+    { list_name: 'list_q3', name: '2', label: 'Féminin' },
+    { list_name: 'list_q4', name: '1', label: 'Aucune instruction' },
+    { list_name: 'list_q4', name: '2', label: 'Primaire' },
+    { list_name: 'list_q4', name: '3', label: 'Secondaire' },
+    { list_name: 'list_q4', name: '4', label: 'Supérieur' }
+  ];
+  return {
+    title: 'Formulaire de collecte de données',
+    xlsform: { survey, choices, settings: [{ form_title: 'Formulaire de collecte de données', form_id: 'demo', version: '1' }] },
+    needs_review: [],
+    coherence_report: []
+  };
 }
 
-// ============ VALIDATION STEP ============
-// Types à format unique légitimes (pas d'alternative possible)
-var SINGLE_FORMAT_TYPES = ['geopoint','geotrace','geoshape','image','audio','video','file','barcode','note','calculate'];
-
-function ensureFormats(q) {
-  const cls = q.question_class || 'qualitative_open';
-  const t = q.type || 'text';
-
-  // Toujours recalculer si formats manquants ou insuffisants
-  var isSingleType = SINGLE_FORMAT_TYPES.includes(t) || SINGLE_FORMAT_TYPES.includes(cls) ||
-                     cls === 'note' || cls === 'media_photo' || cls === 'media_audio' ||
-                     cls === 'media_video' || cls === 'media_file' || cls === 'geopoint';
-
-  if (q.formats && q.formats.length >= 2) return; // Déjà OK
-  if (q.formats && q.formats.length === 1 && isSingleType) return; // Exception légitime
-
-  // Assigner les formats selon le type
-  if (cls === 'quantitative' || t === 'integer' || t === 'decimal' || t === 'range') {
-    q.formats = [
-      {id:'A',name:'Nombre entier',type:'integer',note:'Ex: 25'},
-      {id:'B',name:'Nombre décimal',type:'decimal',note:'Ex: 65,5'},
-      {id:'C',name:'Échelle',type:'range',note:'Ex: 1 à 10'}
-    ];
-    q.question_class = 'quantitative';
-  } else if (cls === 'qualitative_choice' || t === 'select_one' || t === 'select_multiple') {
-    q.formats = [
-      {id:'A',name:'Choix unique',type:'select_one',note:'Une seule réponse'},
-      {id:'B',name:'Choix multiple',type:'select_multiple',note:'Plusieurs réponses'},
-      {id:'C',name:'Texte libre',type:'text',note:'Réponse libre'}
-    ];
-    q.question_class = 'qualitative_choice';
-    if (q.suggested_format_idx === undefined) q.suggested_format_idx = 0;
-  } else if (cls === 'date_time' || t === 'date' || t === 'time' || t === 'datetime') {
-    q.formats = [
-      {id:'A',name:'Date',type:'date',note:'jj/mm/aaaa'},
-      {id:'B',name:'Heure',type:'time',note:'hh:mm'},
-      {id:'C',name:'Date et heure',type:'datetime',note:'jj/mm/aaaa hh:mm'}
-    ];
-    q.question_class = 'date_time';
-  } else if (cls === 'geopoint' || t === 'geopoint') {
-    q.formats = [{id:'A',name:'GPS automatique',type:'geopoint',note:'Capture GPS'}];
-    q.question_class = 'geopoint';
-  } else if (cls === 'note' || t === 'note') {
-    q.formats = [{id:'A',name:'Note',type:'note',note:'Texte sans saisie'}];
-    q.question_class = 'note';
-  } else if (cls === 'media_photo' || t === 'image') {
-    q.formats = [{id:'A',name:'Photo',type:'image',note:'Prendre une photo'}];
-  } else if (cls === 'media_audio' || t === 'audio') {
-    q.formats = [{id:'A',name:'Audio',type:'audio',note:'Enregistrement vocal'}];
-  } else if (cls === 'media_video' || t === 'video') {
-    q.formats = [{id:'A',name:'Vidéo',type:'video',note:'Enregistrement vidéo'}];
-  } else if (cls === 'media_file' || t === 'file') {
-    q.formats = [{id:'A',name:'Fichier',type:'file',note:'Pièce jointe'}];
-  } else if (cls === 'barcode' || t === 'barcode') {
-    q.formats = [{id:'A',name:'Code-barres',type:'barcode',note:'Scan code-barres'}];
-  } else if (cls === 'acknowledge' || t === 'acknowledge') {
-    q.formats = [{id:'A',name:'Confirmation',type:'acknowledge',note:'Case à cocher'},{id:'B',name:'Texte libre',type:'text',note:'Réponse libre'}];
-  } else {
-    // Défaut: qualitative_open — toujours 2 formats minimum
-    q.formats = [
-      {id:'A',name:'Réponse courte',type:'text',note:'Quelques mots'},
-      {id:'B',name:'Réponse longue',type:'text',note:'Plusieurs phrases'}
-    ];
-    q.question_class = 'qualitative_open';
-  }
-}
-
-function renderValCard() {
-  const q = parsedForm.questions[currentValIdx];
-  ensureFormats(q); // Garantir les formats avant affichage
-  const total = parsedForm.questions.length;
-  const pct = (currentValIdx / total) * 100;
-  document.getElementById('val-progress-fill').style.width = pct + '%';
-  // Utiliser q.num (numéro Claude) pour l'affichage — Lebo s'aligne sur Claude
-  // Pour les questions dérivées (q3.1, q3_autre), afficher le numéro entier parent
-  var displayNum = q.num ? Math.floor(q.num) : (currentValIdx + 1);
-  document.getElementById('val-progress-label').textContent = 'Q ' + displayNum + ' / ' + total;
-
-  const choice = validationChoices[currentValIdx];
-  const isLast = currentValIdx === total - 1;
-  document.getElementById('val-next-label').textContent = isLast
-    ? (lang==='fr'?'Voir la vérification finale':'See final check')
-    : (lang==='fr'?'Suivant':'Next');
-
-  const formats = q.formats || [];
-  // Fusionner q.relevant (passe 2 ou modifié) avec les suggestions existantes
-  var allSuggestions = (q.suggestions || []).slice();
-
-  // Si l'utilisateur a modifié manuellement, les suggestions ont déjà été nettoyées
-  var hasUserModified = allSuggestions.some(function(s){ return s._userModified; });
-
-  if (!hasUserModified && q.relevant && q.relevant.trim()) {
-    // Vérifier si le relevant n'est pas déjà dans les suggestions
-    var alreadyInSuggestions = allSuggestions.some(function(s) {
-      return s.type === 'skip_logic' && s.value === q.relevant;
-    });
-    if (!alreadyInSuggestions) {
-      allSuggestions.unshift({
-        type: 'skip_logic',
-        label: 'Saut conditionnel',
-        description: 'Généré automatiquement par analyse du questionnaire',
-        value: q.relevant,
-        confidence: 'high',
-        _fromPasse2: true
-      });
-    }
-  }
-  const suggestions = allSuggestions.filter(s => s.type !== 'required_override' && s.type !== 'audio');
-  const audioSuggestion = allSuggestions.find(s => s.type === 'audio');
-
-  // Auto-confirmer les suggestions de la passe 2
-  suggestions.forEach(function(s, si) {
-    if (s._fromPasse2 && !validationChoices[currentValIdx].confirmedSuggestions) {
-      validationChoices[currentValIdx].confirmedSuggestions = {};
-    }
-    if (s._fromPasse2 && validationChoices[currentValIdx].confirmedSuggestions &&
-        validationChoices[currentValIdx].confirmedSuggestions[si] === undefined) {
-      validationChoices[currentValIdx].confirmedSuggestions[si] = true;
-    }
-  });
-  const isNumeric = q.question_class === 'quantitative' || q.is_numeric || ['integer','decimal'].includes(q.type);
-
-  // Suggestions HTML
-  let suggestionsHtml = '';
-  if (suggestions.length > 0) {
-    suggestionsHtml = `<div style="margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-        💡 ${lang==='fr'?'Propositions intelligentes':'Smart suggestions'}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        ${suggestions.map((s, si) => {
-          const confirmed = !!(choice.confirmedSuggestions || {})[si];
-          const typeIcon = {skip_logic:'🔀',calculate:'🧮',constraint:'🔒',required:'⚠️',repeat:'🔁'}[s.type] || '💡';
-          const confidenceColor = s.confidence==='high'?'var(--green)':s.confidence==='medium'?'var(--yellow)':'var(--muted)';
-          const confidenceLabel = s.confidence==='high'?(lang==='fr'?'Haute confiance':'High confidence'):s.confidence==='medium'?(lang==='fr'?'Confiance moyenne':'Medium confidence'):(lang==='fr'?'Faible confiance':'Low confidence');
-          const bg = confirmed ? 'rgba(22,163,74,.08)' : 'rgba(37,99,235,.04)';
-          const border = confirmed ? 'rgba(22,163,74,.3)' : 'rgba(37,99,235,.15)';
-          return `<div style="background:${bg};border:1.5px solid ${border};border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
-            <input type="checkbox" ${confirmed?'checked':''} onchange="toggleSuggestion(${si}, this.checked)"
-              style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:var(--green);flex-shrink:0;"/>
-            <div style="flex:1;">
-              <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap;">
-                <span style="font-size:16px;">${typeIcon}</span>
-                <span style="font-size:12px;font-weight:700;color:var(--ink);">${s.label}</span>
-                <span style="font-size:10px;color:${confidenceColor};background:rgba(0,0,0,.05);padding:1px 7px;border-radius:10px;">${confidenceLabel}</span>
-              </div>
-              <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:${s.value?'6px':'0'};">${s.description}</div>
-              ${s.value ? `
-                <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-                  <div style="flex:1;font-size:11px;color:var(--ink2);background:var(--paper);border-radius:6px;padding:4px 8px;font-family:'Courier New',monospace;">${s.value}</div>
-                  ${s.type === 'skip_logic' ? `<button onclick="ouvrirEditeurSaut(${si})" style="background:#E8132A;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;">✏️ Modifier</button>` : ''}
-                </div>
-              ` : ''}
-              ${s.type === 'skip_logic' ? `<div id="editeur-saut-${si}" style="display:none;margin-top:8px;padding:10px;background:#fff;border:1.5px solid #E8E8E8;border-radius:10px;"></div>` : ''}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }
-
-  // Numeric fields
-  let numericHtml = '';
-  if (isNumeric) {
-    const isDecimal = (choice.formatIdx === 1) || (q.type === 'decimal');
-    const inp = (id, val, ph, label) => `
-      <div style="flex:1;min-width:120px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${label}</div>
-        <input type="number" id="${id}" value="${val||''}" placeholder="${ph}"
-          oninput="saveNumericBounds()"
-          style="width:100%;background:var(--paper);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);outline:none;"/>
-      </div>`;
-
-    numericHtml = `<div style="margin-bottom:16px;padding:14px;background:rgba(245,158,11,.05);border:1.5px solid rgba(245,158,11,.18);border-radius:12px;">
-      <div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">📏 ${lang==='fr'?'Précisions sur la valeur (tout est optionnel)':'Value details (all optional)'}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${lang==='fr'?'Laissez vide si vous n\'etes pas sur — le repondant pourra saisir librement.':'Leave empty if unsure — the respondent can enter freely.'}</div>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-        ${inp('num-min', choice.numMin, lang==='fr'?'Ex: 0':'Ex: 0', lang==='fr'?'Valeur minimale acceptée':'Minimum accepted value')}
-        ${inp('num-max', choice.numMax, lang==='fr'?'Ex: 120':'Ex: 120', lang==='fr'?'Valeur maximale acceptée':'Maximum accepted value')}
-      </div>
-
-      ${isDecimal ? `
-      <div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:8px;">${lang==='fr'?'Nombre de chiffres :':'Number of digits:'}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${inp('num-digits-before', choice.numDigitsBefore, lang==='fr'?'Ex: 3 (pour 150,5)':'Ex: 3 (for 150.5)', lang==='fr'?'Chiffres avant la virgule (optionnel)':'Digits before decimal (optional)')}
-        ${inp('num-digits-after', choice.numDigitsAfter, lang==='fr'?'Ex: 2 (pour 65,75)':'Ex: 2 (for 65.75)', lang==='fr'?'Chiffres après la virgule (optionnel)':'Digits after decimal (optional)')}
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:6px;">
-        ${lang==='fr'
-          ? 'Ex: Poids → 1 chiffre après. Taux → 2 chiffres après. Coordonnées GPS → 6 chiffres après.'
-          : 'Ex: Weight → 1 digit after. Rate → 2 digits after. GPS coordinates → 6 digits after.'}
-      </div>` : ''}
-    </div>`;
-  }
-
-  // Obligatoire toggle
-  const isRequired = choice.required !== undefined ? choice.required : true; // default true
-  const requiredHtml = `<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--paper);border:1px solid var(--border);border-radius:10px;">
-    <input type="checkbox" id="chk-required" ${isRequired?'checked':''} onchange="toggleRequired(this.checked)"
-      style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;"/>
-    <div>
-      <div style="font-size:13px;font-weight:600;color:var(--ink);">${lang==='fr'?'Question obligatoire':'Required question'}</div>
-      <div style="font-size:11px;color:var(--muted);">${lang==='fr'?'Décochez si cette question est facultative':'Uncheck if this question is optional'}</div>
-    </div>
-  </div>`;
-
-  // Pour les questions de type note: pas de format à choisir
-  const isNoteQuestion = q.question_class === 'note' || q.type === 'note' ||
-    (q.formats && q.formats.length === 1 && q.formats[0] && q.formats[0].type === 'note');
-
-  if (isNoteQuestion) {
-    if (validationChoices[currentValIdx].formatIdx === null) {
-      validationChoices[currentValIdx].formatIdx = 0;
-    }
-    document.getElementById('val-card-body').innerHTML = `
-      <div class="val-question-num">Question ${q.num ? Math.floor(q.num) : (currentValIdx+1)}${q.group?' · '+q.group:''}</div>
-      <div class="val-question">${q.label}</div>
-      <div style="margin-top:16px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;font-size:13px;color:#166534;">
-        📋 ${lang==='fr'?'Texte informatif — aucune saisie requise':'Informational text — no input required'}
-      </div>
-      ${requiredHtml}`;
-    document.getElementById('btn-val-prev').style.visibility = currentValIdx===0?'hidden':'visible';
-    document.getElementById('btn-val-next').disabled = false;
-    return;
-  }
-
-  // Saisie manuelle des modalités si choix manquants
-  var missingChoicesHtml = '';
-  var isChoiceType = (q.selectedType === 'select_one' || q.selectedType === 'select_multiple' ||
-                      q.type === 'select_one' || q.type === 'select_multiple' ||
-                      q.question_class === 'qualitative_choice');
-  if (isChoiceType && (!q.choices || q.choices.length === 0)) {
-    var savedChoices = validationChoices[currentValIdx].manualChoices || '';
-    missingChoicesHtml = `<div style="margin-bottom:16px;padding:14px 16px;background:#FFF3F3;border:1.5px solid #FFB3B3;border-radius:12px;">
-      <div style="font-size:12px;font-weight:700;color:#E8132A;margin-bottom:8px;">❌ Choix manquants — saisissez les modalités</div>
-      <input type="text" id="manual-choices-input" value="${savedChoices}"
-        placeholder="Ex: Rural, Urbain, Semi-urbain"
-        style="width:100%;border:1.5px solid #E8E8E8;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:'Inter',sans-serif;"
-        oninput="sauvegarderChoixManuels(this.value)"/>
-      <div style="font-size:11px;color:#767676;margin-top:6px;">Séparez les modalités par des virgules</div>
-    </div>`;
-  }
-
-  // Constructeur de conditions pour les sauts invalides
-  var conditionBuilderHtml = '';
-  if (q.relevant && q.relevant.includes('\${')) {
-    var refs = q.relevant.match(/\\$\{([^}]+)\}/g) || [];
-    var hasInvalidRef = refs.some(function(ref) {
-      var refId = ref.replace('\${','').replace('}','');
-      return !validatedForm.questions.some(function(qq) {
-        return (qq.id || ('q'+qq.num)) === refId ||
-               (qq.id || ('q'+qq.num)).replace(/[^a-zA-Z0-9_]/g,'_') === refId;
-      });
-    });
-
-    if (hasInvalidRef) {
-      var prevQuestions = validatedForm.questions.filter(function(qq) { return qq.num < q.num; });
-      var qOptions = prevQuestions.map(function(qq) {
-        return '<option value="' + (qq.id || ('q'+qq.num)) + '">Q' + qq.num + ' — ' + (qq.label||'').slice(0,40) + '</option>';
-      }).join('');
-
-      var savedConditions = validationChoices[currentValIdx].conditions || [{}];
-      var condRows = savedConditions.map(function(cond, ci) {
-        var choiceQ = prevQuestions.find(function(qq) { return (qq.id||('q'+qq.num)) === cond.qId; });
-        var choiceOptions = choiceQ && choiceQ.choices && choiceQ.choices.length > 0
-          ? choiceQ.choices.map(function(c) {
-              var lbl = typeof c === 'string' ? c : (c.label||String(c));
-              return '<option value="' + lbl + '" ' + (cond.val === lbl ? 'selected' : '') + '>' + lbl + '</option>';
-            }).join('')
-          : '<option>--</option>';
-
-        return '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;" id="cond-row-' + ci + '">' +
-          '<select onchange="updateCondition(' + ci + ',\'qId\',this.value)" style="flex:2;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
-          '<option value="">-- Question --</option>' + qOptions + '</select>' +
-          '<select onchange="updateCondition(' + ci + ',\'op\',this.value)" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
-          '<option value="=" ' + (cond.op==='='?'selected':'') + '>= (égal)</option>' +
-          '<option value="!=" ' + (cond.op==='!='?'selected':'') + '>≠ (différent)</option>' +
-          '<option value=">" ' + (cond.op==='>'?'selected':'') + '>> (supérieur)</option>' +
-          '<option value="<" ' + (cond.op==='<'?'selected':'') + '>< (inférieur)</option>' +
-          '<option value=">=" ' + (cond.op==='>='?'selected':'') + '>>= (sup. ou égal)</option>' +
-          '<option value="<=" ' + (cond.op==='<='?'selected':'') + '>≤ (inf. ou égal)</option>' +
-          '</select>' +
-          '<input type="text" placeholder="Valeur" value="' + (cond.val||'') + '" onchange="updateCondition(' + ci + ',\'val\',this.value)" style="flex:1;border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;"/>' +
-          '<button onclick="supprimerCondition(' + ci + ')" style="background:#eee;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;">✕</button>' +
-          '</div>';
-      }).join('');
-
-      conditionBuilderHtml = '<div style="margin-bottom:16px;padding:14px 16px;background:#FFFBF0;border:1.5px solid #FCD34D;border-radius:12px;">' +
-        '<div style="font-size:12px;font-weight:700;color:#B45309;margin-bottom:10px;">⚠️ Saut conditionnel invalide — Redéfinir la condition</div>' +
-        '<div style="font-size:11px;color:#92400E;margin-bottom:10px;">Cette question ne s\'affiche que si :</div>' +
-        '<div id="condition-rows">' + condRows + '</div>' +
-        '<div style="display:flex;gap:8px;margin-top:8px;align-items:center;">' +
-        '<button onclick="ajouterCondition()" style="background:#F59E0B;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;">+ Ajouter une condition</button>' +
-        '<select id="condition-operator" style="border:1.5px solid #E8E8E8;border-radius:8px;padding:6px;font-size:12px;">' +
-        '<option value="and">ET (toutes les conditions)</option>' +
-        '<option value="or">OU (au moins une condition)</option>' +
-        '</select>' +
-        '<button onclick="appliquerConditions()" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;">✅ Appliquer</button>' +
-        '</div></div>';
-    }
-  }
-
-  // Audio — désactivé pour le moment
-  let audioHtml = '';
-
-  // Images pour les modalités (questions à choix)
-  const isChoiceQ = q.question_class === 'qualitative_choice' ||
-    (q.selectedType || q.type || '') === 'select_one' ||
-    (q.selectedType || q.type || '') === 'select_multiple';
-
-  let choiceImagesHtml = '';
-  if (isChoiceQ && q.choices && q.choices.length > 0) {
-    const imgChoices = q.choices.map(function(c, ci) {
-      const label = typeof c === 'string' ? c : (c.label || String(c));
-      const imgData = (validationChoices[currentValIdx].choiceImages || {})[ci];
-      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#F8F8F8;border-radius:10px;margin-bottom:6px;">
-        <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eee;display:flex;align-items:center;justify-content:center;">
-          ${imgData && imgData.url
-            ? `<img src="${imgData.url}" style="width:100%;height:100%;object-fit:cover;" />`
-            : `<span style="font-size:18px;">🖼️</span>`}
-        </div>
-        <span style="flex:1;font-size:13px;color:#1A1A1A;">${label}</span>
-        <div style="display:flex;gap:6px;">
-          ${imgData ? `<span style="background:#10B981;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;">✅ Image</span>` : ''}
-          <label style="background:#E8132A;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;">
-            📤 ${imgData ? 'Changer' : 'Uploader une image'}
-            <input type="file" accept="image/*" onchange="uploaderImage(event, ${ci})" style="display:none;"/>
-          </label>
-          ${imgData ? `<button onclick="supprimerImage(${ci})" style="background:#eee;color:#666;border:none;border-radius:8px;padding:5px 8px;font-size:11px;cursor:pointer;">✕</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-
-    choiceImagesHtml = `<div style="margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:#767676;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-        🖼️ Illustrer les modalités avec des images (optionnel)
-      </div>
-      ${imgChoices}
-    </div>`;
-  }
-
-  // Format cols
-  // Largeur des cadrants selon le nombre de formats
-  const nFormats = formats.length;
-  const colWidth = nFormats === 1 ? '100%' : nFormats === 2 ? 'calc(50% - 6px)' : nFormats === 3 ? 'calc(33.33% - 6px)' : 'calc(50% - 6px)';
-
-  const colsHtml = formats.map((f, fi) => {
-    const isRecommended = fi === (q.suggested_format_idx || 0);
-    const isSelected = choice.formatIdx === fi;
-    return `<div class="format-col ${isSelected?'selected':''}" onclick="selectFormat(${fi})" style="position:relative;">
-      ${isRecommended && !isSelected ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;">💡 ${lang==='fr'?'Recommandé':'Recommended'}</div>` : ''}
-      <div class="format-col-title">${f.name}</div>
-      ${renderFormatPreview(q, f)}
-      <div class="format-col-desc">${f.note}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('val-card-body').innerHTML = `
-    <div class="val-question-num">Question ${q.num ? Math.floor(q.num) : (currentValIdx+1)}${q.group?' · '+q.group:''}</div>
-    <div class="val-question">${q.label}</div>
-    ${q.hint?`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${q.hint}</div>`:''}
-    ${suggestionsHtml}
-    ${missingChoicesHtml}
-    ${conditionBuilderHtml}
-    ${choiceImagesHtml}
-    <div class="val-format-label" style="margin-top:${suggestions.length>0?'4px':'16px'};">
-      ${q.question_class==='quantitative'
-        ? (lang==='fr'?'Type de valeur numérique :':'Numeric value type:')
-        : q.question_class==='qualitative_open'
-        ? (lang==='fr'?'Type de champ texte :':'Text field type:')
-        : q.question_class==='calculate'
-        ? (lang==='fr'?'Mode de calcul :':'Calculation mode:')
-        : (lang==='fr'?'Choisissez le format de réponse :':'Choose response format:')}
-    </div>
-    <div class="format-cols" style="grid-template-columns:repeat(${nFormats > 3 ? 3 : nFormats},1fr);">${colsHtml}</div>
-    ${numericHtml}
-    ${requiredHtml}`;
-
-  document.getElementById('btn-val-prev').style.visibility = currentValIdx===0?'hidden':'visible';
-  // Bouton retour vers étape 2
-  const backToStep2 = document.getElementById('btn-back-to-step2');
-  if (backToStep2) backToStep2.style.display = currentValIdx===0 ? 'block' : 'none';
-  updateValNext();
-}
-
-function toggleSuggestion(si, checked) {
-  if (!validationChoices[currentValIdx].confirmedSuggestions)
-    validationChoices[currentValIdx].confirmedSuggestions = {};
-  validationChoices[currentValIdx].confirmedSuggestions[si] = checked;
-  // No re-render needed — checkbox handles its own state
-}
-
-function toggleRequired(checked) {
-  validationChoices[currentValIdx].required = checked;
-}
-
-function saveNumericBounds() {
-  const ch = validationChoices[currentValIdx];
-  ch.numMin = document.getElementById('num-min')?.value || '';
-  ch.numMax = document.getElementById('num-max')?.value || '';
-  ch.numDigitsBefore = document.getElementById('num-digits-before')?.value || '';
-  ch.numDigitsAfter = document.getElementById('num-digits-after')?.value || '';
-}
-
-function confirmSuggestion(si) {
-  if (!validationChoices[currentValIdx].confirmedSuggestions) validationChoices[currentValIdx].confirmedSuggestions = {};
-  if (!validationChoices[currentValIdx].rejectedSuggestions) validationChoices[currentValIdx].rejectedSuggestions = {};
-  validationChoices[currentValIdx].confirmedSuggestions[si] = true;
-  delete validationChoices[currentValIdx].rejectedSuggestions[si];
-  renderValCard();
-}
-
-function rejectSuggestion(si) {
-  if (!validationChoices[currentValIdx].confirmedSuggestions) validationChoices[currentValIdx].confirmedSuggestions = {};
-  if (!validationChoices[currentValIdx].rejectedSuggestions) validationChoices[currentValIdx].rejectedSuggestions = {};
-  validationChoices[currentValIdx].rejectedSuggestions[si] = true;
-  delete validationChoices[currentValIdx].confirmedSuggestions[si];
-  renderValCard();
-}
-
-function renderFormatPreview(q, f) {
-  const choices = q.choices || [];
-  const tool = selectedTool;
-  const qclass = q.question_class || 'qualitative_choice';
-
-  // CALCUL
-  if (qclass === 'calculate' || f.type === 'calculate') {
-    return `<div style="background:#f0f4f8;border-radius:8px;padding:10px;text-align:center;">
-      <div style="font-size:20px;margin-bottom:4px;">🧮</div>
-      <div style="font-size:11px;color:#2e75b6;">${lang==='fr'?'Calculé automatiquement':'Calculated automatically'}</div>
-    </div>`;
-  }
-
-  // NOTE
-  if (qclass === 'note' || f.type === 'note') {
-    return `<div style="background:#fffbeb;border-radius:8px;padding:10px;font-size:12px;color:#92400e;">
-      📋 ${lang==='fr'?'Texte affiché sans saisie':'Display text, no input'}
-    </div>`;
-  }
-
-  // QUANTITATIVE — nombre entier ou décimal
-  if (qclass === 'quantitative' || qclass === 'scale') {
-    if (f.type === 'range') {
-      return `<div style="padding:8px 0;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:var(--muted);">0</span>
-          <div style="flex:1;height:6px;background:#e5e7eb;border-radius:10px;position:relative;">
-            <div style="position:absolute;left:40%;width:16px;height:16px;background:var(--blue);border-radius:50%;top:-5px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
-          </div>
-          <span style="font-size:11px;color:var(--muted);">10</span>
-        </div>
-        <div style="text-align:center;font-size:12px;color:var(--blue);margin-top:6px;">4</div>
-      </div>`;
-    }
-    const placeholder = f.type === 'decimal' ? '65,5' : '25';
-    const icon = f.type === 'decimal' ? '🔢' : '🔢';
-    if (tool === 'jotform') return `<div class="jot-text" style="color:#bbb;">${icon} ${placeholder}</div>`;
-    if (tool === 'tally') return `<div class="tally-text" style="color:#bbb;">${icon} ${placeholder}</div>`;
-    return `<div class="kobo-mock-input" style="color:#bbb;">${icon} ${placeholder}</div>`;
-  }
-
-  // DATE / HEURE
-  if (qclass === 'date_time') {
-    const icons = {date:'📅 jj/mm/aaaa', time:'🕐 hh:mm', datetime:'📅🕐 jj/mm/aaaa hh:mm'};
-    const display = icons[f.type] || '📅 jj/mm/aaaa';
-    if (tool === 'jotform') return `<div class="jot-text" style="color:#bbb;">${display}</div>`;
-    return `<div class="kobo-mock-input" style="color:#bbb;">${display}</div>`;
-  }
-
-  // GPS
-  if (qclass === 'geopoint' || f.type === 'geopoint')
-    return `<div style="background:#e5f6e5;border-radius:8px;padding:10px;text-align:center;">📍<div style="font-size:11px;color:#15803d;margin-top:3px;">${lang==='fr'?'Capture GPS automatique':'Auto GPS capture'}</div></div>`;
-  if (qclass === 'geotrace' || f.type === 'geotrace')
-    return `<div style="background:#e5f6e5;border-radius:8px;padding:10px;text-align:center;">🗺️<div style="font-size:11px;color:#15803d;margin-top:3px;">${lang==='fr'?'Tracer un chemin':'Trace a path'}</div></div>`;
-  if (qclass === 'geoshape' || f.type === 'geoshape')
-    return `<div style="background:#e5f6e5;border-radius:8px;padding:10px;text-align:center;">⬡<div style="font-size:11px;color:#15803d;margin-top:3px;">${lang==='fr'?'Délimiter une zone':'Define an area'}</div></div>`;
-
-  // MÉDIAS
-  if (qclass === 'media_photo' || f.type === 'image')
-    return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;">📷<div style="font-size:11px;color:#6b7280;margin-top:3px;">${lang==='fr'?'Prendre une photo':'Take a photo'}</div></div>`;
-  if (qclass === 'media_audio' || f.type === 'audio')
-    return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;">🎙️<div style="font-size:11px;color:#6b7280;margin-top:3px;">${lang==='fr'?'Enregistrer un son':'Record audio'}</div></div>`;
-  if (qclass === 'media_video' || f.type === 'video')
-    return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;">🎬<div style="font-size:11px;color:#6b7280;margin-top:3px;">${lang==='fr'?'Enregistrer une vidéo':'Record video'}</div></div>`;
-  if (qclass === 'media_file' || f.type === 'file')
-    return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;">📎<div style="font-size:11px;color:#6b7280;margin-top:3px;">${lang==='fr'?'Joindre un fichier':'Attach a file'}</div></div>`;
-
-  // BARCODE
-  if (qclass === 'barcode' || f.type === 'barcode')
-    return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;">📊<div style="font-size:11px;color:#6b7280;margin-top:3px;">${lang==='fr'?'Scanner un code':'Scan a code'}</div></div>`;
-
-  // ACKNOWLEDGE
-  if (qclass === 'acknowledge' || f.type === 'acknowledge')
-    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
-      <div style="width:18px;height:18px;border-radius:4px;border:2px solid #9ca3af;flex-shrink:0;"></div>
-      <span style="font-size:12px;color:var(--ink);">${lang==='fr'?'Je confirme / J\'accepte':'I confirm / I agree'}</span>
-    </div>`;
-
-  // RANKING
-  if (qclass === 'ranking' || f.type === 'rank') {
-    const items = choices.length > 0 ? choices.slice(0,3) : ['Option 1','Option 2','Option 3'];
-    return `<div style="display:flex;flex-direction:column;gap:4px;">
-      ${items.map((c,i)=>`<div style="display:flex;align-items:center;gap:6px;background:#f3f4f6;border-radius:6px;padding:5px 8px;">
-        <span style="font-size:11px;font-weight:700;color:var(--muted);">${i+1}.</span>
-        <span style="font-size:12px;color:var(--ink);">${typeof c==='string'?c:c.label}</span>
-        <span style="margin-left:auto;font-size:14px;color:#9ca3af;">⠿</span>
-      </div>`).join('')}
-    </div>`;
-  }
-
-  // CHOIX UNIQUE
-  if (f.type === 'select_one') {
-    if (choices.length === 0) {
-      if (tool==='jotform') return `<div class="jot-text" style="color:#bbb;">${lang==='fr'?'Choix unique':'Single choice'}</div>`;
-      return `<div class="kobo-mock-input" style="color:#bbb;">${lang==='fr'?'Choix unique':'Single choice'}</div>`;
-    }
-    if (tool==='jotform') return `<div class="jot-mock-choices">${choices.map(c=>`<div class="jot-mock-choice"><div class="r"></div>${typeof c==='string'?c:c.label}</div>`).join('')}</div>`;
-    if (tool==='tally') return `<div>${choices.map(c=>`<div class="tally-mock-choice">${typeof c==='string'?c:c.label}</div>`).join('')}</div>`;
-    return `<div class="kobo-mock-choices">${choices.map((c,i)=>`<div class="kobo-mock-choice"><div class="r ${i===0?'filled':''}"></div>${typeof c==='string'?c:c.label}</div>`).join('')}</div>`;
-  }
-
-  // CHOIX MULTIPLE
-  if (f.type === 'select_multiple') {
-    if (choices.length === 0) {
-      if (tool==='jotform') return `<div class="jot-text" style="color:#bbb;">${lang==='fr'?'Choix multiple':'Multiple choice'}</div>`;
-      return `<div class="kobo-mock-input" style="color:#bbb;">${lang==='fr'?'Choix multiple':'Multiple choice'}</div>`;
-    }
-    if (tool==='jotform') return `<div class="jot-mock-choices">${choices.map(c=>`<div class="jot-mock-choice"><div class="c"></div>${typeof c==='string'?c:c.label}</div>`).join('')}</div>`;
-    if (tool==='tally') return `<div>${choices.map(c=>`<div class="tally-mock-choice">${typeof c==='string'?c:c.label}</div>`).join('')}</div>`;
-    return `<div class="kobo-mock-choices">${choices.map((c,i)=>`<div class="kobo-mock-choice"><div class="c ${i===0?'filled':''}"></div>${typeof c==='string'?c:c.label}</div>`).join('')}</div>`;
-  }
-
-  // TEXTE LIBRE (qualitative_open ou fallback)
-  if (tool==='jotform') return `<div class="jot-text" style="color:#bbb;">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
-  if (tool==='tally') return `<div class="tally-text" style="color:#bbb;">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
-  return `<div class="kobo-mock-input" style="color:#bbb;">${lang==='fr'?'Saisissez votre réponse...':'Type your answer...'}</div>`;
-}
-
-function selectFormat(fi) {
-  validationChoices[currentValIdx].formatIdx=fi;
-  updateValNext();
-  renderValCard();
-}
-
-function toggleLink() {
-  validationChoices[currentValIdx].linked=!validationChoices[currentValIdx].linked;
-  renderValCard();
-}
-
-function saveLinkText() {
-  const el=document.getElementById('link-text');
-  if(el) validationChoices[currentValIdx].linkText=el.value;
-}
-
-function updateValNext() {
-  const q = parsedForm.questions[currentValIdx];
-  const autoFormatClasses = ['date','geopoint','media','calculate','note'];
-  // Pour les notes et autres types auto: toujours valide
-  const isNote = q.question_class === 'note' || q.type === 'note' || (q.formats && q.formats.length === 1 && q.formats[0].type === 'note');
-  const autoValid = autoFormatClasses.includes(q.question_class) || isNote;
-  const done = autoValid || validationChoices[currentValIdx].formatIdx !== null;
-  document.getElementById('btn-val-next').disabled = !done;
-}
-
-function valPrev() {
-  if(currentValIdx>0){currentValIdx--;renderValCard();}
-}
-
-function valNext() {
-  const total=parsedForm.questions.length;
-  if(currentValIdx<total-1){currentValIdx++;renderValCard();}
-  else buildVisualization();
-}
-
-// ============ VISUALISATION ============
-function buildVisualization() {
-  // Apply validation choices to form
-  validatedForm=JSON.parse(JSON.stringify(parsedForm));
-  validatedForm.questions=validatedForm.questions.map((q,i)=>{
-    const ch=validationChoices[i];
-    // Pour questions avec 1 seul format (date, geopoint, media, calculate), pas besoin de choix
-    const autoFormatClasses = ['date','geopoint','media','calculate','note'];
-    const isNoteQ = q.question_class === 'note' || q.type === 'note';
-    const fmtIdx = (autoFormatClasses.includes(q.question_class) || isNoteQ) ? 0 : (ch.formatIdx !== null ? ch.formatIdx : (q.suggested_format_idx || 0));
-    const fmt = q.formats?.[fmtIdx] || q.formats?.[0];
-
-    // Appliquer les relevants — priorité: passe 2 > suggestions confirmées > vide
-    let relevant = q.relevant || '';  // Relevant de la passe 2 (généré par Claude)
-    let calculation = '';
-    let constraint = '';
-    let selectedType = fmt?.type || q.type;
-
-    const confirmed = ch.confirmedSuggestions || {};
-    (q.suggestions || []).forEach((s, si) => {
-      if (confirmed[si]) {
-        if (s.type === 'skip_logic' && s.value) relevant = s.value; // Override si suggestion confirmée
-        if (s.type === 'calculate' && s.value) {
-          calculation = s.value;
-          selectedType = 'calculate'; // override type
-        }
-      }
-    });
-
-    // Contrainte numérique — min/max + chiffres avant/après virgule
-    const constraints = [];
-    if (ch.numMin !== '' && ch.numMin !== undefined) constraints.push(`. >= ${ch.numMin}`);
-    if (ch.numMax !== '' && ch.numMax !== undefined) constraints.push(`. <= ${ch.numMax}`);
-    if (ch.numDigitsBefore !== '' && ch.numDigitsBefore !== undefined) {
-      constraints.push(`string-length(substring-before(string(.), '.')) <= ${ch.numDigitsBefore}`);
-    }
-    if (ch.numDigitsAfter !== '' && ch.numDigitsAfter !== undefined) {
-      constraints.push(`string-length(substring-after(string(.), '.')) <= ${ch.numDigitsAfter}`);
-    }
-    if (constraints.length > 0) constraint = constraints.join(' and ');
-
-    // Required par défaut true, sauf si modifié
-    const required = ch.required !== undefined ? ch.required : true;
-
-    // Auto skip_logic pour questions "Autres, precisez" sans relevant
-    if (!relevant && q.label) {
-      const lbl = q.label.toLowerCase();
-      if (lbl.includes('si autre') || (lbl.includes('precis') && lbl.includes('autre'))) {
-        const qIdx = i;
-        if (qIdx > 0) {
-          const parentQ = parsedForm.questions[qIdx - 1];
-          const parentName = (parentQ.id || ('q' + parentQ.num)).replace(/[^a-zA-Z0-9_]/g,'_');
-          const parentChoices = parentQ.choices || [];
-          let autreIdx = -1;
-          parentChoices.forEach((c, ci) => {
-            const cLbl = (typeof c === 'string' ? c : c.label || '').toLowerCase();
-            if (cLbl.includes('autre') || cLbl.includes('other')) autreIdx = ci;
-          });
-          if (autreIdx >= 0) {
-            const autreVal = (parentQ.choice_values && parentQ.choice_values[autreIdx] !== undefined)
-              ? String(parentQ.choice_values[autreIdx])
-              : String(autreIdx);
-                        relevant = "${" + parentName + "} = '" + autreVal + "'";
-          }
-        }
-      }
-    }
-
-    const builtQ = {
-      ...q,
-      selectedType,
-      relevant,
-      calculation,
-      constraint,
-      required,
-      validatedFormatIdx: fmtIdx,
-      numMin: ch.numMin || '',
-      numMax: ch.numMax || '',
-      numDigitsBefore: ch.numDigitsBefore || '',
-      numDigitsAfter: ch.numDigitsAfter || '',
-      audioEnabled: ch.audioEnabled || false,
-      choiceImages: ch.choiceImages || {}
-    };
-    return builtQ;
-  });
-
-  // Ajouter les questions audio après les questions concernées
-  const questionsWithAudio = [];
-  validatedForm.questions.forEach(function(q) {
-    questionsWithAudio.push(q);
-    if (q.audioEnabled) {
-      questionsWithAudio.push({
-        id: q.id + '_audio',
-        num: q.num,
-        label: 'Enregistrement audio — ' + q.label,
-        question_class: 'media_audio',
-        selectedType: 'audio',
-        type: 'audio',
-        required: false,
-        hint: 'Optionnel — enregistrez votre réponse à voix haute',
-        choices: [],
-        group: q.group || 'General',
-        formats: [{id:'A',name:'Audio',type:'audio',note:'Enregistrement vocal'}],
-        relevant: q.id ? '${' + q.id + '} != ""' : ''
-      });
-    }
-  });
-  validatedForm.questions = questionsWithAudio;
-
-  goStep(4);
-  document.getElementById('viz-form-title').textContent=validatedForm.title||'Formulaire';
-  document.getElementById('viz-tool-badge').textContent=TOOL_NAMES[selectedTool];
-  renderVisualization(validatedForm);
-}
-
-function renderExcelPreview(form) {
-  const questions = form.questions || [];
-  // Grouper par section
-  const groups = {};
-  const groupOrder = [];
-  questions.forEach(function(q) {
-    const g = q.group || 'General';
-    if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
-    groups[g].push(q);
-  });
-
-  function makeVarName(q) {
-    const label = (q.label || q.id || 'var').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').toLowerCase().replace(/^_|_$/g,'').slice(0,20);
-    return 'v' + (q.num || 0) + '_' + label;
-  }
-
-  // Groupes de couleurs pour les sections
-  const sectionColors = ['#1F4E79','#2E75B6','#1F6B3A','#7B3F00','#4B0082','#8B0000'];
-  const sectionTextColors = ['#BDD7EE','#DEEAF1','#C6EFCE','#FFDCB2','#E8D5FF','#FFD5D5'];
-
-  let html = '<div style="overflow-x:auto;margin-top:8px;">';
-  html += '<table style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:11px;min-width:100%;">';
-
-  // Ligne 1: sections
-  html += '<tr>';
-  groupOrder.forEach(function(g, gi) {
-    const n = groups[g].length;
-    const bg = sectionColors[gi % sectionColors.length];
-    html += '<th colspan="' + n + '" style="background:' + bg + ';color:#fff;padding:8px 10px;text-align:center;font-weight:700;border:1px solid #fff;font-size:11px;">' + g + '</th>';
-  });
-  html += '</tr>';
-
-  // Ligne 2: noms variables
-  html += '<tr>';
-  questions.forEach(function(q) {
-    html += '<th style="background:#2E75B6;color:#fff;padding:6px 8px;text-align:center;font-size:10px;border:1px solid #BDD7EE;white-space:nowrap;">' + makeVarName(q) + '</th>';
-  });
-  html += '</tr>';
-
-  // 5 lignes exemple
-  for (var r = 0; r < 5; r++) {
-    const bg = r % 2 === 0 ? '#EBF3FB' : '#FFFFFF';
-    html += '<tr>';
-    questions.forEach(function(q) {
-      const t = q.selectedType || q.type || 'text';
-      let cellContent = '';
-      if (t === 'select_one' || t === 'select_multiple') {
-        const choices = q.choices || [];
-        if (choices.length > 0 && r === 0) {
-          cellContent = '<select style="font-size:10px;border:none;background:transparent;width:100%;"><option>-- Choisir --</option>' +
-            choices.slice(0,5).map(function(c){ return '<option>' + (typeof c==='string'?c:c.label||c) + '</option>'; }).join('') + '</select>';
-        }
-      } else if (t === 'date' && r === 0) {
-        cellContent = '<span style="color:#999;font-style:italic;">jj/mm/aaaa</span>';
-      } else if ((t === 'integer' || t === 'decimal') && r === 0) {
-        cellContent = '<span style="color:#999;font-style:italic;">' + (t==='integer'?'0':'0.00') + '</span>';
-      }
-      html += '<td style="background:' + bg + ';border:1px solid #BDD7EE;padding:4px 8px;min-width:80px;max-width:150px;">' + cellContent + '</td>';
-    });
-    html += '</tr>';
-  }
-  html += '</table></div>';
-
-  // Badge Excel
-  html += '<div style="margin-top:12px;padding:10px 14px;background:#E2EFDA;border-radius:8px;font-size:12px;color:#375623;"><strong>📊 Fichier Excel</strong> — 2 feuilles : <em>Saisie</em> (100 lignes paramétrées) + <em>Dictionnaire</em> (' + questions.length + ' variables)</div>';
-
-  // Remplacer le contenu de panel4
-  const vizArea = document.getElementById('viz-questions');
-  if (vizArea) vizArea.innerHTML = html;
-  else {
-    const p4 = document.getElementById('panel4');
-    if (p4) {
-      let container = p4.querySelector('.viz-container');
-      if (!container) container = p4;
-      const existing = container.querySelector('.excel-preview');
-      if (existing) existing.remove();
-      const div = document.createElement('div');
-      div.className = 'excel-preview';
-      div.innerHTML = html;
-      container.appendChild(div);
-    }
-  }
-}
-
-function renderVisualization(form) {
-  const body=document.getElementById('viz-body');
-  body.innerHTML='<div class="mock-form">'+buildMockForm(form)+'</div>';
-}
-
-function buildMockForm(form) {
-  const tool=selectedTool;
-  if(tool==='jotform') return buildJotMock(form);
-  if(tool==='tally') return buildTallyMock(form);
-  return buildKoboMock(form); // default for kobo, odk, xlsform, google
-}
-
-function buildKoboMock(form) {
-  // Group questions
-  const groups={};
-  form.questions.forEach(q=>{
-    const g=q.group||lang==='fr'?'Général':'General';
-    if(!groups[g])groups[g]=[];
-    groups[g].push(q);
-  });
-  let html=`<div class="kobo-mock">
-    <div class="kobo-mock-header">
-      <div class="kobo-mock-title">${form.title||'Formulaire'}</div>
-      <div class="kobo-mock-sub">${lang==='fr'?'Remplissez toutes les questions obligatoires (*)':'Fill in all required fields (*)'}</div>
-    </div>
-    <div class="kobo-mock-body">`;
-  Object.entries(groups).forEach(([gname,qs])=>{
-    html+=`<div class="kobo-mock-group"><div class="kobo-mock-group-title">${gname}</div>`;
-    qs.forEach(q=>{
-      html+=`<div class="kobo-mock-question">
-        <div class="kobo-mock-q-label">${q.label}${q.required?'<span class="kobo-mock-required">*</span>':''}</div>
-        ${q.hint?`<div class="kobo-mock-hint">${q.hint}</div>`:''}
-        ${renderKoboAnswer(q)}
-        ${q.linked&&q.linkText?`<div style="font-size:10px;color:#9ca3af;margin-top:4px;">↪ ${q.linkText}</div>`:''}
-      </div>`;
-    });
-    html+='</div>';
-  });
-  html+='</div></div>';
-  return html;
-}
-
-function renderKoboAnswer(q) {
-  const t=q.selectedType||q.type;
-  const choices=q.choices||[];
-  if(t==='select_one')
-    return `<div class="kobo-mock-choices">${choices.map(c=>`<div class="kobo-mock-choice"><div class="r"></div>${c}</div>`).join('')}</div>`;
-  if(t==='select_multiple')
-    return `<div class="kobo-mock-choices">${choices.map(c=>`<div class="kobo-mock-choice"><div class="c"></div>${c}</div>`).join('')}</div>`;
-  if(t==='geopoint') return `<div style="background:#e5f6e5;border-radius:8px;padding:10px;text-align:center;font-size:18px;">📍 <span style="font-size:12px;color:#15803d;">Capture GPS</span></div>`;
-  if(t==='image') return `<div style="background:#f3f4f6;border-radius:8px;padding:10px;text-align:center;font-size:18px;">📷 <span style="font-size:12px;color:#6b7280;">Prendre une photo</span></div>`;
-  if(t==='date') return `<div class="kobo-mock-input">📅 jj/mm/aaaa</div>`;
-  if(t==='integer'||t==='decimal') return `<div class="kobo-mock-input">123...</div>`;
-  return `<div class="kobo-mock-input">${lang==='fr'?'Saisissez votre réponse...':'Type your answer...'}</div>`;
-}
-
-function buildJotMock(form) {
-  let html=`<div class="jot-mock"><div class="jot-mock-header"><div class="jot-mock-title">${form.title||'Formulaire'}</div></div><div class="jot-mock-body">`;
-  form.questions.forEach(q=>{
-    const t=q.selectedType||q.type;
-    const choices=q.choices||[];
-    html+=`<div class="jot-mock-question"><div class="jot-mock-q-label">${q.label}${q.required?' *':''}</div>`;
-    if(t==='select_one'||t==='select_multiple')
-      html+=`<div class="jot-mock-choices">${choices.map(c=>`<div class="jot-mock-choice"><div class="${t==='select_one'?'r':'c'}" style="width:18px;height:18px;border-radius:${t==='select_one'?'50%':'4px'};border:2px solid #d1d5db;flex-shrink:0;background:#f9fafb;"></div>${c}</div>`).join('')}</div>`;
-    else if(t==='geopoint') html+=`<div class="jot-mock-input">📍 GPS</div>`;
-    else if(t==='image') html+=`<div class="jot-mock-input">📷 Photo</div>`;
-    else if(t==='date') html+=`<div class="jot-mock-input">📅 Date</div>`;
-    else html+=`<div class="jot-mock-input">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
-    if(q.linked&&q.linkText) html+=`<div style="font-size:10px;color:#9ca3af;margin-top:4px;">↪ ${q.linkText}</div>`;
-    html+='</div>';
-  });
-  html+='</div></div>';
-  return html;
-}
-
-function buildTallyMock(form) {
-  let html=`<div class="tally-mock"><div class="tally-mock-body">`;
-  html+=`<div style="font-size:22px;font-weight:800;color:#111827;margin-bottom:28px;">${form.title||'Formulaire'}</div>`;
-  form.questions.forEach(q=>{
-    const t=q.selectedType||q.type;
-    const choices=q.choices||[];
-    html+=`<div class="tally-mock-q"><div class="tally-mock-label">${q.label}${q.required?' *':''}</div>`;
-    if(t==='select_one'||t==='select_multiple')
-      html+=`<div class="tally-mock-choices">${choices.map(c=>`<div class="tally-mock-choice">${c}</div>`).join('')}</div>`;
-    else if(t==='geopoint') html+=`<div class="tally-mock-input">📍 Position GPS</div>`;
-    else if(t==='image') html+=`<div class="tally-mock-input">📷 Photo</div>`;
-    else if(t==='date') html+=`<div class="tally-mock-input">📅 Date</div>`;
-    else html+=`<div class="tally-mock-input">${lang==='fr'?'Votre réponse...':'Your answer...'}</div>`;
-    if(q.linked&&q.linkText) html+=`<div style="font-size:10px;color:#9ca3af;margin-top:6px;">↪ ${q.linkText}</div>`;
-    html+='</div>';
-  });
-  html+='</div></div>';
-  return html;
-}
-
-// Correction input listener
 document.addEventListener('DOMContentLoaded',()=>{
 
   // Init: cacher tous les panels
-  ['panel1','panel2','panel3','panel4','panel5','panel-processing','panel-processing2'].forEach(id=>{
+  ['panel1','panel2','panel5','panel-processing','panel-processing2'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display='none';
   });
@@ -2281,88 +895,16 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Afficher panel1 normalement
   document.getElementById('panel1').style.display='block';
-
-  const ta=document.getElementById('correction-input');
-  if(ta) ta.addEventListener('input',()=>{
-    document.getElementById('btn-apply-correction').disabled=ta.value.trim().length<5;
-  });
   document.getElementById('paste-input').addEventListener('input',updateCharCount);
 });
 
-async function applyCorrection() {
-  const text=document.getElementById('correction-input').value.trim();
-  if(!text) return;
-  showPanel('panel-processing2');
-  document.getElementById('proc2-title').textContent=lang==='fr'?'Application des corrections...':'Applying corrections...';
-  document.getElementById('proc2-sub').textContent=lang==='fr'?'Veuillez patienter':'Please wait';
-  let pct=0;
-  const iv=setInterval(()=>{pct=Math.min(pct+2,95);document.getElementById('progress-fill2').style.width=pct+'%';if(pct>=95)clearInterval(iv);},60);
-
-  try {
-    const corrected=await correctForm(validatedForm,text);
-    validatedForm=corrected;
-    await new Promise(r=>setTimeout(r,1800));
-    document.getElementById('progress-fill2').style.width='100%';
-    await new Promise(r=>setTimeout(r,400));
-    showPanel('panel4');
-    document.getElementById('correction-input').value='';
-    document.getElementById('btn-apply-correction').disabled=true;
-    renderVisualization(validatedForm);
-    showToast(lang==='fr'?'✅ Corrections appliquées':'✅ Corrections applied');
-  } catch(e) {
-    showPanel('panel4');
-    showToast(lang==='fr'?'Erreur. Veuillez réessayer.':'Error. Please try again.');
-  }
-}
-
-async function correctForm(form, instructions) {
-  if(DEMO_MODE){
-    await new Promise(r=>setTimeout(r,2000));
-    const f=JSON.parse(JSON.stringify(form));
-    f.questions[0].required=true;
-    return f;
-  }
-  // Passe par le backend Railway
-  const res = await fetch(BACKEND_URL + '/api/correct', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ form, instructions })
-  });
-  if (!res.ok) throw new Error('Erreur correction');
-  const data = await res.json();
-  return data.form;
-}
-
-// ============ DEPLOY ============
-// ============ EXCEL DEPLOYMENT ============
 async function deployToExcel(form) {
   updateProcText(lang==='fr'?'Generation du fichier Excel...':'Generating Excel file...');
-
-  // Alléger le formulaire - garder seulement ce qui est nécessaire pour Excel
-  const lightForm = {
-    title: form.title,
-    questions: (form.questions || []).map(function(q) {
-      return {
-        id: q.id,
-        num: q.num,
-        label: q.label,
-        group: q.group,
-        selectedType: q.selectedType,
-        type: q.type,
-        required: q.required,
-        hint: q.hint,
-        choices: q.choices,
-        numMin: q.numMin,
-        numMax: q.numMax,
-        numDigitsAfter: q.numDigitsAfter
-      };
-    })
-  };
 
   const res = await fetch(BACKEND_URL + '/api/deploy/excel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ form: lightForm })
+    body: JSON.stringify({ xlsform: form.xlsform, title: form.title })
   });
 
   if (!res.ok) {
@@ -2394,7 +936,7 @@ async function deployToGoogle(form) {
   const res = await fetch(BACKEND_URL + '/api/deploy/google', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ form, credentials: { accessToken: googleAccessToken } })
+    body: JSON.stringify({ xlsform: form.xlsform, title: form.title, credentials: { accessToken: googleAccessToken } })
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Erreur deploiement Google Forms');
@@ -2411,12 +953,14 @@ async function deployToKoboToolbox(form) {
 
   updateProcText(lang==='fr'?'Déploiement en cours...':'Deploying...');
 
-  // Tout passe par le backend Lebo — évite le CORS
+  // Tout passe par le backend Lebo — évite le CORS. Le xlsform produit par
+  // l'analyse est déployé tel quel, sans transformation supplémentaire.
   const res = await fetch(BACKEND_URL + '/api/deploy/kobo', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      form,
+      xlsform: form.xlsform,
+      title: form.title,
       credentials: { username, password, server }
     })
   });
@@ -2439,7 +983,7 @@ async function deployToJotForm(form) {
   const res = await fetch(BACKEND_URL + '/api/deploy/jotform', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ form, credentials: { apiKey } })
+    body: JSON.stringify({ xlsform: form.xlsform, title: form.title, credentials: { apiKey } })
   });
 
   const data = await res.json();
@@ -2455,237 +999,6 @@ function updateProcText(txt) {
 let deployedFormUrl = null;
 
 // ============ BUILD XLSFORM ============
-function buildXLSFormCSV(form) {
-  // Survey sheet
-  let survey = 'type,name,label::French,label::English,required,hint,relevant\n';
-  // Choices sheet  
-  let choices = 'list_name,name,label::French,label::English\n';
-  const seen = new Set();
-
-  form.questions.forEach(q => {
-    const t = q.selectedType || q.type || 'text';
-    const name = (q.id || 'q'+q.num).replace(/[^a-zA-Z0-9_]/g,'_');
-    const label = (q.label||'').replace(/,/g,';').replace(/\n/g,' ');
-    const required = q.required ? 'yes' : '';
-    const hint = (q.hint||'').replace(/,/g,';');
-    const relevant = (q.linked && q.linkText) ? '# ' + q.linkText.replace(/,/g,';') : '';
-
-    if (t === 'select_one' || t === 'select_multiple') {
-      const listName = 'list_'+name;
-      survey += `${t} ${listName},${name},${label},${label},${required},${hint},${relevant}\n`;
-      if (!seen.has(listName)) {
-        seen.add(listName);
-        (q.choices||[]).forEach((c,i) => {
-          const cl = (typeof c==='string'?c:(c.label||'')).replace(/,/g,';');
-          choices += `${listName},c${i+1},${cl},${cl}\n`;
-        });
-      }
-    } else if (t === 'geopoint') {
-      survey += `geopoint,${name},${label},${label},${required},${hint},${relevant}\n`;
-    } else if (t === 'image') {
-      survey += `image,${name},${label},${label},${required},${hint},${relevant}\n`;
-    } else if (t === 'date') {
-      survey += `date,${name},${label},${label},${required},${hint},${relevant}\n`;
-    } else if (t === 'integer') {
-      survey += `integer,${name},${label},${label},${required},${hint},${relevant}\n`;
-    } else if (t === 'decimal') {
-      survey += `decimal,${name},${label},${label},${required},${hint},${relevant}\n`;
-    } else {
-      survey += `text,${name},${label},${label},${required},${hint},${relevant}\n`;
-    }
-  });
-
-  const settings = `form_title,form_id\n${(form.title||'Formulaire').replace(/,/g,';')},${(form.title||'formulaire').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()}\n`;
-
-  return { survey, choices, settings };
-}
-
-function downloadXLSForm(form) {
-  const { survey, choices, settings } = buildXLSFormCSV(form);
-  // Pack as a simple text file (XLSForm compatible CSV)
-  // For real XLSForm .xlsx, we'd need a library — CSV is importable by KoboToolbox too
-  const fullContent = `=== survey ===\n${survey}\n=== choices ===\n${choices}\n=== settings ===\n${settings}`;
-  const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const filename = (form.title||'formulaire').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'') + '_XLSForm.txt';
-  a.download = filename;
-  a.click();
-  return filename;
-}
-
-// ============ PANNEAU DES PROBLÈMES ============
-var problemQuestions = [];  // Liste des questions avec problèmes
-var currentProblemIdx = 0;  // Index du problème courant lors de la navigation
-
-function showIssuesPanel(issues, invalidSkips) {
-  // Construire la liste des questions problématiques
-  problemQuestions = [];
-
-  issues.forEach(function(issue) {
-    var match = issue.match(/Q(\d+)/);
-    if (match) {
-      var num = parseInt(match[1]);
-      var q = validatedForm.questions.find(function(qq) { return (qq.num || 0) === num; });
-      if (q) problemQuestions.push({ num: num, type: 'missing_choices', label: q.label, issue: issue, q: q });
-    }
-  });
-
-  (invalidSkips || []).forEach(function(s) {
-    problemQuestions.push({ num: s.num, type: 'invalid_skip', label: s.label, refId: s.refId, formula: s.formula, q: validatedForm.questions.find(function(qq){ return qq.num === s.num; }) });
-  });
-
-  // Afficher le panneau dans la visualisation
-  var existing = document.getElementById('issues-panel');
-  if (existing) existing.remove();
-
-  var panel = document.createElement('div');
-  panel.id = 'issues-panel';
-  panel.style.cssText = 'background:#FFF3F3;border:2px solid #FFB3B3;border-radius:14px;padding:20px;margin-bottom:20px;';
-
-  var html = '<div style="font-size:15px;font-weight:800;color:#E8132A;margin-bottom:12px;">⚠️ ' + problemQuestions.length + ' problème(s) à corriger avant le déploiement</div>';
-
-  problemQuestions.forEach(function(p, idx) {
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:10px;margin-bottom:6px;border:1px solid #FFD0D0;">';
-    html += '<span style="font-size:12px;font-weight:700;color:#E8132A;min-width:32px;">Q' + p.num + '</span>';
-    html += '<span style="flex:1;font-size:12px;color:#1A1A1A;">' + (p.type === 'missing_choices' ? '❌ Choix manquants' : '⚠️ Saut invalide') + ' — ' + (p.label || '').slice(0, 50) + '</span>';
-    html += '<button onclick="allerAuProbleme(' + idx + ')" style="background:#E8132A;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">→ Corriger</button>';
-    html += '</div>';
-  });
-
-  panel.innerHTML = html;
-
-  // Insérer avant la zone de correction
-  var corrSection = document.querySelector('.correction-section');
-  if (corrSection) corrSection.parentNode.insertBefore(panel, corrSection);
-}
-
-function allerAuProbleme(idx) {
-  currentProblemIdx = idx;
-  var problem = problemQuestions[idx];
-  if (!problem) return;
-
-  // Trouver l'index de la question dans le formulaire
-  var qIdx = validatedForm.questions.findIndex(function(q) { return q.num === problem.num; });
-  if (qIdx < 0) return;
-
-  // Aller à l'étape 3 sur cette question
-  currentValIdx = qIdx;
-  goStep(3);
-  renderValCard();
-
-  // Afficher la barre de navigation entre problèmes
-  showProblemNav();
-}
-
-function showProblemNav() {
-  var existing = document.getElementById('problem-nav');
-  if (existing) existing.remove();
-
-  var nav = document.createElement('div');
-  nav.id = 'problem-nav';
-  nav.style.cssText = 'background:#FFF3F3;border:2px solid #FFB3B3;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;';
-
-  var remaining = problemQuestions.length;
-  nav.innerHTML = '<span style="flex:1;font-size:13px;font-weight:700;color:#E8132A;">⚠️ ' + remaining + ' problème(s) à corriger</span>' +
-    '<button onclick="navProbleme(-1)" ' + (currentProblemIdx === 0 ? 'disabled' : '') + ' style="background:#eee;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">← Préc.</button>' +
-    '<span style="font-size:12px;color:#767676;">' + (currentProblemIdx+1) + ' / ' + remaining + '</span>' +
-    '<button onclick="navProbleme(1)" ' + (currentProblemIdx === remaining-1 ? 'disabled' : '') + ' style="background:#eee;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">Suiv. →</button>' +
-    '<button onclick="retourVisualisation()" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">✅ Retour visualisation</button>';
-
-  var valCard = document.getElementById('val-card');
-  if (valCard) valCard.parentNode.insertBefore(nav, valCard);
-}
-
-function navProbleme(dir) {
-  var newIdx = currentProblemIdx + dir;
-  if (newIdx < 0 || newIdx >= problemQuestions.length) return;
-  allerAuProbleme(newIdx);
-}
-
-function retourVisualisation() {
-  var nav = document.getElementById('problem-nav');
-  if (nav) nav.remove();
-  buildVisualization();
-  goStep(4);
-}
-
-async function preDeployCheck() {
-  const issues = [];
-  const warnings = [];
-  const invalidSkips = [];
-
-  validatedForm.questions.forEach(function(q, i) {
-    const num = q.num || (i+1);
-
-    // Vérifier choix remplis
-    if ((q.selectedType === 'select_one' || q.selectedType === 'select_multiple') && (!q.choices || q.choices.length === 0)) {
-      issues.push('Q' + num + ' — Choix manquants pour "' + q.label + '"');
-    }
-
-    // Vérifier sauts conditionnels
-    if (q.relevant && q.relevant.includes('${')) {
-      const refs = q.relevant.match(/\$\{([^}]+)\}/g) || [];
-      refs.forEach(function(ref) {
-        const refId = ref.replace('${','').replace('}','');
-        const exists = validatedForm.questions.some(function(qq) {
-          return (qq.id || ('q'+qq.num)) === refId ||
-                 (qq.id || ('q'+qq.num)).replace(/[^a-zA-Z0-9_]/g,'_') === refId;
-        });
-        if (!exists) {
-          invalidSkips.push({
-            num: num,
-            label: q.label,
-            refId: refId,
-            formula: q.relevant
-          });
-        }
-      });
-    }
-  });
-
-  // Sauts invalides — bloquer et proposer retour
-  if (invalidSkips.length > 0) {
-    let skipMsg = (lang==='fr' ? '⚠️ Sauts conditionnels invalides détectés :\n\n' : '⚠️ Invalid skip logic detected:\n\n');
-    invalidSkips.forEach(function(s) {
-      skipMsg += '• Q' + s.num + ' "' + s.label.slice(0,40) + '" → référence "${' + s.refId + '}" introuvable\n';
-    });
-    skipMsg += '\n' + (lang==='fr'
-      ? 'Options :\n- Retournez à la validation pour corriger ou décocher ces sauts\n- Ou continuez sans ces sauts'
-      : 'Options:\n- Go back to validation to fix or uncheck these skips\n- Or continue without them');
-
-    // Si paiement déjà effectué → continuer automatiquement sans les sauts invalides
-    if (paiementEffectue) {
-      invalidSkips.forEach(function(s) {
-        var q = validatedForm.questions.find(function(qq) { return (qq.num || 0) === s.num; });
-        if (q) q.relevant = '';
-      });
-    } else {
-      const choice = confirm(skipMsg + '\n\n' + (lang==='fr' ? 'Cliquez OK pour continuer sans ces sauts, ou Annuler pour retourner corriger.' : 'Click OK to continue without these skips, or Cancel to go back.'));
-      if (!choice) {
-        goStep(3);
-        renderValCard();
-        return false;
-      } else {
-        invalidSkips.forEach(function(s) {
-          var q = validatedForm.questions.find(function(qq) { return (qq.num || 0) === s.num; });
-          if (q) q.relevant = '';
-        });
-      }
-    }
-  }
-
-  // Problèmes bloquants — si paiement effectué, tenter quand même
-  if (issues.length > 0 && !paiementEffectue) {
-    // Afficher dans le panel visualisation plutôt qu'une alerte
-    showIssuesPanel(issues, invalidSkips);
-    return false;
-  }
-
-  return true;
-}
-
-// Télécharger les images en ZIP automatiquement
 async function telechargerImagesZip(images, formTitle) {
   if (!images || images.length === 0) return;
   try {
@@ -2713,24 +1026,19 @@ async function telechargerImagesZip(images, formTitle) {
 }
 
 function demanderPaiement() {
-  // Vérifier d'abord les problèmes bloquants
-  const issues = [];
-  (validatedForm.questions || []).forEach(function(q, i) {
-    if ((q.selectedType === 'select_one' || q.selectedType === 'select_multiple') && (!q.choices || q.choices.length === 0)) {
-      issues.push('Q' + (q.num||i+1) + ' — Choix manquants pour "' + q.label + '"');
-    }
-  });
-  if (issues.length > 0) {
-    alert('❌ Problèmes à corriger avant le paiement :\n\n' + issues.map(function(i){ return '• '+i; }).join('\n'));
-    return;
-  }
-  // Afficher le modal de paiement
+  if (!validatedForm || !validatedForm.xlsform) return;
+  // Afficher le modal de paiement — le xlsform est déjà validé côté serveur
+  // (post-traitement de /api/analyse), plus de vérification bloquante côté client.
   afficherPaiement(validatedForm);
 }
 
 // ============ CALCUL TARIFAIRE ============
+function countSurveyQuestions(xlsform) {
+  return ((xlsform && xlsform.survey) || []).filter(function(r) { return r.type !== 'begin_group' && r.type !== 'end_group'; });
+}
+
 function calculerTarif(form) {
-  const questions = form.questions || [];
+  const questions = countSurveyQuestions(form && form.xlsform);
   const nQ = questions.length;
 
   // Prix de base selon le nombre de questions
@@ -2755,15 +1063,12 @@ function calculerTarif(form) {
 
   // Bonus complexité
   const nSauts = questions.filter(function(q) { return q.relevant && q.relevant.trim(); }).length;
-  const nContraintes = questions.filter(function(q) { return (q.numMin && q.numMin !== '') || (q.numMax && q.numMax !== ''); }).length;
+  const nContraintes = questions.filter(function(q) { return q.constraint && q.constraint.trim(); }).length;
   const bonusComplexite = Math.floor(nSauts / 5) * 500 + Math.floor(nContraintes / 3) * 500;
 
-  // Bonus images — l'utilisateur ne sait pas si générées ou en cache
-  var nImages = 0;
-  questions.forEach(function(q) {
-    var choiceImages = q.choiceImages || {};
-    nImages += Object.keys(choiceImages).length;
-  });
+  // Bonus images
+  var choicesSheet = (form && form.xlsform && form.xlsform.choices) || [];
+  var nImages = choicesSheet.filter(function(c) { return c['media::image']; }).length;
   var bonusImages = 0;
   if (nImages >= 1 && nImages <= 5) bonusImages = 500;
   else if (nImages >= 6 && nImages <= 10) bonusImages = 1000;
@@ -2865,7 +1170,7 @@ async function lancerPaiement(montant, niveau) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         amount: montant,
-        description: 'Lebo - Masque ' + niveau + ' (' + (validatedForm.questions || []).length + ' questions)',
+        description: 'Lebo - Masque ' + niveau + ' (' + countSurveyQuestions(validatedForm.xlsform).length + ' questions)',
         customer: { email: email }
       })
     });
@@ -2927,34 +1232,9 @@ async function lancerDeploiement() {
 }
 
 async function validateAndDeploy() {
-  // Vérification avant déploiement
-  const canDeploy = await preDeployCheck();
-  if (!canDeploy) return;
-
+  // Le xlsform est déjà validé côté serveur (post-traitement de /api/analyse) —
+  // plus d'appel /api/verify ni de vérification bloquante côté client.
   showPanel('panel-processing2');
-  document.getElementById('proc2-title').textContent = lang==='fr'?'Vérification du masque...':'Verifying form...';
-  document.getElementById('proc2-sub').textContent = lang==='fr'?'Analyse de la logique en cours...':'Checking logic...';
-
-  // Appel API verify — Claude vérifie le XLSForm sans le montrer à l'utilisateur
-  try {
-    const verifyRes = await fetch(BACKEND_URL + '/api/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ form: validatedForm })
-    });
-    if (verifyRes.ok) {
-      const verifyData = await verifyRes.json();
-      // Mettre à jour le formulaire avec les corrections
-      if (verifyData.form) validatedForm = verifyData.form;
-      // Afficher les problèmes trouvés si non bloquants
-      if (verifyData.issues && verifyData.issues.length > 0) {
-        console.log('[VERIFY] Issues:', verifyData.issues);
-      }
-    }
-  } catch(e) {
-    console.log('[VERIFY] Ignoré:', e.message);
-  }
-
   document.getElementById('proc2-title').textContent = lang==='fr'?'Déploiement en cours...':'Deploying...';
   document.getElementById('proc2-sub').textContent = lang==='fr'?'Connexion à votre compte...':'Connecting to your account...';
 
@@ -2983,7 +1263,7 @@ async function validateAndDeploy() {
       await telechargerImagesZip(result.images, validatedForm.title || 'formulaire');
     }
 
-    goStep(5);
+    goStep(3);
 
     // Mettre a jour le label du bouton selon l'outil
     const toolLabels5 = {
@@ -2997,9 +1277,10 @@ async function validateAndDeploy() {
     const lbl5 = document.getElementById('btn-access-label');
     if (lbl5) lbl5.textContent = toolLabels5[selectedTool] || ('Acceder a ' + (TOOL_NAMES[selectedTool]||''));
 
-    const q = validatedForm?.questions?.length || 0;
-    const g = [...new Set((validatedForm?.questions||[]).map(q=>q.group).filter(Boolean))].length || 1;
-    const l = (validatedForm?.questions||[]).filter(q=>q.linked).length || 0;
+    const qRows = countSurveyQuestions(validatedForm && validatedForm.xlsform);
+    const q = qRows.length;
+    const g = ((validatedForm && validatedForm.xlsform && validatedForm.xlsform.survey) || []).filter(r => r.type === 'begin_group').length || 1;
+    const l = qRows.filter(r => r.relevant && r.relevant.trim()).length;
     document.getElementById('dep-q').textContent = q;
     document.getElementById('dep-g').textContent = g;
     document.getElementById('dep-l').textContent = l;
@@ -3013,11 +1294,17 @@ async function validateAndDeploy() {
         ? ' 📥 ' + result.images.length + ' image(s) téléchargée(s) — uploadez-les dans KoboToolbox → Paramètres → Média → puis redéployez le formulaire.'
         : ' 📥 ' + result.images.length + ' image(s) downloaded — upload them in KoboToolbox → Settings → Media → then redeploy.';
     }
+    // Signaler les elements a revoir si non deja fait
+    if (validatedForm && validatedForm.needs_review && validatedForm.needs_review.length > 0) {
+      deployMsg += lang==='fr'
+        ? ' ⚠️ ' + validatedForm.needs_review.length + ' element(s) marque(s) a verifier par Claude — a controler dans ' + TOOL_NAMES[selectedTool] + '.'
+        : ' ⚠️ ' + validatedForm.needs_review.length + ' item(s) flagged by Claude for review — check them in ' + TOOL_NAMES[selectedTool] + '.';
+    }
     document.getElementById('deploy-sub').textContent = deployMsg;
 
   } catch(err) {
     clearInterval(iv);
-    showPanel('panel4');
+    showPanel('panel2');
     showToast('❌ ' + (err.message || (lang==='fr'?'Erreur de déploiement. Vérifiez vos identifiants.':'Deployment error.')));
   }
 }
@@ -3071,7 +1358,7 @@ function openAccount(){
   if(url) window.open(url,'_blank');
   else showToast(lang==='fr'?'Téléchargez le fichier pour l\'importer':'Download the file to import it');
 }
-function downloadFinal(){if(!validatedForm)return;const b=new Blob([JSON.stringify(validatedForm,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(validatedForm.title||'masque').replace(/\s+/g,'_')+'.json';a.click();}
+function downloadFinal(){if(!validatedForm||!validatedForm.xlsform)return;const b=new Blob([JSON.stringify(validatedForm.xlsform,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(validatedForm.title||'masque').replace(/\s+/g,'_')+'_xlsform.json';a.click();}
 function restart(){location.reload();}
 
 let _tt=null;
