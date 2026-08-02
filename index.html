@@ -1997,6 +1997,51 @@ window.showHistorique = async function() {
 
 var TOOL_ICONS_DEPLOY = { kobo: '🟢', google: '📝', jotform: '🟣', excel: '📊' };
 
+// Langues proposees pour le redeploiement traduit — melange de langues internationales
+// et de langues locales couramment prises en charge par Claude / Google Traduction,
+// pertinentes pour des enquetes de terrain en Afrique francophone/anglophone.
+var LANGUAGES = [
+  { code: 'en', label: 'Anglais' },
+  { code: 'es', label: 'Espagnol' },
+  { code: 'pt', label: 'Portugais' },
+  { code: 'ar', label: 'Arabe' },
+  { code: 'de', label: 'Allemand' },
+  { code: 'it', label: 'Italien' },
+  { code: 'nl', label: 'Néerlandais' },
+  { code: 'sw', label: 'Swahili' },
+  { code: 'ha', label: 'Haoussa' },
+  { code: 'yo', label: 'Yoruba' },
+  { code: 'ig', label: 'Igbo' },
+  { code: 'wo', label: 'Wolof' },
+  { code: 'bm', label: 'Bambara' },
+  { code: 'ln', label: 'Lingala' },
+  { code: 'rw', label: 'Kinyarwanda' },
+  { code: 'rn', label: 'Kirundi' },
+  { code: 'mg', label: 'Malgache' },
+  { code: 'zu', label: 'Zoulou' },
+  { code: 'xh', label: 'Xhosa' },
+  { code: 'am', label: 'Amharique' },
+  { code: 'so', label: 'Somali' },
+  { code: 'sn', label: 'Shona' },
+  { code: 'ny', label: 'Chichewa (Nyanja)' },
+  { code: 'tw', label: 'Twi' },
+  { code: 'ee', label: 'Éwé' },
+  { code: 'ff', label: 'Peul (Fulfulde)' },
+  { code: 'ti', label: 'Tigrinya' },
+  { code: 'zh', label: 'Chinois (mandarin)' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'tr', label: 'Turc' },
+  { code: 'ru', label: 'Russe' },
+  { code: 'ja', label: 'Japonais' },
+  { code: 'vi', label: 'Vietnamien' },
+  { code: 'id', label: 'Indonésien' },
+  { code: 'fa', label: 'Persan' },
+  { code: 'ur', label: 'Ourdou' },
+  { code: 'bn', label: 'Bengali' },
+  { code: 'pl', label: 'Polonais' },
+  { code: 'fr', label: 'Français' }
+];
+
 // Le titre affiche vient du document source de l'utilisateur (extraction Claude) —
 // jamais fiable pour de l'innerHTML brut. Echappement avant insertion dans le DOM.
 function escapeHtml(s) {
@@ -2055,14 +2100,24 @@ window.showDeploiements = async function() {
       return '<option value="' + t + '">' + (TOOL_NAMES[t] || t) + (deployedTools.indexOf(t) >= 0 ? ' (déjà déployé)' : '') + '</option>';
     }).join('');
 
+    // Langue cible : "Même langue" (pas de traduction, comportement historique) suivi
+    // de la liste des langues proposees — le redeploiement traduit reutilise le meme
+    // xlsform_json (aucune reprise d'analyse), voir redeployFromHistory().
+    var langueLabel = a.langue ? (LANGUAGES.find(function(l){ return l.code === a.langue; }) || {}).label : null;
+    var redeployLangOptions = '<option value="">Même langue' + (langueLabel ? ' (' + langueLabel + ')' : '') + '</option>' +
+      LANGUAGES.filter(function(l) { return l.code !== a.langue; }).map(function(l) {
+        return '<option value="' + l.code + '">' + l.label + '</option>';
+      }).join('');
+
     return '<div style="padding:14px;border:1px solid #f0f0f0;border-radius:12px;margin-bottom:12px;">' +
-      '<div style="font-size:13px;font-weight:700;color:#1A1A1A;">' + escapeHtml(a.titre || 'Questionnaire') + '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:#1A1A1A;">' + escapeHtml(a.titre || 'Questionnaire') + (langueLabel ? ' <span style="font-weight:400;color:#aaa;">· ' + langueLabel + '</span>' : '') + '</div>' +
       '<div style="font-size:11px;color:#aaa;margin-bottom:8px;">' + date + (a.nb_questions ? ' · ' + a.nb_questions + ' questions' : '') + '</div>' +
       depsHtml +
       (hasXlsform ? (
-        '<div style="display:flex;gap:6px;margin-top:10px;align-items:center;">' +
-          '<select id="redeploy-tool-' + ai + '" style="flex:1;padding:6px;border:1px solid #E8E8E8;border-radius:6px;font-size:12px;">' + redeployOptions + '</select>' +
-          '<button onclick="redeployFromHistory(\'' + a.id + '\',document.getElementById(\'redeploy-tool-' + ai + '\').value)" style="background:#E8132A;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600;">Redéployer</button>' +
+        '<div style="display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap;">' +
+          '<select id="redeploy-tool-' + ai + '" style="flex:1;min-width:110px;padding:6px;border:1px solid #E8E8E8;border-radius:6px;font-size:12px;">' + redeployOptions + '</select>' +
+          '<select id="redeploy-lang-' + ai + '" style="flex:1;min-width:110px;padding:6px;border:1px solid #E8E8E8;border-radius:6px;font-size:12px;">' + redeployLangOptions + '</select>' +
+          '<button id="redeploy-btn-' + ai + '" onclick="redeployFromHistory(\'' + a.id + '\',document.getElementById(\'redeploy-tool-' + ai + '\').value,document.getElementById(\'redeploy-lang-' + ai + '\').value,\'redeploy-btn-' + ai + '\')" style="background:#E8132A;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600;">Redéployer</button>' +
         '</div>'
       ) : '<div style="font-size:11px;color:#aaa;margin-top:8px;">Redéploiement indisponible pour cette ancienne analyse.</div>') +
     '</div>';
@@ -2074,13 +2129,57 @@ window.showDeploiements = async function() {
   analyses.forEach(function(a) { window._historiqueAnalyses[a.id] = a; });
 };
 
-// Redeploiement vers un outil (identique ou different) depuis l'historique, SANS
-// reprendre l'analyse: reutilise le xlsform_json deja stocke et le meme flux de
-// deploiement que le parcours normal (choix identifiants -> validateAndDeploy) — les
-// identifiants sont TOUJOURS redemandes (jamais stockes), par choix explicite.
-window.redeployFromHistory = async function(analysisId, targetTool) {
+// Redeploiement vers un outil (identique ou different), eventuellement dans une autre
+// langue, depuis l'historique, SANS reprendre l'analyse du document source: reutilise
+// le xlsform_json deja stocke. Si une langue differente est demandee, un appel de
+// traduction leger (/api/translate-xlsform, uniquement les textes affiches au
+// repondant — voir collectTranslatableTexts cote serveur) precede le deploiement, et le
+// resultat traduit est enregistre comme une NOUVELLE analyse liee (source_analysis_id)
+// afin de ne jamais perdre la version d'origine et de pouvoir la redeployer telle
+// quelle plus tard sans re-traduire. Les identifiants de deploiement sont TOUJOURS
+// redemandes (jamais stockes), par choix explicite.
+window.redeployFromHistory = async function(analysisId, targetTool, targetLangCode, btnId) {
   var a = window._historiqueAnalyses && window._historiqueAnalyses[analysisId];
   if (!a || !a.xlsform_json) { showToast('❌ Xlsform introuvable pour cette analyse'); return; }
+
+  var btnEl = btnId ? document.getElementById(btnId) : null;
+  var btnOriginalText = btnEl ? btnEl.textContent : null;
+
+  if (targetLangCode) {
+    var langue = LANGUAGES.find(function(l) { return l.code === targetLangCode; });
+    if (!langue) { showToast('❌ Langue inconnue'); return; }
+    if (btnEl) { btnEl.disabled = true; btnEl.textContent = lang === 'fr' ? 'Traduction...' : 'Translating...'; }
+    try {
+      var tRes = await fetch(BACKEND_URL + '/api/translate-xlsform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xlsform: a.xlsform_json, targetLang: langue.label })
+      });
+      if (!tRes.ok) {
+        var errBody = await tRes.json().catch(function() { return {}; });
+        throw new Error(errBody.message || 'Erreur traduction');
+      }
+      var tData = await tRes.json();
+      var titreTraduit = (a.titre || 'Questionnaire') + ' (' + langue.label + ')';
+      var inserted = await sbFetch('/rest/v1/analyses', 'POST', {
+        user_id: currentUser.id, titre: titreTraduit, nb_questions: a.nb_questions || 0,
+        nb_sauts: 0, cout_fcfa: 0, tokens_consommes: 0, outil: targetTool, statut: 'traduit',
+        xlsform_json: tData.xlsform, langue: targetLangCode, source_analysis_id: a.id
+      }, _accessToken, { 'Prefer': 'return=representation' });
+      if (!Array.isArray(inserted) || inserted.length === 0 || inserted.code) {
+        console.error('[TRADUCTION] Echec enregistrement analyse traduite:', inserted);
+        throw new Error('Traduction effectuée mais non enregistrée dans l\'historique');
+      }
+      a = { id: inserted[0].id, xlsform_json: tData.xlsform, titre: titreTraduit, nb_questions: a.nb_questions };
+      window._historiqueAnalyses[a.id] = a;
+      showToast('🌐 Traduit en ' + langue.label + (tData.truncated ? ' (partiellement, questionnaire volumineux — le reste reste dans la langue d\'origine)' : ''));
+    } catch (e) {
+      showToast('❌ ' + (e.message || 'Erreur traduction'));
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnOriginalText; }
+      return;
+    }
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnOriginalText; }
+  }
 
   if (targetTool === 'excel') {
     // Pas d'etape d'identifiants pour Excel — genere et televerse directement le
