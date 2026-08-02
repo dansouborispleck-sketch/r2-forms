@@ -228,21 +228,21 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
         <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">1 000</div>
         <div style="font-size:11px;color:#aaa;">FCFA</div>
       </div>
-      <div onclick="selectPack(2500,2750,10)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;position:relative;">
+      <div onclick="selectPack(2500,2500,0)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;position:relative;">
         <div style="position:absolute;top:-8px;right:8px;background:#E8132A;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">POPULAIRE</div>
         <div style="font-size:13px;color:#767676;font-weight:600;">Standard</div>
         <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">2 500</div>
-        <div style="font-size:11px;color:#10B981;font-weight:600;">+10% bonus → 2 750 FCFA</div>
+        <div style="font-size:11px;color:#aaa;">FCFA</div>
       </div>
-      <div onclick="selectPack(5000,5750,15)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
+      <div onclick="selectPack(5000,5000,0)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
         <div style="font-size:13px;color:#767676;font-weight:600;">Chercheur</div>
         <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">5 000</div>
-        <div style="font-size:11px;color:#10B981;font-weight:600;">+15% bonus → 5 750 FCFA</div>
+        <div style="font-size:11px;color:#aaa;">FCFA</div>
       </div>
-      <div onclick="selectPack(10000,12000,20)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
+      <div onclick="selectPack(10000,10000,0)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
         <div style="font-size:13px;color:#767676;font-weight:600;">Institution</div>
         <div style="font-size:22px;font-weight:900;color:#1A1A1A;margin:4px 0;">10 000</div>
-        <div style="font-size:11px;color:#10B981;font-weight:600;">+20% bonus → 12 000 FCFA</div>
+        <div style="font-size:11px;color:#aaa;">FCFA</div>
       </div>
     </div>
     <div id="recharge-selected" style="display:none;background:#f8f8f8;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;"></div>
@@ -740,13 +740,14 @@ function goStep(s) {
 
 // ============ ANALYSIS ============
 async function startAnalysis() {
-  if (window.verifierSolde) {
-    var ok = await window.verifierSolde(2500);
-    if (!ok) {
-      showToast('❌ Solde insuffisant — rechargez votre compte');
-      if (window.showRechargeModal) window.showRechargeModal();
-      return;
-    }
+  // Connexion obligatoire: l'analyse est une route payante, facturee de maniere fiable
+  // cote serveur (voir /api/analyse et analyseQuestionnaire) — plus de pre-verification
+  // de solde cote client (le serveur la fait lui-meme, avant de depenser un appel Claude).
+  if (!currentUser) {
+    showToast(lang==='fr' ? '🔒 Connexion requise pour analyser un questionnaire' : '🔒 Login required to analyse a questionnaire');
+    var authModal = document.getElementById('auth-modal');
+    if (authModal) authModal.style.display = 'flex';
+    return;
   }
   showPanel('panel-processing');
   animateProcessing();
@@ -757,11 +758,10 @@ async function startAnalysis() {
     parsedForm = await analyseQuestionnaire(payload);
     validatedForm = parsedForm; // le xlsform produit par l'analyse est deja final, aucune etape de revue
 
-    if (window.debiterSolde) {
-      var tarif = calculerTarif(parsedForm);
-      await window.debiterSolde(tarif.total, parsedForm.title || 'Questionnaire',
-        tarif.nQ, 0, 0, selectedTool, parsedForm.xlsform);
-    }
+    // Facturation deja effectuee de maniere atomique cote serveur (analyseQuestionnaire
+    // a deja mis a jour currentAnalysisId depuis data.analysis_id) — on rafraichit juste
+    // l'affichage du solde.
+    if (window.loadProfile) await window.loadProfile();
     await new Promise(r=>setTimeout(r,1000));
 
     // Afficher rapport de cohérence si présent
@@ -813,9 +813,9 @@ async function startAnalysis() {
       document.body.appendChild(overlay);
       document.getElementById('btn-ack-missing-choices').onclick = () => {
         overlay.remove();
-        demanderPaiement();
+        lancerDeploiement();
       };
-      return; // demanderPaiement() n'est appele qu'apres confirmation explicite
+      return; // lancerDeploiement() n'est appele qu'apres confirmation explicite
     }
 
     // Signaler un avertissement non bloquant (troncature sans modalites manquantes, etc.)
@@ -832,12 +832,22 @@ async function startAnalysis() {
       }, 500);
     }
 
-    // Plus de phase de validation/visualisation — on passe directement au paiement + déploiement
-    demanderPaiement();
+    // Plus de phase de validation/visualisation, plus de paiement FedaPay separe (deja
+    // facture cote serveur au moment de l'analyse) — on passe directement au deploiement.
+    lancerDeploiement();
   } catch(e) {
     console.error('Error:', e);
     goStep(2);
-    showToast(lang==='fr'?'Erreur. Veuillez réessayer.':'Error. Please try again.');
+    if (e.code === 'UNAUTHORIZED') {
+      showToast(lang==='fr' ? '🔒 Connexion requise' : '🔒 Login required');
+      var am = document.getElementById('auth-modal');
+      if (am) am.style.display = 'flex';
+    } else if (e.code === 'INSUFFICIENT_BALANCE') {
+      showToast('❌ ' + (e.message || (lang==='fr'?'Solde insuffisant — rechargez votre compte':'Insufficient balance — top up your account')));
+      if (window.showRechargeModal) window.showRechargeModal();
+    } else {
+      showToast(lang==='fr'?'Erreur. Veuillez réessayer.':'Error. Please try again.');
+    }
   }
 }
 
@@ -861,26 +871,32 @@ async function analyseQuestionnaire(payload) {
     await new Promise(r=>setTimeout(r,4500));
     return buildDemoForm(payload.text || '');
   }
-  // Passe par le backend Railway — évite le CORS
+  // Passe par le backend — évite le CORS. L'analyse est desormais une route payante
+  // exigeant une connexion (jeton Supabase) et facturee de maniere fiable cote serveur
+  // (voir /api/analyse) — plus de debit client separe et evitable.
   const res = await fetch(BACKEND_URL + '/api/analyse', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: Object.assign({ 'Content-Type': 'application/json' }, _accessToken ? { 'Authorization': 'Bearer ' + _accessToken } : {}),
     body: JSON.stringify(Object.assign({ tool: selectedTool }, payload))
   });
   if (!res.ok) {
     const err = await res.json().catch(()=>({message:'Erreur serveur'}));
-    throw new Error(err.message || 'Erreur analyse');
+    const e = new Error(err.message || 'Erreur analyse');
+    e.code = err.error;
+    throw e;
   }
   const data = await res.json();
   window._analyseWarning = data.warning || null;
   window._analyseMissingChoicesCount = data.missing_choices_count || 0;
+  if (data.analysis_id) currentAnalysisId = data.analysis_id;
 
   return {
     title: data.title,
     xlsform: data.xlsform,
     needs_review: data.needs_review || [],
     coherence_report: data.coherence_report || [],
-    media: data.media_associations || []
+    media: data.media_associations || [],
+    tarif: data.tarif
   };
 }
 
@@ -1151,15 +1167,19 @@ function calculerTarif(form) {
   const questions = countSurveyQuestions(form && form.xlsform);
   const nQ = questions.length;
 
-  // Prix de base selon le nombre de questions
+  // Prix de base selon le nombre de questions — au dela de 200, continue de
+  // progresser (au lieu d'un plafond fixe) pour rester proportionnel au cout reel
+  // du decoupage en plusieurs passes sur les tres gros questionnaires. Tarifs
+  // baisses de 50% par rapport a la grille initiale (marge encore tres confortable
+  // par rapport au cout reel des appels Claude, voir analyse de rentabilite).
   let prixBase = 0;
-  if (nQ <= 15) prixBase = 1000;
-  else if (nQ <= 35) prixBase = 2000;
-  else if (nQ <= 60) prixBase = 3500;
-  else if (nQ <= 100) prixBase = 5000;
-  else if (nQ <= 150) prixBase = 7500;
-  else if (nQ <= 200) prixBase = 10000;
-  else prixBase = 15000;
+  if (nQ <= 15) prixBase = 500;
+  else if (nQ <= 35) prixBase = 1000;
+  else if (nQ <= 60) prixBase = 1750;
+  else if (nQ <= 100) prixBase = 2500;
+  else if (nQ <= 150) prixBase = 3750;
+  else if (nQ <= 200) prixBase = 5000;
+  else prixBase = 5000 + Math.ceil((nQ - 200) / 50) * 500;
 
   // Niveau tarifaire
   let niveau = 'Basique';
@@ -1171,19 +1191,25 @@ function calculerTarif(form) {
   else if (nQ <= 200) niveau = 'Institutionnel';
   else niveau = 'Sur mesure';
 
-  // Bonus complexité
+  // Bonus complexité — taux modeste (100 FCFA/palier) et plafonne a 30% du prix de
+  // base: la complexite ne doit rester qu'un signal, jamais un levier de prix qui
+  // domine le volume de questions (qui reste le vrai facteur de cout/temps).
   const nSauts = questions.filter(function(q) { return q.relevant && q.relevant.trim(); }).length;
   const nContraintes = questions.filter(function(q) { return q.constraint && q.constraint.trim(); }).length;
-  const bonusComplexite = Math.floor(nSauts / 5) * 500 + Math.floor(nContraintes / 3) * 500;
+  const bonusComplexiteBrut = Math.floor(nSauts / 8) * 50 + Math.floor(nContraintes / 5) * 50;
+  const bonusComplexite = Math.min(bonusComplexiteBrut, Math.round(prixBase * 0.3));
 
-  // Bonus images
+  // Bonus images — meme logique de plafond que le bonus complexite (30% du prix de
+  // base): le cout reel d'une image envoyee a Claude en vision est de l'ordre de
+  // quelques FCFA, la marge reste tres largement positive meme plafonnee.
   var choicesSheet = (form && form.xlsform && form.xlsform.choices) || [];
   var nImages = choicesSheet.filter(function(c) { return c['media::image']; }).length;
-  var bonusImages = 0;
-  if (nImages >= 1 && nImages <= 5) bonusImages = 500;
-  else if (nImages >= 6 && nImages <= 10) bonusImages = 1000;
-  else if (nImages >= 11 && nImages <= 20) bonusImages = 1500;
-  else if (nImages > 20) bonusImages = 2000;
+  var bonusImagesBrut = 0;
+  if (nImages >= 1 && nImages <= 5) bonusImagesBrut = 250;
+  else if (nImages >= 6 && nImages <= 10) bonusImagesBrut = 500;
+  else if (nImages >= 11 && nImages <= 20) bonusImagesBrut = 750;
+  else if (nImages > 20) bonusImagesBrut = 1000;
+  const bonusImages = Math.min(bonusImagesBrut, Math.round(prixBase * 0.3));
 
   const bonus = bonusComplexite + bonusImages;
 
@@ -1551,9 +1577,10 @@ let currentUser = null;
 let currentProfile = null;
 let selectedPack = null;
 let _refreshToken = null;
-// id (Supabase) de la ligne "analyses" de l'analyse en cours — capture au moment du
-// debit (debiterSolde) pour pouvoir y rattacher les deploiements (table "deployments")
-// et retrouver le xlsform_json stocke pour un redeploiement ulterieur.
+// id (Supabase) de la ligne "analyses" de l'analyse en cours — renvoye par le serveur
+// (data.analysis_id, voir analyseQuestionnaire) pour pouvoir y rattacher les
+// deploiements (table "deployments") et retrouver le xlsform_json stocke pour un
+// redeploiement ulterieur.
 let currentAnalysisId = null;
 
 // Le jeton d'acces Supabase expire au bout d'environ 1h — jusqu'ici jamais rafraichi
@@ -1713,7 +1740,7 @@ async function loadProfile() {
     // Crédit gratuit activé seulement si email confirmé ou Google OAuth
     var isGoogleUser = currentUser.app_metadata && currentUser.app_metadata.provider === 'google';
     var isEmailConfirmed = currentUser.email_confirmed_at;
-    var creditGratuit = (isGoogleUser || isEmailConfirmed) ? 2500 : 0;
+    var creditGratuit = (isGoogleUser || isEmailConfirmed) ? 500 : 0;
     await sbFetch('/rest/v1/profiles', 'POST', {
       id: currentUser.id, email: currentUser.email,
       full_name: currentUser.user_metadata ? currentUser.user_metadata.full_name : '',
@@ -1771,78 +1798,11 @@ function showUserBar() {
 }
 window.showUserBar = showUserBar;
 
-window.verifierSolde = async function(coutEstime) {
-  await loadProfile();
-  if (!currentProfile) return true;
-  var creditGratuit = currentProfile.credit_gratuit || 0;
-  var solde = currentProfile.solde || 0;
-  return (creditGratuit + solde) >= coutEstime;
-};
-
-window.debiterSolde = async function(coutFcfa, titre, nbQuestions, nbSauts, tokensConsommes, outil, xlsform) {
-  if (!currentUser || !currentProfile) return;
-  currentAnalysisId = null;
-  var creditGratuit = currentProfile.credit_gratuit || 0;
-  var solde = currentProfile.solde || 0;
-  var nouveauCredit = creditGratuit;
-  var nouveauSolde = solde;
-  var coutSurCredit = 0;
-  var coutSurSolde = 0;
-
-  if (creditGratuit >= coutFcfa) {
-    coutSurCredit = coutFcfa;
-    nouveauCredit = creditGratuit - coutFcfa;
-  } else {
-    coutSurCredit = creditGratuit;
-    coutSurSolde = coutFcfa - creditGratuit;
-    nouveauCredit = 0;
-    nouveauSolde = solde - coutSurSolde;
-  }
-
-  await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH', {
-    credit_gratuit: nouveauCredit, solde: nouveauSolde
-  }, _accessToken);
-
-  // Prefer: return=representation pour recuperer l'id genere — necessaire pour
-  // rattacher les futurs deploiements (table "deployments") a cette analyse, et
-  // permettre un redeploiement ulterieur sans reprendre l'analyse (xlsform_json).
-  var inserted = await sbFetch('/rest/v1/analyses', 'POST', {
-    user_id: currentUser.id, titre: titre, nb_questions: nbQuestions,
-    nb_sauts: nbSauts, cout_fcfa: coutFcfa, tokens_consommes: tokensConsommes,
-    outil: outil, statut: coutSurSolde > 0 ? 'complete' : 'gratuit',
-    xlsform_json: xlsform || null
-  }, _accessToken, { 'Prefer': 'return=representation' });
-  if (Array.isArray(inserted) && inserted.length > 0) currentAnalysisId = inserted[0].id;
-
-  if (coutSurSolde > 0) {
-    await sbFetch('/rest/v1/transactions', 'POST', {
-      user_id: currentUser.id, type: 'debit', montant: coutSurSolde,
-      solde_avant: solde, solde_apres: nouveauSolde,
-      description: 'Analyse : ' + titre, questionnaire_titre: titre,
-      tokens_consommes: tokensConsommes
-    }, _accessToken);
-  }
-  await loadProfile();
-};
-
-window.crediterSolde = async function(credits, fedapayId) {
-  if (!currentUser || !currentProfile) return;
-  var sb = currentProfile.solde || 0;
-  var sa = sb + credits;
-  // Renouveler l'expiration à 12 mois glissants
-  var newExpireAt = new Date(Date.now() + 12 * 30 * 24 * 60 * 60 * 1000).toISOString();
-  await sbFetch('/rest/v1/profiles?id=eq.' + currentUser.id, 'PATCH', { 
-    solde: sa,
-    credit_expire_at: newExpireAt
-  }, _accessToken);
-  await sbFetch('/rest/v1/transactions', 'POST', {
-    user_id: currentUser.id, type: 'recharge', montant: credits,
-    solde_avant: sb, solde_apres: sa, description: 'Recharge Mobile Money',
-    fedapay_transaction_id: fedapayId
-  }, _accessToken);
-  await loadProfile();
-  showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
-};
+// verifierSolde / debiterSolde / debiterSoldeSimple / crediterSolde ont ete retires :
+// la verification, le debit ET le credit du portefeuille se font desormais de maniere
+// fiable cote SERVEUR (voir /api/analyse, /api/translate-xlsform, /api/redeploy-bill,
+// /api/payment/verify) — un debit/credit purement client pouvait etre evite (ferme
+// l'onglet) ou falsifie (appel direct a l'API Supabase avec un montant arbitraire).
 
 window.showRechargeModal = function() {
   selectedPack = null;
@@ -1858,7 +1818,9 @@ window.selectPack = function(prix, credits, bonus) {
   event.currentTarget.style.borderColor = '#E8132A';
   var info = document.getElementById('recharge-selected');
   info.style.display = 'block';
-  info.innerHTML = 'Pack : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong>' + (bonus > 0 ? ' (+' + bonus + '%)' : '');
+  info.innerHTML = (bonus > 0)
+    ? 'Pack : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong> → <strong style="color:#10B981">' + credits.toLocaleString('fr-FR') + ' FCFA</strong> (+' + bonus + '%)'
+    : 'Pack : <strong>' + prix.toLocaleString('fr-FR') + ' FCFA</strong>';
   document.getElementById('btn-recharge').disabled = false;
 };
 
@@ -1887,16 +1849,24 @@ async function lancerPaiementRecharge(prix, credits) {
     showToast('⏳ En attente du paiement...');
     var verifyInterval = setInterval(async function() {
       try {
+        // Le credit est applique cote SERVEUR (montant reel FedaPay, jamais le
+        // "credits" local) des que verifyData.approved est vrai — voir
+        // /api/payment/verify. On se contente ici de rafraichir l'affichage.
         var verifyRes = await fetch(BACKEND_URL + '/api/payment/verify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: Object.assign({ 'Content-Type': 'application/json' }, _accessToken ? { 'Authorization': 'Bearer ' + _accessToken } : {}),
           body: JSON.stringify({ transactionId: data.transactionId })
         });
         var verifyData = await verifyRes.json();
         if (verifyData.approved) {
           clearInterval(verifyInterval);
           if (popup && !popup.closed) popup.close();
-          await window.crediterSolde(credits, data.transactionId);
+          if (verifyData.crediteApplique) {
+            if (window.loadProfile) await window.loadProfile();
+            showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+          } else {
+            showToast('⚠️ Paiement confirmé mais crédit non appliqué — contactez le support.');
+          }
         } else if (verifyData.status === 'declined') {
           clearInterval(verifyInterval);
           if (popup && !popup.closed) popup.close();
@@ -2131,29 +2101,48 @@ window.showDeploiements = async function() {
 
 // Redeploiement vers un outil (identique ou different), eventuellement dans une autre
 // langue, depuis l'historique, SANS reprendre l'analyse du document source: reutilise
-// le xlsform_json deja stocke. Si une langue differente est demandee, un appel de
-// traduction leger (/api/translate-xlsform, uniquement les textes affiches au
-// repondant — voir collectTranslatableTexts cote serveur) precede le deploiement, et le
-// resultat traduit est enregistre comme une NOUVELLE analyse liee (source_analysis_id)
-// afin de ne jamais perdre la version d'origine et de pouvoir la redeployer telle
-// quelle plus tard sans re-traduire. Les identifiants de deploiement sont TOUJOURS
-// redemandes (jamais stockes), par choix explicite.
+// le xlsform_json deja stocke. Desormais TOUJOURS facture (meme sans traduction): meme
+// si aucun nouvel appel Claude n'a lieu pour un simple changement d'outil, la valeur
+// rendue (reconfiguration automatique dans l'outil cible) est monetisee a un tarif plus
+// bas (10%) que la traduction (20%, qui elle appelle reellement Claude). Si une langue
+// differente est demandee, un appel de traduction leger (/api/translate-xlsform,
+// uniquement les textes affiches au repondant — voir collectTranslatableTexts cote
+// serveur) precede le deploiement, et le resultat traduit est enregistre comme une
+// NOUVELLE analyse liee (source_analysis_id) afin de ne jamais perdre la version
+// d'origine et de pouvoir la redeployer telle quelle plus tard sans re-traduire. Un
+// redeploiement simple (sans traduction) reste rattache a l'analyse d'origine (aucune
+// nouvelle ligne "analyses"). Les identifiants de deploiement sont TOUJOURS redemandes
+// (jamais stockes), par choix explicite.
 window.redeployFromHistory = async function(analysisId, targetTool, targetLangCode, btnId) {
   var a = window._historiqueAnalyses && window._historiqueAnalyses[analysisId];
   if (!a || !a.xlsform_json) { showToast('❌ Xlsform introuvable pour cette analyse'); return; }
+  if (!currentUser || !_accessToken) {
+    showToast(lang==='fr' ? '🔒 Connexion requise' : '🔒 Login required');
+    return;
+  }
 
   var btnEl = btnId ? document.getElementById(btnId) : null;
   var btnOriginalText = btnEl ? btnEl.textContent : null;
 
+  var langue = null;
   if (targetLangCode) {
-    var langue = LANGUAGES.find(function(l) { return l.code === targetLangCode; });
+    langue = LANGUAGES.find(function(l) { return l.code === targetLangCode; });
     if (!langue) { showToast('❌ Langue inconnue'); return; }
+  }
+
+  // Le solde est verifie ET debite de maniere fiable cote serveur (voir
+  // /api/translate-xlsform et /api/redeploy-bill) — plus de pre-verification client
+  // separee, ni de debit client evitable en quittant la page.
+  if (targetLangCode) {
     if (btnEl) { btnEl.disabled = true; btnEl.textContent = lang === 'fr' ? 'Traduction...' : 'Translating...'; }
     try {
       var tRes = await fetch(BACKEND_URL + '/api/translate-xlsform', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xlsform: a.xlsform_json, targetLang: langue.label })
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _accessToken },
+        body: JSON.stringify({
+          xlsform: a.xlsform_json, targetLang: langue.label, targetLangCode: targetLangCode,
+          titre: a.titre, sourceAnalysisId: a.id, outil: targetTool
+        })
       });
       if (!tRes.ok) {
         var errBody = await tRes.json().catch(function() { return {}; });
@@ -2161,20 +2150,37 @@ window.redeployFromHistory = async function(analysisId, targetTool, targetLangCo
       }
       var tData = await tRes.json();
       var titreTraduit = (a.titre || 'Questionnaire') + ' (' + langue.label + ')';
-      var inserted = await sbFetch('/rest/v1/analyses', 'POST', {
-        user_id: currentUser.id, titre: titreTraduit, nb_questions: a.nb_questions || 0,
-        nb_sauts: 0, cout_fcfa: 0, tokens_consommes: 0, outil: targetTool, statut: 'traduit',
-        xlsform_json: tData.xlsform, langue: targetLangCode, source_analysis_id: a.id
-      }, _accessToken, { 'Prefer': 'return=representation' });
-      if (!Array.isArray(inserted) || inserted.length === 0 || inserted.code) {
-        console.error('[TRADUCTION] Echec enregistrement analyse traduite:', inserted);
-        throw new Error('Traduction effectuée mais non enregistrée dans l\'historique');
-      }
-      a = { id: inserted[0].id, xlsform_json: tData.xlsform, titre: titreTraduit, nb_questions: a.nb_questions };
+
+      a = { id: tData.analysis_id, xlsform_json: tData.xlsform, titre: titreTraduit, nb_questions: a.nb_questions };
       window._historiqueAnalyses[a.id] = a;
-      showToast('🌐 Traduit en ' + langue.label + (tData.truncated ? ' (partiellement, questionnaire volumineux — le reste reste dans la langue d\'origine)' : ''));
+      currentAnalysisId = a.id;
+      if (window.loadProfile) await window.loadProfile();
+      showToast('🌐 Traduit en ' + langue.label + ' (-' + (tData.tarif || 0).toLocaleString('fr-FR') + ' FCFA)' + (tData.truncated ? ' — partiellement, questionnaire volumineux, le reste reste dans la langue d\'origine' : ''));
     } catch (e) {
       showToast('❌ ' + (e.message || 'Erreur traduction'));
+      if (window.showRechargeModal && /solde insuffisant/i.test(e.message || '')) window.showRechargeModal();
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnOriginalText; }
+      return;
+    }
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnOriginalText; }
+  } else {
+    if (btnEl) { btnEl.disabled = true; btnEl.textContent = lang === 'fr' ? 'Facturation...' : 'Billing...'; }
+    try {
+      var bRes = await fetch(BACKEND_URL + '/api/redeploy-bill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _accessToken },
+        body: JSON.stringify({ xlsform: a.xlsform_json, targetTool: targetTool, titre: a.titre })
+      });
+      if (!bRes.ok) {
+        var errBody2 = await bRes.json().catch(function() { return {}; });
+        throw new Error(errBody2.message || 'Erreur facturation du redéploiement');
+      }
+      var bData = await bRes.json();
+      if (window.loadProfile) await window.loadProfile();
+      showToast('💳 Redéploiement facturé (-' + (bData.tarif || 0).toLocaleString('fr-FR') + ' FCFA)');
+    } catch (e) {
+      showToast('❌ ' + (e.message || 'Erreur facturation du redéploiement'));
+      if (window.showRechargeModal && /solde insuffisant/i.test(e.message || '')) window.showRechargeModal();
       if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnOriginalText; }
       return;
     }
