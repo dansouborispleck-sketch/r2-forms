@@ -410,7 +410,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
     </div>
     <div class="card-footer">
       <button class="btn-back" onclick="goStep(1)" data-fr="← Retour" data-en="← Back">← Retour</button>
-      <button class="btn-next" onclick="startAnalysis()"><span data-fr="Analyser le questionnaire" data-en="Analyse questionnaire">Analyser le questionnaire</span> →</button>
+      <button class="btn-next" onclick="handleStep2Continue()"><span id="step2-continue-label" data-fr="Analyser le questionnaire" data-en="Analyse questionnaire">Analyser le questionnaire</span> →</button>
     </div>
   </div>
 
@@ -698,7 +698,31 @@ function goNextFromStep1() {
 // Etape 3 = ecran de succes (panel5) — plus d'etapes intermediaires de
 // validation/visualisation, l'analyse produit directement le xlsform final.
 const STEP_PANELS = {1:'panel1', 2:'panel2', 3:'panel5'};
+
+// panel2 (choix outil + identifiants) n'a QU'UN SEUL bouton d'action, cable en dur sur
+// startAnalysis() — car dans le parcours normal, les identifiants sont collectes AVANT
+// l'analyse, et le deploiement se declenche automatiquement plus tard (apres paiement).
+// Pour un redeploiement depuis l'historique (xlsform deja pret, pas de nouvelle
+// analyse), ce meme bouton doit a la place deployer directement — redeployTarget sert
+// d'aiguillage plutot que de remplacer/restaurer le onclick du bouton (fragile).
+let redeployTarget = null;
+function handleStep2Continue() {
+  if (redeployTarget) {
+    redeployTarget = null;
+    lancerDeploiement();
+  } else {
+    startAnalysis();
+  }
+}
+
 function goStep(s) {
+  if (s !== 2 && redeployTarget) {
+    // quitte panel2 en mode redeploiement (retour, ou fin du redeploiement) -> annule
+    // et restaure le libelle normal du bouton pour la prochaine utilisation classique.
+    redeployTarget = null;
+    var label = document.getElementById('step2-continue-label');
+    if (label) label.textContent = lang === 'fr' ? 'Analyser le questionnaire' : 'Analyse questionnaire';
+  }
   showPanel(STEP_PANELS[s] || ('panel'+s));
   // Update steps bar
   for(let i=1;i<=3;i++){
@@ -2041,10 +2065,18 @@ window.redeployFromHistory = async function(analysisId, targetTool) {
   document.getElementById('deployments-modal').style.display = 'none';
 
   // Reutilise exactement le meme panel "choix identifiants" que le parcours normal,
-  // en pre-selectionnant la bonne carte d'outil.
+  // en pre-selectionnant la bonne carte d'outil. redeployTarget fait basculer le
+  // bouton unique de ce panel vers un deploiement direct (voir handleStep2Continue) —
+  // PAS vers une nouvelle analyse, puisque le xlsform est deja pret.
   goStep(2);
   var card = document.querySelector('.tool-card[data-tool="' + targetTool + '"]');
   if (card) selectTool(card);
+  redeployTarget = targetTool;
+
+  var label = document.getElementById('step2-continue-label');
+  if (label) label.textContent = lang === 'fr' ? 'Redéployer' : 'Redeploy';
+  var sub = document.getElementById('p2sub');
+  if (sub) sub.textContent = (lang === 'fr' ? 'Connexion pour redéployer vers ' : 'Connect to redeploy to ') + (TOOL_NAMES[targetTool] || targetTool);
 };
 
 window.addEventListener('DOMContentLoaded', function() {
