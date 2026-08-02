@@ -931,9 +931,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       // Recuperer l'etat sauvegarde
       const savedTool = sessionStorage.getItem('r2_selected_tool') || 'google';
       const savedContent = sessionStorage.getItem('r2_file_content') || '';
+      const savedRedeployTarget = sessionStorage.getItem('r2_redeploy_target_tool');
+      const savedRedeployAnalysisId = sessionStorage.getItem('r2_redeploy_analysis_id');
+      const savedRedeployXlsform = sessionStorage.getItem('r2_redeploy_xlsform');
+      const savedRedeployTitre = sessionStorage.getItem('r2_redeploy_titre');
       sessionStorage.removeItem('r2_google_auth_pending');
       sessionStorage.removeItem('r2_selected_tool');
       sessionStorage.removeItem('r2_file_content');
+      sessionStorage.removeItem('r2_redeploy_target_tool');
+      sessionStorage.removeItem('r2_redeploy_analysis_id');
+      sessionStorage.removeItem('r2_redeploy_xlsform');
+      sessionStorage.removeItem('r2_redeploy_titre');
       history.replaceState(null, '', window.location.pathname);
 
       // Restaurer l'etat
@@ -970,6 +978,25 @@ document.addEventListener('DOMContentLoaded',()=>{
         var btnEl = document.getElementById('btn-google-auth');
         if (connEl) connEl.style.display = 'block';
         if (btnEl) { btnEl.style.background = '#15803d'; btnEl.textContent = lang==='fr'?'Compte Google connecte':'Google account connected'; }
+
+        // Si on revient d'un redeploiement depuis l'historique (xlsform deja pret), on
+        // doit rebasculer en mode "redeployer" -- sinon handleStep2Continue() repartirait
+        // a tort sur une nouvelle analyse, puisque redeployTarget a ete efface par la
+        // redirection pleine page de l'OAuth Google.
+        if (savedRedeployTarget && savedRedeployXlsform) {
+          try {
+            validatedForm = { xlsform: JSON.parse(savedRedeployXlsform), title: savedRedeployTitre || '', media: [] };
+            parsedForm = validatedForm;
+            currentAnalysisId = savedRedeployAnalysisId || null;
+            redeployTarget = savedRedeployTarget;
+            var label = document.getElementById('step2-continue-label');
+            if (label) label.textContent = lang === 'fr' ? 'Redéployer' : 'Redeploy';
+            var sub = document.getElementById('p2sub');
+            if (sub) sub.textContent = (lang === 'fr' ? 'Connexion pour redéployer vers ' : 'Connect to redeploy to ') + (TOOL_NAMES[savedRedeployTarget] || savedRedeployTarget);
+          } catch (e) {
+            console.error('[REDEPLOY] Erreur restauration apres OAuth Google:', e);
+          }
+        }
       }, 300);
       return;
     }
@@ -1461,6 +1488,22 @@ function connectGoogle() {
   sessionStorage.setItem('r2_google_auth_pending', '1');
   sessionStorage.setItem('r2_selected_tool', selectedTool);
   sessionStorage.setItem('r2_file_content', fileContent || pasteContent || '');
+
+  // La redirection OAuth est une redirection pleine page: elle efface tout l'etat JS en
+  // memoire, y compris redeployTarget/validatedForm/currentAnalysisId poses par
+  // redeployFromHistory(). En mode redeploiement, on les sauvegarde aussi pour pouvoir
+  // reprendre directement en mode "redeployer" (et non relancer une analyse) au retour.
+  if (redeployTarget) {
+    sessionStorage.setItem('r2_redeploy_target_tool', redeployTarget);
+    sessionStorage.setItem('r2_redeploy_analysis_id', currentAnalysisId || '');
+    sessionStorage.setItem('r2_redeploy_xlsform', JSON.stringify(validatedForm.xlsform));
+    sessionStorage.setItem('r2_redeploy_titre', validatedForm.title || '');
+  } else {
+    sessionStorage.removeItem('r2_redeploy_target_tool');
+    sessionStorage.removeItem('r2_redeploy_analysis_id');
+    sessionStorage.removeItem('r2_redeploy_xlsform');
+    sessionStorage.removeItem('r2_redeploy_titre');
+  }
 
   // Redirect vers Google OAuth2
   window.location.href = authUrl;
