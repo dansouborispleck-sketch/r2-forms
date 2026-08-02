@@ -1318,14 +1318,27 @@ async function validateAndDeploy() {
     // vers un autre outil) — uniquement pour un compte connecte (Supabase), et
     // seulement si on a bien l'id de l'analyse correspondante. Best-effort: un echec
     // d'ecriture de l'historique ne doit jamais bloquer un deploiement qui a reussi.
-    if (currentUser && currentAnalysisId && typeof sbFetch === 'function') {
+    // sbFetch ne leve JAMAIS d'exception sur un rejet API (RLS, contrainte...) — il
+    // retourne simplement le corps JSON de l'erreur — donc on doit l'inspecter
+    // explicitement plutot que de compter sur un try/catch pour la detecter.
+    if (!currentUser || !currentAnalysisId) {
+      console.warn('[HISTORIQUE] Deploiement non enregistre: currentUser=' + !!currentUser + ' currentAnalysisId=' + currentAnalysisId);
+    } else {
       try {
-        await sbFetch('/rest/v1/deployments', 'POST', {
+        var depInsert = await sbFetch('/rest/v1/deployments', 'POST', {
           analysis_id: currentAnalysisId, user_id: currentUser.id, outil: selectedTool,
           form_url: (selectedTool === 'excel') ? null : (result.url || null),
           form_id: result.uid || result.formId || null
-        }, _accessToken);
-      } catch(e) { console.error('Erreur enregistrement historique deploiement:', e); }
+        }, _accessToken, { 'Prefer': 'return=representation' });
+        if (depInsert && depInsert.code) {
+          // PostgREST renvoie {code, message, details, hint} sur un rejet (RLS,
+          // contrainte...) avec un statut HTTP d'erreur, mais fetch() ne leve pas
+          // d'exception pour un statut non-2xx — seule l'inspection du corps le revele.
+          console.error('[HISTORIQUE] Echec enregistrement deploiement:', depInsert);
+        } else {
+          console.log('[HISTORIQUE] Deploiement enregistre:', depInsert);
+        }
+      } catch(e) { console.error('[HISTORIQUE] Erreur reseau enregistrement deploiement:', e); }
     }
 
     clearInterval(iv);
