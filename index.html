@@ -1483,12 +1483,40 @@ let _accessToken = null;
 let currentUser = null;
 let currentProfile = null;
 let selectedPack = null;
+let _refreshToken = null;
 // id (Supabase) de la ligne "analyses" de l'analyse en cours — capture au moment du
 // debit (debiterSolde) pour pouvoir y rattacher les deploiements (table "deployments")
 // et retrouver le xlsform_json stocke pour un redeploiement ulterieur.
 let currentAnalysisId = null;
 
-async function sbFetch(path, method, body, token, extraHeaders) {
+// Le jeton d'acces Supabase expire au bout d'environ 1h — jusqu'ici jamais rafraichi
+// nulle part dans l'app, ce qui fait silencieusement echouer (403, RLS traite la
+// requete comme anonyme) toute ecriture/lecture survenant apres une session ouverte
+// longtemps (ex: analyse -> attente confirmation paiement Mobile Money -> deploiement,
+// qui peut prendre largement plus d'une heure au total). Rafraichit via le
+// refresh_token Supabase et persiste le nouveau jeton.
+async function refreshAccessToken() {
+  if (!_refreshToken) return false;
+  try {
+    var r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ refresh_token: _refreshToken })
+    });
+    var data = await r.json();
+    if (!r.ok || !data.access_token) return false;
+    _accessToken = data.access_token;
+    _refreshToken = data.refresh_token || _refreshToken;
+    localStorage.setItem('lebo_token', _accessToken);
+    localStorage.setItem('lebo_refresh', _refreshToken);
+    return true;
+  } catch(e) {
+    console.error('[AUTH] Erreur rafraichissement du jeton:', e);
+    return false;
+  }
+}
+
+async function sbFetch(path, method, body, token, extraHeaders, _isRetry) {
   var headers = {
     'Content-Type': 'application/json',
     'apikey': SUPABASE_KEY,
@@ -1500,6 +1528,20 @@ async function sbFetch(path, method, body, token, extraHeaders) {
     headers: headers,
     body: body ? JSON.stringify(body) : undefined
   });
+  // Sur 401/403 (jeton expire), tente UNE fois un rafraichissement + nouvelle
+  // tentative avant d'abandonner — jamais pour les appels d'authentification eux-memes
+  // (un mauvais mot de passe ne doit pas declencher une boucle de rafraichissement).
+  // (token === _accessToken || !token): ne rafraichit/reessaie QUE quand le jeton
+  // utilise est bien le jeton de session courant (explicitement passe ou par defaut) —
+  // jamais pour un appel utilisant volontairement une cle differente (SUPABASE_KEY).
+  // Exclut aussi les endpoints /auth/v1/ eux-memes (un mauvais mot de passe ne doit
+  // jamais declencher une tentative de rafraichissement).
+  if ((r.status === 401 || r.status === 403) && !_isRetry && (token === _accessToken || !token) && path.indexOf('/auth/v1/') !== 0) {
+    var refreshed = await refreshAccessToken();
+    // Reessaie avec le _accessToken FRAICHEMENT rafraichi, jamais le "token" original
+    // (qui est justement celui, perime, qui vient de faire echouer cet appel).
+    if (refreshed) return sbFetch(path, method, body, _accessToken, extraHeaders, true);
+  }
   try { return await r.json(); } catch(e) { return {}; }
 }
 
@@ -1574,8 +1616,10 @@ window.submitAuth = async function() {
   }
 
   _accessToken = result.access_token;
+  _refreshToken = result.refresh_token || null;
   currentUser = result.user;
   localStorage.setItem('lebo_token', _accessToken);
+  if (_refreshToken) localStorage.setItem('lebo_refresh', _refreshToken);
   localStorage.setItem('lebo_user', JSON.stringify(currentUser));
   await loadProfile();
   showUserBar();
@@ -1584,8 +1628,9 @@ window.submitAuth = async function() {
 
 window.signOut = async function() {
   await sbFetch('/auth/v1/logout', 'POST', {}, _accessToken);
-  _accessToken = null; currentUser = null; currentProfile = null;
+  _accessToken = null; _refreshToken = null; currentUser = null; currentProfile = null;
   localStorage.removeItem('lebo_token');
+  localStorage.removeItem('lebo_refresh');
   localStorage.removeItem('lebo_user');
   document.getElementById('user-bar').style.display = 'none';
   document.getElementById('auth-modal').style.display = 'flex';
@@ -1804,8 +1849,10 @@ async function initAuth() {
     if (modal) modal.style.display = 'none';
     var params = new URLSearchParams(hash.substring(1));
     _accessToken = params.get('access_token');
+    _refreshToken = params.get('refresh_token') || null;
     if (_accessToken) {
       localStorage.setItem('lebo_token', _accessToken);
+      if (_refreshToken) localStorage.setItem('lebo_refresh', _refreshToken);
       var userData = await sbFetch('/auth/v1/user', 'GET', null, _accessToken);
       if (userData && userData.id) {
         currentUser = userData;
@@ -1819,8 +1866,10 @@ async function initAuth() {
   }
   var savedToken = localStorage.getItem('lebo_token');
   var savedUser = localStorage.getItem('lebo_user');
+  var savedRefresh = localStorage.getItem('lebo_refresh');
   if (savedToken && savedUser) {
     _accessToken = savedToken;
+    _refreshToken = savedRefresh || null;
     currentUser = JSON.parse(savedUser);
     await loadProfile();
     if (currentProfile) {
