@@ -2149,9 +2149,16 @@ window.redeployFromHistory = async function(analysisId, targetTool, targetLangCo
         throw new Error(errBody.message || 'Erreur traduction');
       }
       var tData = await tRes.json();
+      // titreTraduit (avec suffixe langue) = le libelle d'historique, tel qu'enregistre
+      // cote serveur pour cette nouvelle analyse (voir /api/translate-xlsform). Pour le
+      // TITRE REELLEMENT DEPLOYE (nom du formulaire Google/Kobo/JotForm), on utilise le
+      // form_title du xlsform lui-meme, qui EST traduit (collectTranslatableTexts
+      // l'inclut) — sinon deployToGoogle() envoie l'ancien titre francais tel quel et
+      // l'ecrase la traduction du titre du formulaire cote outil cible.
       var titreTraduit = (a.titre || 'Questionnaire') + ' (' + langue.label + ')';
+      var titreDeploye = (tData.xlsform.settings && tData.xlsform.settings[0] && tData.xlsform.settings[0].form_title) || titreTraduit;
 
-      a = { id: tData.analysis_id, xlsform_json: tData.xlsform, titre: titreTraduit, nb_questions: a.nb_questions };
+      a = { id: tData.analysis_id, xlsform_json: tData.xlsform, titre: titreDeploye, nb_questions: a.nb_questions };
       window._historiqueAnalyses[a.id] = a;
       currentAnalysisId = a.id;
       if (window.loadProfile) await window.loadProfile();
