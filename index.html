@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lebo — Plateforme de collecte de données</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
 :root{
-  /* iLovePDF-inspired — Gris clair + Blanc + Rouge vif */
+  /* Gris clair + Blanc + Rouge vif, avec une typo de titre distincte */
   --ink:#1A1A1A;--ink2:#2D2D2D;--ink3:#3D3D3D;
   --paper:#F2F2F2;--paper2:#E8E8E8;--paper3:#DEDEDE;
   --accent:#E8132A;--accent2:#CC0F24;
@@ -15,9 +15,10 @@
   --blue:#2563EB;--green:#16A34A;--red:#E8132A;--yellow:#F59E0B;
   --muted:#767676;--border:rgba(0,0,0,.1);
   --card:#FFFFFF;--shadow:0 2px 12px rgba(0,0,0,.08);
+  --font-ui:'Inter',sans-serif;--font-display:'Space Grotesk','Inter',sans-serif;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+body{font-family:var(--font-ui);background:var(--paper) radial-gradient(circle,rgba(0,0,0,.06) 1.4px,transparent 1.4px);background-size:24px 24px;color:var(--ink);min-height:100vh;overflow-x:hidden;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -26,7 +27,7 @@ body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);min
 
 /* HEADER */
 header{background:#fff;padding:12px 40px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(0,0,0,.1);box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.logo{font-family:'Inter',sans-serif;font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.5px;}
+.logo{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.5px;}
 .logo span{color:var(--accent);}
 .logo-tag{font-size:9px;color:#aaa;letter-spacing:2px;text-transform:uppercase;margin-left:4px;}
 .lang-toggle{margin-left:auto;display:flex;background:#f2f2f2;border-radius:8px;padding:3px;gap:2px;}
@@ -41,7 +42,7 @@ header{background:#fff;padding:12px 40px;display:flex;align-items:center;gap:14p
 
 /* HERO */
 .hero{max-width:720px;margin:0 auto;padding:56px 32px 40px;text-align:center;}
-.hero h1{font-family:'Inter',sans-serif;font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.1;letter-spacing:-2px;margin-bottom:14px;animation:fadeUp .55s .08s ease both;color:var(--ink);}
+.hero h1{font-family:var(--font-display);font-size:clamp(30px,5vw,52px);font-weight:700;line-height:1.1;letter-spacing:-1.5px;margin-bottom:14px;animation:fadeUp .55s .08s ease both;color:var(--ink);}
 .hero h1 em{font-style:normal;color:var(--accent);}
 .hero p{font-size:16px;color:var(--muted);line-height:1.6;max-width:480px;margin:0 auto;animation:fadeUp .6s .15s ease both;font-weight:400;}
 
@@ -125,11 +126,11 @@ header{background:#fff;padding:12px 40px;display:flex;align-items:center;gap:14p
 /* PANEL 5 — DEPLOIEMENT */
 #panel5{display:none;text-align:center;padding:52px 24px;}
 .deploy-icon{font-size:52px;margin-bottom:16px;}
-.deploy-title{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.deploy-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px;}
 .deploy-sub{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
 .deploy-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:360px;margin:0 auto 28px;}
 .deploy-stat{background:var(--paper);border-radius:12px;padding:14px;}
-.deploy-stat-num{font-family:'Inter',sans-serif;font-size:32px;font-weight:800;color:var(--accent);line-height:1;}
+.deploy-stat-num{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--accent);line-height:1;}
 .deploy-stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 .deploy-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 .btn-deploy{padding:12px 24px;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
@@ -150,7 +151,7 @@ header{background:#fff;padding:12px 40px;display:flex;align-items:center;gap:14p
 .feat-desc{font-size:12px;color:var(--muted);line-height:1.5;}
 
 footer{background:var(--ink);padding:20px 40px;text-align:center;}
-.foot-logo{font-family:'Inter',sans-serif;font-size:17px;font-weight:800;color:var(--paper);letter-spacing:-.5px;margin-bottom:4px;}
+.foot-logo{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--paper);letter-spacing:-.5px;margin-bottom:4px;}
 .foot-logo span{color:var(--green);}
 .foot-text{font-size:11px;color:rgba(245,242,236,.3);}
 .foot-copyright{font-size:10px;color:rgba(245,242,236,.2);margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);}
@@ -303,7 +304,7 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
   <circle cx="175" cy="425" r="30" fill="none" stroke="currentColor" stroke-width="15"/>
   <circle cx="425" cy="425" r="30" fill="none" stroke="currentColor" stroke-width="15"/>
 </svg>
-    <span style="font-size:16px;font-weight:900;letter-spacing:-.5px;">Lebo <span class="logo-tag">DEPLOY</span></span>
+    <span style="font-size:16px;font-weight:700;letter-spacing:-.5px;">Lebo <span class="logo-tag">DEPLOY</span></span>
   </div>
   <div class="lang-toggle">
     <button class="lang-btn active" onclick="setLang('fr')">FR</button>
