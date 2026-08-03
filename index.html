@@ -221,7 +221,17 @@ footer{background:var(--ink);padding:20px 40px;text-align:center;}
 <!-- Modal Recharge -->
 <div id="recharge-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:32px;width:90%;max-width:460px;max-height:90vh;overflow-y:auto;">
-    <div style="font-size:18px;font-weight:700;margin-bottom:20px;">Recharger mon solde</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:12px;">Recharger mon solde</div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px;color:#767676;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Pays / moyen de paiement</div>
+      <select id="recharge-currency-select" onchange="if(window.selectCurrency)window.selectCurrency(this.value)" style="width:100%;border:1.5px solid #E8E8E8;border-radius:10px;padding:10px 14px;font-size:14px;outline:none;font-family:'Inter',sans-serif;">
+        <option value="XOF">FCFA — Bénin, Burkina Faso, Côte d'Ivoire, Guinée, Mali, Niger, Sénégal, Togo (Mobile Money)</option>
+        <option value="XAF">FCFA — Cameroun (Mobile Money / Carte)</option>
+        <option value="NGN">Naira — Nigeria (Mobile Money / Carte)</option>
+        <option value="GHS">Cedi — Ghana (Mobile Money / Carte)</option>
+        <option value="KES">Shilling — Kenya (M-Pesa / Carte)</option>
+      </select>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
       <div onclick="selectPack(1000,1000,0)" class="pack-card" style="border:2px solid #E8E8E8;border-radius:12px;padding:16px;cursor:pointer;text-align:center;">
         <div style="font-size:13px;color:#767676;font-weight:600;">Découverte</div>
@@ -660,7 +670,7 @@ function processFile(file) {
         zone.innerHTML = `
           <div style="font-size:26px;margin-bottom:7px;">✅</div>
           <div style="font-size:14px;font-weight:700;color:var(--green);">${file.name}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · ${lang==='fr'?'PDF pret — lu directement par Claude':'PDF ready — read directly by Claude'} · ${lang==='fr'?'Cliquez pour changer':'Click to change'}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;">${(file.size/1024).toFixed(0)} KB · ${lang==='fr'?'PDF pret — lu directement par notre moteur d\'analyse':'PDF ready — read directly by our analysis engine'} · ${lang==='fr'?'Cliquez pour changer':'Click to change'}</div>
           <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.odt" onchange="onFileSelect(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>`;
       } else {
         pdfBase64Content = null;
@@ -1367,8 +1377,8 @@ async function validateAndDeploy() {
     // Signaler les elements a revoir si non deja fait
     if (validatedForm && validatedForm.needs_review && validatedForm.needs_review.length > 0) {
       deployMsg += lang==='fr'
-        ? ' ⚠️ ' + validatedForm.needs_review.length + ' element(s) marque(s) a verifier par Claude — a controler dans ' + TOOL_NAMES[selectedTool] + '.'
-        : ' ⚠️ ' + validatedForm.needs_review.length + ' item(s) flagged by Claude for review — check them in ' + TOOL_NAMES[selectedTool] + '.';
+        ? ' ⚠️ ' + validatedForm.needs_review.length + ' element(s) a verifier — a controler dans ' + TOOL_NAMES[selectedTool] + '.'
+        : ' ⚠️ ' + validatedForm.needs_review.length + ' item(s) to review — check them in ' + TOOL_NAMES[selectedTool] + '.';
     }
     document.getElementById('deploy-sub').textContent = deployMsg;
 
@@ -1459,6 +1469,7 @@ let _accessToken = null;
 let currentUser = null;
 let currentProfile = null;
 let selectedPack = null;
+let selectedCurrency = 'XOF'; // XOF = FedaPay (defaut) ; XAF/NGN/GHS/KES = Kora
 let _refreshToken = null;
 // id (Supabase) de la ligne "analyses" de l'analyse en cours — renvoye par le serveur
 // (data.analysis_id, voir analyseQuestionnaire) pour pouvoir y rattacher les
@@ -1690,10 +1701,20 @@ window.showUserBar = showUserBar;
 
 window.showRechargeModal = function() {
   selectedPack = null;
+  selectedCurrency = 'XOF';
+  document.getElementById('recharge-currency-select').value = 'XOF';
   document.getElementById('recharge-selected').style.display = 'none';
   document.getElementById('btn-recharge').disabled = true;
   document.querySelectorAll('.pack-card').forEach(function(c) { c.style.borderColor = '#E8E8E8'; });
   document.getElementById('recharge-modal').style.display = 'flex';
+};
+
+// FCFA (XOF, FedaPay — 8 pays UEMOA francophones) reste le parcours historique. Les
+// autres devises (XAF Cameroun, NGN/GHS/KES) passent par Kora, avec conversion
+// du montant FCFA affiche vers la devise locale (voir /api/payment/kora/initiate)
+// — le portefeuille de l'utilisateur reste TOUJOURS credite en FCFA au final.
+window.selectCurrency = function(cur) {
+  selectedCurrency = cur;
 };
 
 window.selectPack = function(prix, credits, bonus) {
@@ -1712,7 +1733,11 @@ window.procederRecharge = async function() {
   if (!selectedPack) return;
   document.getElementById('recharge-modal').style.display = 'none';
   window._rechargeEnCours = selectedPack;
-  lancerPaiementRecharge(selectedPack.prix, selectedPack.credits);
+  if (selectedCurrency === 'XOF') {
+    lancerPaiementRecharge(selectedPack.prix, selectedPack.credits);
+  } else {
+    lancerPaiementRechargeKora(selectedPack.prix, selectedPack.credits, selectedCurrency);
+  }
 };
 
 async function lancerPaiementRecharge(prix, credits) {
@@ -1758,6 +1783,58 @@ async function lancerPaiementRecharge(prix, credits) {
         }
       } catch(e) { console.error('[RECHARGE] Erreur:', e); }
     }, 5000);
+  } catch(e) {
+    showToast('❌ Erreur : ' + e.message);
+  }
+}
+
+// Recharge via Kora (Cameroun XAF, Nigeria NGN, Ghana GHS, Kenya KES) — le
+// montant FCFA choisi (montantFcfa) est converti cote SERVEUR vers la devise locale
+// (voir /api/payment/kora/initiate). Le portefeuille est credite en FCFA, sur le
+// montant que le serveur avait lui-meme calcule a l'initialisation (jamais un montant
+// fourni par le client) — meme principe de fiabilite que la recharge FedaPay.
+async function lancerPaiementRechargeKora(montantFcfa, credits, currency) {
+  try {
+    var email = currentUser ? currentUser.email : 'client@lebo.bj';
+    var res = await fetch(BACKEND_URL + '/api/payment/kora/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ montantFcfa: montantFcfa, currency: currency, customer: { email: email } })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.link) throw new Error(data.message || 'Erreur initialisation');
+
+    var popup = window.open(data.link, 'kora-recharge', 'width=520,height=700,scrollbars=yes');
+    showToast('⏳ En attente du paiement (' + (data.targetAmount || '').toLocaleString('fr-FR') + ' ' + (data.targetCurrency || currency) + ')...');
+
+    var verifyInterval = setInterval(async function() {
+      try {
+        var verifyRes = await fetch(BACKEND_URL + '/api/payment/kora/verify', {
+          method: 'POST',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, _accessToken ? { 'Authorization': 'Bearer ' + _accessToken } : {}),
+          body: JSON.stringify({ txRef: data.txRef })
+        });
+        var verifyData = await verifyRes.json();
+        if (verifyData.approved) {
+          clearInterval(verifyInterval);
+          if (popup && !popup.closed) popup.close();
+          if (verifyData.crediteApplique) {
+            if (window.loadProfile) await window.loadProfile();
+            showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+          } else {
+            showToast('⚠️ Paiement confirmé mais crédit non appliqué — contactez le support.');
+          }
+        } else if (verifyData.status === 'failed' || verifyData.status === 'cancelled') {
+          clearInterval(verifyInterval);
+          if (popup && !popup.closed) popup.close();
+          showToast('❌ Paiement refusé. Réessayez.');
+        }
+      } catch(e) { console.error('[RECHARGE KORA] Erreur:', e); }
+    }, 5000);
+
+    // Arreter le sondage apres 15 minutes (parcours Kora, page complete plutot
+    // qu'une simple popup Mobile Money, peut prendre plus de temps que FedaPay).
+    setTimeout(function() { clearInterval(verifyInterval); }, 900000);
   } catch(e) {
     showToast('❌ Erreur : ' + e.message);
   }
