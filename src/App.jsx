@@ -154,6 +154,10 @@ export default function App() {
     setSelectedTool(targetTool);
     setRedeployPending({ analysis: { xlsform: current.xlsform_json, title: current.titre, media: [], analysisId: current.id, needsReview: [] } });
     setStep(2);
+    setPhase('wizard'); // sinon l'ecran precedent (ex: le resultat d'un deploiement Google
+    // Forms deja termine) reste affiche, puisque le rendu se decide sur `phase`, pas sur
+    // `step` seul — sans ca, changer d'outil cible depuis l'historique n'avait aucun effet
+    // visible tant qu'un deploiement precedent avait deja abouti dans la meme session.
   }
 
   async function runAnalysis(data, credentials) {
