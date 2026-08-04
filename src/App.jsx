@@ -63,6 +63,9 @@ export default function App() {
     if (googleToolReturn.content) {
       setStep1Data((prev) => ({ ...(prev || {}), pasteContent: googleToolReturn.content, fileContent: googleToolReturn.content }));
     }
+    if (googleToolReturn.redeployAnalysis) {
+      setRedeployPending({ analysis: googleToolReturn.redeployAnalysis });
+    }
     setStep(2);
     showToast(t('✅ Compte Google connecté', '✅ Google account connected'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -346,6 +349,7 @@ export default function App() {
                   showToast={showToast}
                   pendingContent={step1Data?.fileContent || step1Data?.pasteContent || ''}
                   redeployMode={!!redeployPending}
+                  redeployAnalysis={redeployPending?.analysis}
                 />
               </div>
             </>

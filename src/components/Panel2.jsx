@@ -5,7 +5,7 @@ import { useLang } from '../lib/LangContext';
 
 // Panel 2 : connexion au compte de l'outil CIBLE (Kobo/ODK/JotForm/Google) — a ne pas
 // confondre avec la connexion au compte Lebo lui-meme (facturation), geree separement.
-export default function Panel2({ selectedTool, googleAccessToken, onBack, onContinue, showToast, pendingContent, redeployMode }) {
+export default function Panel2({ selectedTool, googleAccessToken, onBack, onContinue, showToast, pendingContent, redeployMode, redeployAnalysis }) {
   const { t } = useLang();
   const [authMode, setAuthMode] = useState('existing');
   const [username, setUsername] = useState('');
@@ -28,7 +28,7 @@ export default function Panel2({ selectedTool, googleAccessToken, onBack, onCont
   }
 
   function handleGoogleConnect() {
-    startGoogleAuth({ selectedTool, fileContent: pendingContent, pasteContent: pendingContent });
+    startGoogleAuth({ selectedTool, fileContent: pendingContent, pasteContent: pendingContent, redeployAnalysis: redeployMode ? redeployAnalysis : null });
   }
 
   function handleContinue() {
