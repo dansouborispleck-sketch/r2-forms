@@ -33,7 +33,7 @@ export async function lancerPaiementRecharge(prix, credits, { email, accessToken
     showToast('⏳ En attente du paiement...');
     pollPayment({
       popup,
-      verify: () => verifyFedaPay(data.transactionId, accessToken),
+      verify: () => verifyFedaPay(data.transactionId),
       stopStatuses: ['declined'],
       onApproved: async (verifyData) => {
         if (verifyData.crediteApplique) {
@@ -57,7 +57,7 @@ export async function lancerPaiementRechargeKora(montantFcfa, credits, currency,
     showToast('⏳ En attente du paiement (' + (data.targetAmount || '').toLocaleString('fr-FR') + ' ' + (data.targetCurrency || currency) + ')...');
     pollPayment({
       popup,
-      verify: () => verifyKora(data.txRef, accessToken),
+      verify: () => verifyKora(data.txRef),
       stopStatuses: ['failed', 'cancelled'],
       timeoutMs: 900000, // 15 minutes — le parcours Kora (page complete) peut prendre plus de temps qu'un simple popup Mobile Money.
       onApproved: async (verifyData) => {

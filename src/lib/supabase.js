@@ -59,6 +59,25 @@ export async function sbFetch(path, method, body, token, extraHeaders, _isRetry)
   try { return await r.json(); } catch { return {}; }
 }
 
+// Meme logique de rafraichissement automatique que sbFetch, mais pour les appels au
+// BACKEND LEBO lui-meme (pas Supabase directement) : /api/analyse, /api/translate-xlsform,
+// /api/redeploy-bill, etc. Ces routes exigent un jeton Supabase valide (Authorization:
+// Bearer ...) — sans ce rafraichissement, un jeton expire (au bout d'environ 1h, ou plus
+// tot selon la session) y echouait silencieusement avec un 401 pour toujours, jusqu'a ce
+// que l'utilisateur se reconnecte manuellement, meme si sbFetch (utilise pour les appels
+// Supabase directs comme le profil ou l'historique) se rafraichissait tout seul entre
+// temps — d'ou un comportement incoherent ou certains appels marchaient et d'autres non
+// dans la meme session. Bug remonte par un utilisateur en conditions reelles.
+export async function authFetch(url, options, _isRetry) {
+  const headers = Object.assign({}, options?.headers, { Authorization: 'Bearer ' + (_accessToken || '') });
+  const res = await fetch(url, Object.assign({}, options, { headers }));
+  if ((res.status === 401 || res.status === 403) && !_isRetry) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) return authFetch(url, options, true);
+  }
+  return res;
+}
+
 export function signInWithGoogleUrl() {
   const redirectUrl = encodeURIComponent(window.location.href.split('#')[0]);
   return SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + redirectUrl;

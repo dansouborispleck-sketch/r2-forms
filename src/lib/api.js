@@ -1,3 +1,5 @@
+import { authFetch } from './supabase';
+
 export const BACKEND_URL = 'https://r2-forms-backend.onrender.com';
 
 // Envoie le fichier au backend pour extraction du texte (PDF lu nativement par Claude a
@@ -18,10 +20,10 @@ export async function importFile(file) {
 // Route payante : exige une connexion (jeton Supabase), facturee de maniere fiable cote
 // serveur (verification de solde puis debit atomique APRES succes de l'analyse) — plus de
 // debit client separe et evitable.
-export async function analyseQuestionnaire(payload, tool, accessToken) {
-  const res = await fetch(BACKEND_URL + '/api/analyse', {
+export async function analyseQuestionnaire(payload, tool) {
+  const res = await authFetch(BACKEND_URL + '/api/analyse', {
     method: 'POST',
-    headers: Object.assign({ 'Content-Type': 'application/json' }, accessToken ? { Authorization: 'Bearer ' + accessToken } : {}),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(Object.assign({ tool }, payload)),
   });
   if (!res.ok) {
@@ -106,10 +108,10 @@ export async function downloadImagesZip(images, title) {
   return { blob, filename: (title || 'formulaire').replace(/[^a-zA-Z0-9_-]/g, '_') + '_images.zip' };
 }
 
-export async function translateXlsform({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil }, accessToken) {
-  const res = await fetch(BACKEND_URL + '/api/translate-xlsform', {
+export async function translateXlsform({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil }) {
+  const res = await authFetch(BACKEND_URL + '/api/translate-xlsform', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + accessToken },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil }),
   });
   if (!res.ok) {
@@ -119,10 +121,10 @@ export async function translateXlsform({ xlsform, targetLang, targetLangCode, ti
   return res.json();
 }
 
-export async function redeployBill({ xlsform, targetTool, titre }, accessToken) {
-  const res = await fetch(BACKEND_URL + '/api/redeploy-bill', {
+export async function redeployBill({ xlsform, targetTool, titre }) {
+  const res = await authFetch(BACKEND_URL + '/api/redeploy-bill', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + accessToken },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ xlsform, targetTool, titre }),
   });
   if (!res.ok) {
@@ -143,10 +145,10 @@ export async function initiateFedaPay(prix, email) {
   return data; // { token, checkoutUrl, transactionId }
 }
 
-export async function verifyFedaPay(transactionId, accessToken) {
-  const res = await fetch(BACKEND_URL + '/api/payment/verify', {
+export async function verifyFedaPay(transactionId) {
+  const res = await authFetch(BACKEND_URL + '/api/payment/verify', {
     method: 'POST',
-    headers: Object.assign({ 'Content-Type': 'application/json' }, accessToken ? { Authorization: 'Bearer ' + accessToken } : {}),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ transactionId }),
   });
   return res.json();
@@ -163,10 +165,10 @@ export async function initiateKora(montantFcfa, currency, email) {
   return data; // { link, txRef, targetAmount, targetCurrency }
 }
 
-export async function verifyKora(txRef, accessToken) {
-  const res = await fetch(BACKEND_URL + '/api/payment/kora/verify', {
+export async function verifyKora(txRef) {
+  const res = await authFetch(BACKEND_URL + '/api/payment/kora/verify', {
     method: 'POST',
-    headers: Object.assign({ 'Content-Type': 'application/json' }, accessToken ? { Authorization: 'Bearer ' + accessToken } : {}),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ txRef }),
   });
   return res.json();

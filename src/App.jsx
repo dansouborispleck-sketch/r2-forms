@@ -119,14 +119,14 @@ export default function App() {
         const tData = await translateXlsform({
           xlsform: a.xlsform_json, targetLang: langue.label, targetLangCode, titre: a.titre,
           sourceAnalysisId: a.id, outil: targetTool,
-        }, auth.accessToken);
+        });
         const titreTraduit = (a.titre || 'Questionnaire') + ' (' + langue.label + ')';
         const titreDeploye = tData.xlsform?.settings?.[0]?.form_title || titreTraduit;
         current = { id: tData.analysis_id, xlsform_json: tData.xlsform, titre: titreDeploye, nb_questions: a.nb_questions };
         await auth.loadProfile();
         showToast(`🌐 Traduit en ${langue.label} (-${(tData.tarif || 0).toLocaleString('fr-FR')} FCFA)` + (tData.truncated ? ' — partiellement, questionnaire volumineux, le reste reste dans la langue d\'origine' : ''));
       } else {
-        const bData = await redeployBill({ xlsform: a.xlsform_json, targetTool, titre: a.titre }, auth.accessToken);
+        const bData = await redeployBill({ xlsform: a.xlsform_json, targetTool, titre: a.titre });
         await auth.loadProfile();
         showToast(`💳 Redéploiement facturé (-${(bData.tarif || 0).toLocaleString('fr-FR')} FCFA)`);
       }
@@ -176,7 +176,7 @@ export default function App() {
       : { text: data.fileContent || data.pasteContent };
 
     try {
-      const analysis = await analyseQuestionnaire(payload, data.selectedTool, auth.accessToken);
+      const analysis = await analyseQuestionnaire(payload, data.selectedTool);
       await auth.loadProfile(); // le debit a deja eu lieu cote serveur, on rafraichit juste l'affichage
       await new Promise((r) => setTimeout(r, 1000));
 

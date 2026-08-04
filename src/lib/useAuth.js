@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   sbFetch, signInWithGoogleUrl, consumeSupabaseOAuthReturn, restoreSessionFromStorage,
-  clearSession, setTokens, getAccessToken, SUPABASE_KEY,
+  clearSession, setTokens, getAccessToken, authFetch, SUPABASE_KEY,
 } from './supabase';
 import { BACKEND_URL } from './api';
 
@@ -27,10 +27,7 @@ export function useAuth(googleOAuthAlreadyHandled) {
     // (voir /api/auth/init-profile) sur le statut VERIFIE de l'utilisateur — jamais une
     // valeur que le client pourrait forger en POSTant directement /rest/v1/profiles.
     try {
-      const res = await fetch(BACKEND_URL + '/api/auth/init-profile', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + getAccessToken() },
-      });
+      const res = await authFetch(BACKEND_URL + '/api/auth/init-profile', { method: 'POST' });
       const initData = await res.json();
       if (res.ok && initData.profile) setProfile(initData.profile);
     } catch (e) {
