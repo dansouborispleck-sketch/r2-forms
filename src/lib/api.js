@@ -30,6 +30,41 @@ export async function analyseQuestionnaire(payload, tool) {
     const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
     const e = new Error(err.message || 'Erreur analyse');
     e.code = err.error;
+    e.pendingAnalysisId = err.pendingAnalysisId || null;
+    e.tarifReel = err.tarifReel || null;
+    throw e;
+  }
+  const data = await res.json();
+  return {
+    title: data.title,
+    xlsform: data.xlsform,
+    needsReview: data.needs_review || [],
+    coherenceReport: data.coherence_report || [],
+    media: data.media_associations || [],
+    tarif: data.tarif,
+    analysisId: data.analysis_id || null,
+    warning: data.warning || null,
+    missingChoicesCount: data.missing_choices_count || 0,
+  };
+}
+
+// Refacture une analyse deja calculee (xlsform deja produit par un appel Claude reussi)
+// mais mise en attente cote serveur faute de solde suffisant au tarif reel — AUCUN nouvel
+// appel Claude, juste un nouveau debit tente sur le meme resultat. A utiliser apres une
+// recharge, en remplacement d'un nouvel appel a analyseQuestionnaire (qui relancerait
+// l'analyse depuis zero, payant deux fois le meme appel Claude pour un seul resultat livre).
+export async function retryAnalysisBilling(pendingAnalysisId) {
+  const res = await authFetch(BACKEND_URL + '/api/analyse/retry-billing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pendingAnalysisId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
+    const e = new Error(err.message || 'Erreur de facturation');
+    e.code = err.error;
+    e.pendingAnalysisId = err.pendingAnalysisId || null;
+    e.tarifReel = err.tarifReel || null;
     throw e;
   }
   const data = await res.json();

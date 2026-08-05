@@ -26,7 +26,7 @@ import { countSurveyQuestions } from './lib/xlsform';
 import { LANGUAGES } from './lib/languages';
 import { sbFetch } from './lib/supabase';
 import {
-  analyseQuestionnaire, deployToKobo, deployToJotForm, deployToGoogle, deployToExcel,
+  analyseQuestionnaire, retryAnalysisBilling, deployToKobo, deployToJotForm, deployToGoogle, deployToExcel,
   downloadImagesZip, triggerBlobDownload, translateXlsform, redeployBill,
 } from './lib/api';
 
@@ -48,6 +48,11 @@ export default function App() {
   const [banners, setBanners] = useState([]); // encarts flottants empiles (rapport de coherence, avertissements)
   const [result, setResult] = useState(null); // { deployedFormUrl, stats, message, xlsform, title }
   const [rechargeOpen, setRechargeOpen] = useState(false);
+  // Non-null si une analyse a deja ete calculee (appel Claude reussi) mais pas encore
+  // facturee faute de solde suffisant au tarif reel — permet, apres recharge, de refacturer
+  // ce resultat deja pret (retryAnalysisBilling) au lieu de relancer toute l'analyse et
+  // payer un second appel Claude pour le meme document. Voir onCredited de RechargeModal.
+  const [pendingAnalysis, setPendingAnalysis] = useState(null); // { id, data, credentials }
   const [historiqueOpen, setHistoriqueOpen] = useState(false);
   const [deploiementsOpen, setDeploiementsOpen] = useState(false);
   // Non-null pendant un redeploiement depuis l'historique : le xlsform est deja pret,
@@ -179,46 +184,82 @@ export default function App() {
       const analysis = await analyseQuestionnaire(payload, data.selectedTool);
       await auth.loadProfile(); // le debit a deja eu lieu cote serveur, on rafraichit juste l'affichage
       await new Promise((r) => setTimeout(r, 1000));
-
-      if (analysis.coherenceReport.length > 0) {
-        pushBanner({
-          title: t('Rapport analyse du questionnaire', 'Questionnaire analysis report'),
-          lines: analysis.coherenceReport,
-          footer: t('Cliquez pour fermer', 'Click to close'),
-          color: '#1e3a5f',
-          autoDismissMs: 15000,
-        });
-      }
-      if (analysis.needsReview.length > 0) {
-        showToast(t(`⚠️ ${analysis.needsReview.length} élément(s) à vérifier après déploiement`, `⚠️ ${analysis.needsReview.length} item(s) to review after deployment`));
-      }
-
-      if (analysis.missingChoicesCount > 0) {
-        setMissingChoices({
-          message: analysis.warning || '',
-          resume: () => { setMissingChoices(null); runDeploy(data, credentials, analysis); },
-        });
-        return;
-      }
-      if (analysis.warning) {
-        pushBanner({
-          title: '⚠️ ' + t('Questionnaire partiellement extrait', 'Questionnaire partially extracted'),
-          lines: [analysis.warning],
-          color: '#7c2d12',
-          autoDismissMs: 12000,
-        });
-      }
-      await runDeploy(data, credentials, analysis);
+      await handleAnalysisResult(analysis, data, credentials);
     } catch (e) {
       console.error('Erreur analyse:', e);
       setPhase('wizard');
       if (e.code === 'UNAUTHORIZED') {
         showToast(t('🔒 Connexion requise', '🔒 Login required'));
       } else if (e.code === 'INSUFFICIENT_BALANCE') {
+        // Le xlsform est deja calcule et conserve cote serveur (e.pendingAnalysisId) : pas
+        // besoin de relancer l'analyse (donc un nouvel appel Claude payant) apres la
+        // recharge, onCredited de RechargeModal se charge de le refacturer directement.
+        if (e.pendingAnalysisId) setPendingAnalysis({ id: e.pendingAnalysisId, data, credentials });
         showToast('❌ ' + (e.message || t('Solde insuffisant — rechargez votre compte', 'Insufficient balance — top up your account')));
         setRechargeOpen(true);
       } else {
         showToast(t('Erreur. Veuillez réessayer.', 'Error. Please try again.'));
+      }
+    }
+  }
+
+  // Suite commune apres une analyse reussie (nouvelle ou refacturee via retryAnalysisBilling
+  // sans nouvel appel Claude) : rapport de coherence, elements a revoir, modalites manquantes,
+  // puis deploiement.
+  async function handleAnalysisResult(analysis, data, credentials) {
+    if (analysis.coherenceReport.length > 0) {
+      pushBanner({
+        title: t('Rapport analyse du questionnaire', 'Questionnaire analysis report'),
+        lines: analysis.coherenceReport,
+        footer: t('Cliquez pour fermer', 'Click to close'),
+        color: '#1e3a5f',
+        autoDismissMs: 15000,
+      });
+    }
+    if (analysis.needsReview.length > 0) {
+      showToast(t(`⚠️ ${analysis.needsReview.length} élément(s) à vérifier après déploiement`, `⚠️ ${analysis.needsReview.length} item(s) to review after deployment`));
+    }
+
+    if (analysis.missingChoicesCount > 0) {
+      setMissingChoices({
+        message: analysis.warning || '',
+        resume: () => { setMissingChoices(null); runDeploy(data, credentials, analysis); },
+      });
+      return;
+    }
+    if (analysis.warning) {
+      pushBanner({
+        title: '⚠️ ' + t('Questionnaire partiellement extrait', 'Questionnaire partially extracted'),
+        lines: [analysis.warning],
+        color: '#7c2d12',
+        autoDismissMs: 12000,
+      });
+    }
+    await runDeploy(data, credentials, analysis);
+  }
+
+  // Appele apres une recharge reussie (onCredited de RechargeModal) quand une analyse
+  // etait en attente de facturation : refacture le xlsform deja produit, SANS relancer
+  // Claude. Si le solde est encore insuffisant (recharge partielle), l'attente est
+  // conservee pour une nouvelle tentative apres une recharge complementaire.
+  async function retryPendingAnalysis() {
+    if (!pendingAnalysis) return;
+    const { id, data, credentials } = pendingAnalysis;
+    setPhase('analyzing');
+    try {
+      const analysis = await retryAnalysisBilling(id);
+      setPendingAnalysis(null);
+      await auth.loadProfile();
+      await handleAnalysisResult(analysis, data, credentials);
+    } catch (e) {
+      console.error('Erreur refacturation analyse en attente:', e);
+      setPhase('wizard');
+      if (e.code === 'INSUFFICIENT_BALANCE' && e.pendingAnalysisId) {
+        showToast('❌ ' + (e.message || t('Solde toujours insuffisant', 'Balance still insufficient')));
+        setRechargeOpen(true);
+      } else {
+        setPendingAnalysis(null);
+        showToast('❌ ' + (e.message || t('Analyse en attente expirée — merci de relancer l\'analyse.', 'Pending analysis expired — please re-run the analysis.')));
       }
     }
   }
@@ -398,7 +439,10 @@ export default function App() {
         email={auth.user?.email || 'client@lebo.bj'}
         accessToken={auth.accessToken}
         showToast={showToast}
-        onCredited={() => auth.loadProfile()}
+        onCredited={async () => {
+          await auth.loadProfile();
+          if (pendingAnalysis) await retryPendingAnalysis();
+        }}
       />
       <HistoriqueModal open={historiqueOpen} onClose={() => setHistoriqueOpen(false)} user={auth.user} accessToken={auth.accessToken} />
       <DeploymentsModal
