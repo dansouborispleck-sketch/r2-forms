@@ -8,7 +8,7 @@ export default function Header() {
       <div className="logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
         <LogoMark size={36} />
         <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.5px' }}>
-          Lebo <span className="logo-tag">DEPLOY</span>
+          TransQi <span className="logo-tag">DEPLOY</span>
         </span>
       </div>
       <div className="lang-toggle">
