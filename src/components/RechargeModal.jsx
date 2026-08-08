@@ -13,11 +13,11 @@ const PACKS = [
 ];
 
 const CURRENCIES = [
-  { value: 'XOF', label: "FCFA — Bénin, Burkina Faso, Côte d'Ivoire, Guinée, Mali, Niger, Sénégal, Togo (Mobile Money)" },
-  { value: 'XAF', label: 'FCFA — Cameroun (Mobile Money / Carte)' },
-  { value: 'NGN', label: 'Naira — Nigeria (Mobile Money / Carte)' },
-  { value: 'GHS', label: 'Cedi — Ghana (Mobile Money / Carte)' },
-  { value: 'KES', label: 'Shilling — Kenya (M-Pesa / Carte)' },
+  { value: 'XOF', label: "FCFA : Bénin, Burkina Faso, Côte d'Ivoire, Guinée, Mali, Niger, Sénégal, Togo (Mobile Money)" },
+  { value: 'XAF', label: 'FCFA : Cameroun (Mobile Money / Carte)' },
+  { value: 'NGN', label: 'Naira : Nigeria (Mobile Money / Carte)' },
+  { value: 'GHS', label: 'Cedi : Ghana (Mobile Money / Carte)' },
+  { value: 'KES', label: 'Shilling : Kenya (M-Pesa / Carte)' },
 ];
 
 export default function RechargeModal({ open, onClose, email, accessToken, showToast, onCredited }) {
