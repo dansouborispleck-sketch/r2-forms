@@ -3,8 +3,8 @@ import { toolById } from '../lib/tools';
 import { startGoogleAuth } from '../lib/google';
 import { useLang } from '../lib/LangContext';
 
-// Panel 2 : connexion au compte de l'outil CIBLE (Kobo/ODK/JotForm/Google) — a ne pas
-// confondre avec la connexion au compte Lebo lui-meme (facturation), geree separement.
+// Panel 2 : connexion au compte de l'outil CIBLE (Kobo/ODK/JotForm/Google), a ne pas
+// confondre avec la connexion au compte TransQi lui-meme (facturation), geree separement.
 export default function Panel2({ selectedTool, googleAccessToken, onBack, onContinue, showToast, pendingContent, redeployMode, redeployAnalysis }) {
   const { t } = useLang();
   const [authMode, setAuthMode] = useState('existing');
@@ -24,7 +24,7 @@ export default function Panel2({ selectedTool, googleAccessToken, onBack, onCont
   function handleSignup() {
     if (!tool.signupUrl) return;
     window.open(tool.signupUrl, '_blank');
-    showToast("✅ Page d'inscription ouverte — revenez ici après avoir créé votre compte");
+    showToast("✅ Page d'inscription ouverte. Revenez ici après avoir créé votre compte");
   }
 
   function handleGoogleConnect() {
@@ -44,7 +44,7 @@ export default function Panel2({ selectedTool, googleAccessToken, onBack, onCont
   return (
     <div className="panel active">
       <div className="card-head">
-        <div className="card-step-label">{t('Étape 2 — Votre compte', 'Step 2 — Your account')}</div>
+        <div className="card-step-label">{t('Étape 2 : Votre compte', 'Step 2: Your account')}</div>
         <div className="card-step-sub">
           {redeployMode
             ? t('Connexion pour redéployer vers ', 'Connect to redeploy to ') + tool.name
@@ -152,8 +152,8 @@ export default function Panel2({ selectedTool, googleAccessToken, onBack, onCont
               </div>
               <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, marginBottom: 12 }}>
                 {t(
-                  'Cliquez sur le bouton ci-dessous pour autoriser Lebo à créer des formulaires dans votre compte Google. Vous serez redirigé vers Google et reviendrez automatiquement.',
-                  'Click the button below to authorize Lebo to create forms in your Google account. You will be redirected to Google and will come back automatically.'
+                  'Cliquez sur le bouton ci-dessous pour autoriser TransQi à créer des formulaires dans votre compte Google. Vous serez redirigé vers Google et reviendrez automatiquement.',
+                  'Click the button below to authorize TransQi to create forms in your Google account. You will be redirected to Google and will come back automatically.'
                 )}
               </div>
               <button
@@ -174,7 +174,7 @@ export default function Panel2({ selectedTool, googleAccessToken, onBack, onCont
               )}
             </div>
             <div className="info-box">
-              🔒 {t("Lebo n'accède qu'à Google Forms. Vos autres données Google ne sont pas accessibles.", "Lebo only accesses Google Forms. Your other Google data isn't accessible.")}
+              🔒 {t("TransQi n'accède qu'à Google Forms. Vos autres données Google ne sont pas accessibles.", "TransQi only accesses Google Forms. Your other Google data isn't accessible.")}
             </div>
           </>
         )}
