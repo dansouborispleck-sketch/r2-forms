@@ -7,16 +7,16 @@ export default function Footer() {
     <footer>
       <div className="foot-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
         <LogoMark size={24} color="var(--paper)" />
-        Lebo
+        TransQi
       </div>
       <div className="foot-text">
         {t(
-          'La lebo qui structure et protège vos données de terrain',
-          'Form conversion and deployment platform'
+          'Du questionnaire au formulaire, en quelques minutes',
+          'From questionnaire to form, in minutes'
         )}
       </div>
       <div className="foot-copyright">
-        {t('© 2026 Lebo Deploy. Tous droits réservés.', '© 2026 Lebo Deploy. All rights reserved.')}
+        {t('© 2026 TransQi Deploy. Tous droits réservés.', '© 2026 TransQi Deploy. All rights reserved.')}
       </div>
     </footer>
   );
