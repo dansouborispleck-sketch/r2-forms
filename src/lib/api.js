@@ -173,7 +173,7 @@ export async function initiateFedaPay(prix, email) {
   const res = await fetch(BACKEND_URL + '/api/payment/initiate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: prix, description: 'Lebo Deploy - Recharge ' + prix.toLocaleString('fr-FR') + ' FCFA', customer: { email } }),
+    body: JSON.stringify({ amount: prix, description: 'TransQi Deploy - Recharge ' + prix.toLocaleString('fr-FR') + ' FCFA', customer: { email } }),
   });
   const data = await res.json();
   if (!res.ok || !data.token) throw new Error(data.message || 'Erreur initialisation');
