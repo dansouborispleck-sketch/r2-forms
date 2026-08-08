@@ -36,7 +36,7 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
   return (
     <div className="panel active">
       <div className="card-head">
-        <div className="card-step-label">{t('Étape 1 — Votre questionnaire', 'Step 1 — Your questionnaire')}</div>
+        <div className="card-step-label">{t('Étape 1 : Votre questionnaire', 'Step 1: Your questionnaire')}</div>
         <div className="card-step-sub">
           {t("Choisissez l'outil cible et importez votre document", 'Choose the target tool and import your document')}
         </div>
