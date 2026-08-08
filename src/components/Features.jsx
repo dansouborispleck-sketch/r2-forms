@@ -6,8 +6,8 @@ const FEATS = [
     Icon: FolderIcon,
     title: ['Tous formats acceptés', 'All formats accepted'],
     desc: [
-      "PDF, Word, Excel, texte brut — importez votre document tel quel.",
-      'PDF, Word, Excel, plain text — import as is.',
+      "PDF, Word, Excel, texte brut : importez votre document tel quel.",
+      'PDF, Word, Excel, plain text: import as is.',
     ],
   },
   {
