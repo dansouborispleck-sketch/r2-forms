@@ -40,7 +40,7 @@ export async function lancerPaiementRecharge(prix, credits, { email, accessToken
           await onCredited();
           showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
         } else {
-          showToast('⚠️ Paiement confirmé mais crédit non appliqué — contactez le support.');
+          showToast('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.');
         }
       },
       onDeclined: () => showToast('❌ Paiement refusé. Réessayez.'),
@@ -65,7 +65,7 @@ export async function lancerPaiementRechargeKora(montantFcfa, credits, currency,
           await onCredited();
           showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
         } else {
-          showToast('⚠️ Paiement confirmé mais crédit non appliqué — contactez le support.');
+          showToast('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.');
         }
       },
       onDeclined: () => showToast('❌ Paiement refusé. Réessayez.'),
