@@ -11,8 +11,8 @@ export default function Hero() {
       </h1>
       <p>
         {t(
-          "Importez votre questionnaire existant. Lebo convertit et déploie votre questionnaire directement dans votre outil de terrain.",
-          'Import your existing questionnaire. Lebo converts and deploys your questionnaire directly into your field tool.'
+          "Importez votre questionnaire existant. TransQi le convertit et le déploie directement dans votre outil de terrain.",
+          'Import your existing questionnaire. TransQi converts and deploys it directly into your field tool.'
         )}
       </p>
     </section>
