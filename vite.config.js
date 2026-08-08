@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Site servi sur dansouborispleck-sketch.github.io/r2-forms/ (page de projet, pas de
-// domaine personnalise) -> les assets doivent etre resolus sous ce sous-chemin.
+// Site servi depuis un domaine personnalise (transqi.com) a la racine -> les assets
+// doivent etre resolus depuis "/", pas depuis un sous-chemin de page de projet GitHub.
 export default defineConfig({
-  base: '/r2-forms/',
+  base: '/',
   plugins: [react()],
 })
