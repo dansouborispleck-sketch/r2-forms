@@ -129,7 +129,7 @@ export default function App() {
         const titreDeploye = tData.xlsform?.settings?.[0]?.form_title || titreTraduit;
         current = { id: tData.analysis_id, xlsform_json: tData.xlsform, titre: titreDeploye, nb_questions: a.nb_questions };
         await auth.loadProfile();
-        showToast(`🌐 Traduit en ${langue.label} (-${(tData.tarif || 0).toLocaleString('fr-FR')} FCFA)` + (tData.truncated ? ' — partiellement, questionnaire volumineux, le reste reste dans la langue d\'origine' : ''));
+        showToast(`🌐 Traduit en ${langue.label} (-${(tData.tarif || 0).toLocaleString('fr-FR')} FCFA)` + (tData.truncated ? ' (partiellement : questionnaire volumineux, le reste reste dans la langue d\'origine)' : ''));
       } else {
         const bData = await redeployBill({ xlsform: a.xlsform_json, targetTool, titre: a.titre });
         await auth.loadProfile();
@@ -195,7 +195,7 @@ export default function App() {
         // besoin de relancer l'analyse (donc un nouvel appel Claude payant) apres la
         // recharge, onCredited de RechargeModal se charge de le refacturer directement.
         if (e.pendingAnalysisId) setPendingAnalysis({ id: e.pendingAnalysisId, data, credentials });
-        showToast('❌ ' + (e.message || t('Solde insuffisant — rechargez votre compte', 'Insufficient balance — top up your account')));
+        showToast('❌ ' + (e.message || t('Solde insuffisant, rechargez votre compte', 'Insufficient balance, top up your account')));
         setRechargeOpen(true);
       } else {
         showToast(t('Erreur. Veuillez réessayer.', 'Error. Please try again.'));
@@ -259,7 +259,7 @@ export default function App() {
         setRechargeOpen(true);
       } else {
         setPendingAnalysis(null);
-        showToast('❌ ' + (e.message || t('Analyse en attente expirée — merci de relancer l\'analyse.', 'Pending analysis expired — please re-run the analysis.')));
+        showToast('❌ ' + (e.message || t('Analyse en attente expirée. Merci de relancer l\'analyse.', 'Pending analysis expired. Please re-run the analysis.')));
       }
     }
   }
@@ -325,24 +325,24 @@ export default function App() {
       }
       if (data.selectedTool === 'jotform' && l > 0) {
         deployMsg += t(
-          ` ⚠️ Ce questionnaire comporte ${l} saut(s) conditionnel(s) — JotForm ne permet pas de les configurer automatiquement via l'API, vous devrez les recréer manuellement dans Paramètres > Conditions.`,
-          ` ⚠️ This questionnaire has ${l} conditional skip(s) — JotForm does not support configuring these automatically via its API; you will need to recreate them manually in Settings > Conditions.`
+          ` ⚠️ Ce questionnaire comporte ${l} saut(s) conditionnel(s). JotForm ne permet pas de les configurer automatiquement via l'API : vous devrez les recréer manuellement dans Paramètres > Conditions.`,
+          ` ⚠️ This questionnaire has ${l} conditional skip(s). JotForm does not support configuring these automatically via its API: you will need to recreate them manually in Settings > Conditions.`
         );
       }
       if ((data.selectedTool === 'google' || data.selectedTool === 'jotform') && deployResult.repeatsFlattened > 0) {
         deployMsg += t(
-          ` 🔁 ${deployResult.repeatsFlattened} groupe(s) répété(s) du questionnaire ont été transformés en sections numérotées fixes (${toolName} ne sait pas répéter un groupe de questions dynamiquement) — vérifiez que le nombre de sections générées correspond à vos besoins.`,
-          ` 🔁 ${deployResult.repeatsFlattened} repeated group(s) in this questionnaire were converted into fixed numbered sections (${toolName} cannot repeat a group of questions dynamically) — check that the number of generated sections fits your needs.`
+          ` 🔁 ${deployResult.repeatsFlattened} groupe(s) répété(s) du questionnaire ont été transformés en sections numérotées fixes (${toolName} ne sait pas répéter un groupe de questions dynamiquement). Vérifiez que le nombre de sections générées correspond à vos besoins.`,
+          ` 🔁 ${deployResult.repeatsFlattened} repeated group(s) in this questionnaire were converted into fixed numbered sections (${toolName} cannot repeat a group of questions dynamically). Check that the number of generated sections fits your needs.`
         );
       }
       if (data.sourceImages?.length > 0) {
         deployMsg += t(
-          ` 📦 ${data.sourceImages.length} image(s) du document téléchargée(s) en ZIP — à intégrer manuellement si besoin dans ${toolName}.`,
-          ` 📦 ${data.sourceImages.length} document image(s) downloaded as ZIP — add them manually if needed in ${toolName}.`
+          ` 📦 ${data.sourceImages.length} image(s) du document téléchargée(s) en ZIP, à intégrer manuellement si besoin dans ${toolName}.`,
+          ` 📦 ${data.sourceImages.length} document image(s) downloaded as ZIP, add them manually if needed in ${toolName}.`
         );
       }
       if (analysis.needsReview.length > 0) {
-        deployMsg += t(` ⚠️ ${analysis.needsReview.length} élément(s) à vérifier — à contrôler dans ${toolName}.`, ` ⚠️ ${analysis.needsReview.length} item(s) to review — check them in ${toolName}.`);
+        deployMsg += t(` ⚠️ ${analysis.needsReview.length} élément(s) à vérifier dans ${toolName}.`, ` ⚠️ ${analysis.needsReview.length} item(s) to review in ${toolName}.`);
       }
 
       setResult({
