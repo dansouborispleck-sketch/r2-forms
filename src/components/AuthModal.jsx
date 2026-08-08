@@ -73,7 +73,7 @@ export default function AuthModal({ open, onLogin, onSignup, onGoogleSignIn, aut
           <div style={{ margin: '0 auto 8px', width: 40 }}>
             <LogoMark size={40} color="#E8132A" />
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#1A1A1A' }}>Lebo Deploy</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#1A1A1A' }}>TransQi Deploy</div>
           <div style={{ fontSize: 13, color: '#767676', marginTop: 4 }}>
             {tab === 'login' ? 'Connectez-vous pour continuer' : 'Créez votre compte'}
           </div>
@@ -98,7 +98,7 @@ export default function AuthModal({ open, onLogin, onSignup, onGoogleSignIn, aut
         >
           <GoogleIcon /> Continuer avec Google
         </button>
-        <div style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginBottom: 16 }}>— ou —</div>
+        <div style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginBottom: 16 }}>ou</div>
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #E8E8E8', borderRadius: 10, fontSize: 14, marginBottom: 10, boxSizing: 'border-box' }} />
         <input type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #E8E8E8', borderRadius: 10, fontSize: 14, marginBottom: 16, boxSizing: 'border-box' }} />
         {tab === 'signup' && (
