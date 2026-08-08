@@ -24,8 +24,8 @@ export default function UploadZone({ onImported, showToast }) {
       if (data.images && data.images.length > 0) {
         showToast(
           t(
-            `🖼️ ${data.images.length} image(s) trouvée(s) dans le document — proposées au téléchargement au déploiement`,
-            `🖼️ ${data.images.length} image(s) found in the document — offered for download at deployment`
+            `🖼️ ${data.images.length} image(s) trouvée(s) dans le document, proposées au téléchargement au déploiement`,
+            `🖼️ ${data.images.length} image(s) found in the document, offered for download at deployment`
           )
         );
       }
@@ -49,7 +49,7 @@ export default function UploadZone({ onImported, showToast }) {
         showToast('⚠️ ' + (err.data.message || t('Erreur', 'Error')));
       } else {
         setStatus('server-down');
-        showToast(t('⚠️ Erreur serveur — utilisez le champ texte', '⚠️ Server error — use the text field'));
+        showToast(t('⚠️ Erreur serveur, utilisez le champ texte', '⚠️ Server error, use the text field'));
       }
     }
   }
@@ -119,7 +119,7 @@ export default function UploadZone({ onImported, showToast }) {
           <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>
             {(info.fileSize / 1024).toFixed(0)} KB ·{' '}
             {info.isPdf
-              ? t("PDF prêt — lu directement par notre moteur d'analyse", 'PDF ready — read directly by our analysis engine')
+              ? t("PDF prêt, lu directement par notre moteur d'analyse", 'PDF ready, read directly by our analysis engine')
               : `${info.chars.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US')} ${t('caractères extraits', 'characters extracted')}`}{' '}
             · {t('Cliquez pour changer', 'Click to change')}
           </div>
