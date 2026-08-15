@@ -169,8 +169,11 @@ export async function redeployBill({ xlsform, targetTool, titre }) {
   return res.json();
 }
 
+// authFetch (jeton Supabase) desormais requis: le serveur associe la transaction a
+// l'utilisateur connecte des l'initiation, pour que /verify credite le bon compte plus
+// tard, quel que soit qui appelle /verify (voir server.js, pendingPayments).
 export async function initiateFedaPay(prix, email) {
-  const res = await fetch(BACKEND_URL + '/api/payment/initiate', {
+  const res = await authFetch(BACKEND_URL + '/api/payment/initiate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amount: prix, description: 'TransQi Deploy - Recharge ' + prix.toLocaleString('fr-FR') + ' FCFA', customer: { email } }),
@@ -189,8 +192,9 @@ export async function verifyFedaPay(transactionId) {
   return res.json();
 }
 
+// authFetch requis pour la meme raison que initiateFedaPay ci-dessus.
 export async function initiateKora(montantFcfa, currency, email) {
-  const res = await fetch(BACKEND_URL + '/api/payment/kora/initiate', {
+  const res = await authFetch(BACKEND_URL + '/api/payment/kora/initiate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ montantFcfa, currency, customer: { email } }),
