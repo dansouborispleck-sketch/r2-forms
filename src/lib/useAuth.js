@@ -26,12 +26,27 @@ export function useAuth(googleOAuthAlreadyHandled) {
     // La creation du profil (et le calcul du credit de bienvenue) se fait cote serveur
     // (voir /api/auth/init-profile) sur le statut VERIFIE de l'utilisateur — jamais une
     // valeur que le client pourrait forger en POSTant directement /rest/v1/profiles.
+    var initOk = false;
     try {
       const res = await authFetch(BACKEND_URL + '/api/auth/init-profile', { method: 'POST' });
       const initData = await res.json();
-      if (res.ok && initData.profile) setProfile(initData.profile);
+      if (res.ok && initData.profile) { setProfile(initData.profile); initOk = true; }
     } catch (e) {
       console.error('[PROFILE] Erreur creation profil:', e);
+    }
+    // Filet de secours: si NI la lecture NI la creation du profil n'ont abouti, la session
+    // restauree est probablement invalide (rafraichissement du jeton lui-meme en echec —
+    // pas juste expire, voir refreshAccessToken dans supabase.js) plutot qu'un simple
+    // probleme reseau ponctuel. Sans ca, "user" restait rempli indefiniment (AuthModal ne
+    // se rouvre jamais, son "open" ne depend que de !user) alors que "profile" ne se
+    // chargeait jamais — l'app restait bloquee en silence, sans aucune indication pour
+    // l'utilisateur ni moyen de se reconnecter autrement qu'en vidant lui-meme les donnees
+    // du site. On deconnecte proprement pour laisser l'ecran de connexion reapparaitre.
+    if (!initOk && !(Array.isArray(data) && data.length > 0)) {
+      console.error('[AUTH] Session restauree invalide (profil injoignable) — deconnexion automatique');
+      clearSession();
+      setUser(null);
+      setProfile(null);
     }
   }, [user]);
 
