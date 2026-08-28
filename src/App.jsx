@@ -113,30 +113,33 @@ export default function App() {
   // l'analyse du document source. Les identifiants de deploiement sont toujours
   // redemandes (jamais stockes).
   async function handleRedeployFromHistory(a, targetTool, targetLangCode) {
-    if (!a.xlsform_json) { showToast('❌ Xlsform introuvable pour cette analyse'); return; }
+    if (!a.xlsform_json) { showToast(t('❌ Xlsform introuvable pour cette analyse', '❌ Xlsform not found for this analysis')); return; }
     if (!auth.user) { showToast(t('🔒 Connexion requise', '🔒 Login required')); return; }
 
     let current = a;
     try {
       if (targetLangCode) {
         const langue = LANGUAGES.find((l) => l.code === targetLangCode);
-        if (!langue) { showToast('❌ Langue inconnue'); return; }
+        if (!langue) { showToast(t('❌ Langue inconnue', '❌ Unknown language')); return; }
         const tData = await translateXlsform({
           xlsform: a.xlsform_json, targetLang: langue.label, targetLangCode, titre: a.titre,
           sourceAnalysisId: a.id, outil: targetTool,
         });
-        const titreTraduit = (a.titre || 'Questionnaire') + ' (' + langue.label + ')';
+        const titreTraduit = (a.titre || t('Questionnaire', 'Questionnaire')) + ' (' + langue.label + ')';
         const titreDeploye = tData.xlsform?.settings?.[0]?.form_title || titreTraduit;
         current = { id: tData.analysis_id, xlsform_json: tData.xlsform, titre: titreDeploye, nb_questions: a.nb_questions };
         await auth.loadProfile();
-        showToast(`🌐 Traduit en ${langue.label} (-${(tData.tarif || 0).toLocaleString('fr-FR')} FCFA)` + (tData.truncated ? ' (partiellement : questionnaire volumineux, le reste reste dans la langue d\'origine)' : ''));
+        showToast(
+          t(`🌐 Traduit en ${langue.label} (-${(tData.tarif || 0).toLocaleString('fr-FR')} FCFA)`, `🌐 Translated to ${langue.label} (-${(tData.tarif || 0).toLocaleString('en-US')} FCFA)`)
+          + (tData.truncated ? t(' (partiellement : questionnaire volumineux, le reste reste dans la langue d\'origine)', ' (partially: large questionnaire, the rest stays in the original language)') : '')
+        );
       } else {
         const bData = await redeployBill({ xlsform: a.xlsform_json, targetTool, titre: a.titre });
         await auth.loadProfile();
-        showToast(`💳 Redéploiement facturé (-${(bData.tarif || 0).toLocaleString('fr-FR')} FCFA)`);
+        showToast(t(`💳 Redéploiement facturé (-${(bData.tarif || 0).toLocaleString('fr-FR')} FCFA)`, `💳 Redeployment billed (-${(bData.tarif || 0).toLocaleString('en-US')} FCFA)`));
       }
     } catch (e) {
-      showToast('❌ ' + (e.message || 'Erreur'));
+      showToast('❌ ' + (e.message || t('Erreur', 'Error')));
       if (/solde insuffisant/i.test(e.message || '')) setRechargeOpen(true);
       return;
     }
@@ -148,9 +151,9 @@ export default function App() {
         await sbFetch('/rest/v1/deployments', 'POST', {
           analysis_id: current.id, user_id: auth.user.id, outil: 'excel', form_url: null, form_id: null,
         }, auth.accessToken);
-        showToast('✅ Fichier Excel régénéré');
+        showToast(t('✅ Fichier Excel régénéré', '✅ Excel file regenerated'));
       } catch (e) {
-        showToast('❌ ' + (e.message || 'Erreur génération Excel'));
+        showToast('❌ ' + (e.message || t('Erreur génération Excel', 'Excel generation error')));
       }
       return;
     }
