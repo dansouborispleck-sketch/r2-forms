@@ -42,12 +42,12 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
     let cancelled = false;
     const timer = setTimeout(() => {
       const text = pdfBase64Content ? null : (fileContent || pasteContent);
-      estimateTarif({ text, pdfBase64: pdfBase64Content })
+      estimateTarif({ text, pdfBase64: pdfBase64Content, imageCount: sourceImages.length })
         .then((data) => { if (!cancelled) setTarifEstime(data.tarifEstime); })
         .catch(() => { if (!cancelled) setTarifEstime(null); }); // non bloquant : pas d'estimation affichee plutot qu'une erreur genante
     }, 500);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [ready, fileContent, pasteContent, pdfBase64Content]);
+  }, [ready, fileContent, pasteContent, pdfBase64Content, sourceImages]);
 
   function handleContinue() {
     onContinue({ selectedTool, fileContent, pdfBase64Content, docxLayoutBlocksContent, sourceImages, pasteContent });
