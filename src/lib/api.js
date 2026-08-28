@@ -17,6 +17,25 @@ export async function importFile(file) {
   return data;
 }
 
+// Apercu de cout AVANT de lancer l'analyse (route gratuite, sans authentification, aucune
+// ecriture) — reutilise la meme formule d'estimation que le serveur utilise deja pour
+// refuser un solde insuffisant, cette fois pour l'AFFICHER a l'utilisateur au lieu de le
+// garder invisible jusqu'a un eventuel refus.
+export async function estimateTarif({ text, pdfBase64 }) {
+  const res = await fetch(BACKEND_URL + '/api/estimate-tarif', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, pdfBase64 }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.message || 'Erreur estimation');
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
 // Route payante : exige une connexion (jeton Supabase), facturee de maniere fiable cote
 // serveur (verification de solde puis debit atomique APRES succes de l'analyse) — plus de
 // debit client separe et evitable.
