@@ -24,7 +24,7 @@ export default function Panel2({ selectedTool, googleAccessToken, onBack, onCont
   function handleSignup() {
     if (!tool.signupUrl) return;
     window.open(tool.signupUrl, '_blank');
-    showToast("✅ Page d'inscription ouverte. Revenez ici après avoir créé votre compte");
+    showToast(t("✅ Page d'inscription ouverte. Revenez ici après avoir créé votre compte", '✅ Signup page opened. Come back here after creating your account'));
   }
 
   function handleGoogleConnect() {
