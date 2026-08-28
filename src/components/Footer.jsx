@@ -15,6 +15,10 @@ export default function Footer() {
           'From questionnaire to form, in minutes'
         )}
       </div>
+      <div className="foot-contact">
+        {t('Une question, un message ? ', 'A question, a message? ')}
+        <a href="mailto:contact@transqi.com">contact@transqi.com</a>
+      </div>
       <div className="foot-copyright">
         {t('© 2026 TransQi Deploy. Tous droits réservés.', '© 2026 TransQi Deploy. All rights reserved.')}
       </div>
