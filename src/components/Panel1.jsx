@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ToolGrid from './ToolGrid';
 import UploadZone from './UploadZone';
 import { useLang } from '../lib/LangContext';
+import { estimateTarif } from '../lib/api';
 
 // Panel 1 : choix de l'outil cible + import du document (fichier ou texte colle).
 // selectedTool est controle par le parent (App) car il conditionne le contenu du
@@ -12,6 +13,7 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
   const [pdfBase64Content, setPdfBase64Content] = useState(null);
   const [sourceImages, setSourceImages] = useState([]);
   const [pasteContent, setPasteContent] = useState('');
+  const [tarifEstime, setTarifEstime] = useState(null);
 
   function handleImported({ fileContent: fc, pdfBase64Content: pdf, sourceImages: imgs }) {
     setFileContent(fc);
@@ -28,6 +30,22 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
   }
 
   const ready = fileContent.length > 0 || pasteContent.trim().length > 20 || !!pdfBase64Content;
+
+  // Coût estimé, affiché AVANT de lancer l'analyse (jamais le prix final exact : les sauts
+  // logiques/images ne sont connus qu'après la vraie analyse — voir le message affiché).
+  // Débounce à 500ms pour ne pas appeler le serveur à chaque frappe pendant la saisie
+  // manuelle ; annulé proprement si le contenu change avant la fin du délai.
+  useEffect(() => {
+    if (!ready) { setTarifEstime(null); return; }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      const text = pdfBase64Content ? null : (fileContent || pasteContent);
+      estimateTarif({ text, pdfBase64: pdfBase64Content })
+        .then((data) => { if (!cancelled) setTarifEstime(data.tarifEstime); })
+        .catch(() => { if (!cancelled) setTarifEstime(null); }); // non bloquant : pas d'estimation affichee plutot qu'une erreur genante
+    }, 500);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [ready, fileContent, pasteContent, pdfBase64Content]);
 
   function handleContinue() {
     onContinue({ selectedTool, fileContent, pdfBase64Content, sourceImages, pasteContent });
@@ -63,6 +81,14 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
         <div className="char-count">
           {pasteContent.length} {t('caractères', 'characters')}
         </div>
+        {tarifEstime != null && (
+          <div style={{ marginTop: 14, padding: '10px 14px', background: '#F8FAFC', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--ink)' }}>
+            {t('Coût estimé : environ', 'Estimated cost: about')} <strong>{tarifEstime.toLocaleString('fr-FR')} FCFA</strong>
+            <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 6 }}>
+              {t('(estimation avant analyse, le prix final peut légèrement différer)', '(pre-analysis estimate, the final price may differ slightly)')}
+            </span>
+          </div>
+        )}
       </div>
       <div className="card-footer">
         <button className="btn-next" disabled={!ready} onClick={handleContinue}>
