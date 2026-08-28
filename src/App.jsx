@@ -181,10 +181,10 @@ export default function App() {
       : Object.assign(
           { text: data.fileContent || data.pasteContent },
           data.sourceImages?.length ? { images: data.sourceImages } : {},
-          // PDF converti par LibreOffice a partir d'un DOCX (voir /api/import) — sert
-          // uniquement a l'association image -> modalite/note par position geometrique,
+          // Blocs de mise en page ordonnes extraits d'un DOCX (voir /api/import) — sert
+          // uniquement a l'association image -> modalite/note par ordre de lecture,
           // jamais a ce que Claude lit (le texte ci-dessus reste inchange).
-          data.layoutPdfBase64Content ? { layoutPdfBase64: data.layoutPdfBase64Content } : {}
+          data.docxLayoutBlocksContent ? { docxLayoutBlocks: data.docxLayoutBlocksContent } : {}
         );
 
     try {
