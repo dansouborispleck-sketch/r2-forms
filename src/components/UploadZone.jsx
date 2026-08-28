@@ -39,10 +39,11 @@ export default function UploadZone({ onImported, showToast }) {
       onImported({
         fileContent: data.isPdf ? '' : data.text || '',
         pdfBase64Content: data.isPdf ? data.pdfBase64 : null,
-        // PDF converti par LibreOffice a partir d'un DOCX cote serveur (voir /api/import) —
-        // sert uniquement a l'association image -> modalite/note par position geometrique a
-        // l'analyse, jamais a ce que Claude lit (qui reste fileContent ci-dessus pour un DOCX).
-        layoutPdfBase64Content: data.isPdf ? null : data.layoutPdfBase64 || null,
+        // Blocs de mise en page ordonnes (texte + images) extraits cote serveur via
+        // mammoth pour un DOCX — sert uniquement a l'association image -> modalite/note
+        // par ordre de lecture a l'analyse, jamais a ce que Claude lit (qui reste
+        // fileContent ci-dessus pour un DOCX).
+        docxLayoutBlocksContent: data.isPdf ? null : data.docxLayoutBlocks || null,
         sourceImages: data.images || [],
         fileObject: file,
       });
