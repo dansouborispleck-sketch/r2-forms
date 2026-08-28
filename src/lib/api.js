@@ -21,11 +21,11 @@ export async function importFile(file) {
 // ecriture) — reutilise la meme formule d'estimation que le serveur utilise deja pour
 // refuser un solde insuffisant, cette fois pour l'AFFICHER a l'utilisateur au lieu de le
 // garder invisible jusqu'a un eventuel refus.
-export async function estimateTarif({ text, pdfBase64 }) {
+export async function estimateTarif({ text, pdfBase64, imageCount }) {
   const res = await fetch(BACKEND_URL + '/api/estimate-tarif', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, pdfBase64 }),
+    body: JSON.stringify({ text, pdfBase64, imageCount }),
   });
   const data = await res.json();
   if (!res.ok) {
