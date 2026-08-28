@@ -46,11 +46,17 @@ function pollPayment({ popup, verify, stopStatuses, timeoutMs, creditRetryMs, on
   return interval;
 }
 
-export async function lancerPaiementRecharge(prix, credits, { email, accessToken, showToast, onCredited }) {
+// t: fonction de traduction (voir useLang) — passee par l'appelant (RechargeModal) car ce
+// module n'est pas un composant React et ne peut pas utiliser le hook directement.
+// Fallback identite (toujours francais) si aucun t n'est fourni, pour ne jamais planter
+// un appelant qui l'oublierait.
+const identityT = (fr) => fr;
+
+export async function lancerPaiementRecharge(prix, credits, { email, accessToken, showToast, onCredited, t = identityT }) {
   try {
     const data = await initiateFedaPay(prix, email);
     const popup = window.open(data.checkoutUrl || data.token, 'fedapay-recharge', 'width=520,height=700,scrollbars=yes');
-    showToast('⏳ En attente du paiement...');
+    showToast(t('⏳ En attente du paiement...', '⏳ Waiting for payment...'));
     let pendingToastShown = false;
     pollPayment({
       popup,
@@ -58,24 +64,24 @@ export async function lancerPaiementRecharge(prix, credits, { email, accessToken
       stopStatuses: ['declined'],
       onCredited: async () => {
         await onCredited();
-        showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+        showToast(t('✅ Solde rechargé : +', '✅ Balance topped up: +') + credits.toLocaleString('fr-FR') + ' FCFA');
       },
       onPendingCredit: () => {
-        if (!pendingToastShown) { pendingToastShown = true; showToast('⏳ Paiement confirmé, application du crédit...'); }
+        if (!pendingToastShown) { pendingToastShown = true; showToast(t('⏳ Paiement confirmé, application du crédit...', '⏳ Payment confirmed, applying credit...')); }
       },
-      onCreditTimeout: () => showToast('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.'),
-      onDeclined: () => showToast('❌ Paiement refusé. Réessayez.'),
+      onCreditTimeout: () => showToast(t('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.', '⚠️ Payment confirmed but credit not applied. Please contact support.')),
+      onDeclined: () => showToast(t('❌ Paiement refusé. Réessayez.', '❌ Payment declined. Please try again.')),
     });
   } catch (e) {
-    showToast('❌ Erreur : ' + e.message);
+    showToast(t('❌ Erreur : ', '❌ Error: ') + e.message);
   }
 }
 
-export async function lancerPaiementRechargeKora(montantFcfa, credits, currency, { email, accessToken, showToast, onCredited }) {
+export async function lancerPaiementRechargeKora(montantFcfa, credits, currency, { email, accessToken, showToast, onCredited, t = identityT }) {
   try {
     const data = await initiateKora(montantFcfa, currency, email);
     const popup = window.open(data.link, 'kora-recharge', 'width=520,height=700,scrollbars=yes');
-    showToast('⏳ En attente du paiement (' + (data.targetAmount || '').toLocaleString('fr-FR') + ' ' + (data.targetCurrency || currency) + ')...');
+    showToast(t('⏳ En attente du paiement (', '⏳ Waiting for payment (') + (data.targetAmount || '').toLocaleString('fr-FR') + ' ' + (data.targetCurrency || currency) + ')...');
     let pendingToastShown = false;
     pollPayment({
       popup,
@@ -84,15 +90,15 @@ export async function lancerPaiementRechargeKora(montantFcfa, credits, currency,
       timeoutMs: 900000, // 15 minutes — le parcours Kora (page complete) peut prendre plus de temps qu'un simple popup Mobile Money.
       onCredited: async () => {
         await onCredited();
-        showToast('✅ Solde rechargé : +' + credits.toLocaleString('fr-FR') + ' FCFA');
+        showToast(t('✅ Solde rechargé : +', '✅ Balance topped up: +') + credits.toLocaleString('fr-FR') + ' FCFA');
       },
       onPendingCredit: () => {
-        if (!pendingToastShown) { pendingToastShown = true; showToast('⏳ Paiement confirmé, application du crédit...'); }
+        if (!pendingToastShown) { pendingToastShown = true; showToast(t('⏳ Paiement confirmé, application du crédit...', '⏳ Payment confirmed, applying credit...')); }
       },
-      onCreditTimeout: () => showToast('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.'),
-      onDeclined: () => showToast('❌ Paiement refusé. Réessayez.'),
+      onCreditTimeout: () => showToast(t('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.', '⚠️ Payment confirmed but credit not applied. Please contact support.')),
+      onDeclined: () => showToast(t('❌ Paiement refusé. Réessayez.', '❌ Payment declined. Please try again.')),
     });
   } catch (e) {
-    showToast('❌ Erreur : ' + e.message);
+    showToast(t('❌ Erreur : ', '❌ Error: ') + e.message);
   }
 }
