@@ -16,7 +16,7 @@ export default function Footer() {
         )}
       </div>
       <div className="foot-contact">
-        {t('Email : contact@transqi.com', 'Email: contact@transqi.com')}
+        {t('Une question, un message ? contact@transqi.com', 'A question, a message? contact@transqi.com')}
       </div>
       <div className="foot-copyright">
         {t('© 2026 TransQi Deploy. Tous droits réservés.', '© 2026 TransQi Deploy. All rights reserved.')}
