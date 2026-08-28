@@ -11,15 +11,15 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
   const { t } = useLang();
   const [fileContent, setFileContent] = useState('');
   const [pdfBase64Content, setPdfBase64Content] = useState(null);
-  const [layoutPdfBase64Content, setLayoutPdfBase64Content] = useState(null);
+  const [docxLayoutBlocksContent, setDocxLayoutBlocksContent] = useState(null);
   const [sourceImages, setSourceImages] = useState([]);
   const [pasteContent, setPasteContent] = useState('');
   const [tarifEstime, setTarifEstime] = useState(null);
 
-  function handleImported({ fileContent: fc, pdfBase64Content: pdf, layoutPdfBase64Content: layoutPdf, sourceImages: imgs }) {
+  function handleImported({ fileContent: fc, pdfBase64Content: pdf, docxLayoutBlocksContent: blocks, sourceImages: imgs }) {
     setFileContent(fc);
     setPdfBase64Content(pdf);
-    setLayoutPdfBase64Content(layoutPdf || null);
+    setDocxLayoutBlocksContent(blocks || null);
     setSourceImages(imgs);
   }
 
@@ -50,7 +50,7 @@ export default function Panel1({ selectedTool, onSelectTool, onContinue, showToa
   }, [ready, fileContent, pasteContent, pdfBase64Content]);
 
   function handleContinue() {
-    onContinue({ selectedTool, fileContent, pdfBase64Content, layoutPdfBase64Content, sourceImages, pasteContent });
+    onContinue({ selectedTool, fileContent, pdfBase64Content, docxLayoutBlocksContent, sourceImages, pasteContent });
   }
 
   return (
