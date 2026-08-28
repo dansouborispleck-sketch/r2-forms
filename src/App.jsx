@@ -179,10 +179,15 @@ export default function App() {
       return;
     }
     setPhase('analyzing');
+    // uiLang : langue de l'INTERFACE choisie par l'utilisateur (FR/EN) — sert uniquement a
+    // generer le rapport de coherence/l'avertissement dans cette langue (le message qui
+    // s'affiche puis disparait apres le deploiement). Ne change JAMAIS la langue du
+    // questionnaire lui-meme (toujours celle du document source), ce sont deux choses
+    // distinctes.
     const payload = data.pdfBase64Content
-      ? Object.assign({ pdfBase64: data.pdfBase64Content }, data.sourceImages?.length ? { images: data.sourceImages } : {})
+      ? Object.assign({ pdfBase64: data.pdfBase64Content, uiLang: lang }, data.sourceImages?.length ? { images: data.sourceImages } : {})
       : Object.assign(
-          { text: data.fileContent || data.pasteContent },
+          { text: data.fileContent || data.pasteContent, uiLang: lang },
           data.sourceImages?.length ? { images: data.sourceImages } : {},
           // Blocs de mise en page ordonnes extraits d'un DOCX (voir /api/import) — sert
           // uniquement a l'association image -> modalite/note par ordre de lecture,
