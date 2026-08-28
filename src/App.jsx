@@ -178,7 +178,14 @@ export default function App() {
     setPhase('analyzing');
     const payload = data.pdfBase64Content
       ? Object.assign({ pdfBase64: data.pdfBase64Content }, data.sourceImages?.length ? { images: data.sourceImages } : {})
-      : { text: data.fileContent || data.pasteContent };
+      : Object.assign(
+          { text: data.fileContent || data.pasteContent },
+          data.sourceImages?.length ? { images: data.sourceImages } : {},
+          // PDF converti par LibreOffice a partir d'un DOCX (voir /api/import) — sert
+          // uniquement a l'association image -> modalite/note par position geometrique,
+          // jamais a ce que Claude lit (le texte ci-dessus reste inchange).
+          data.layoutPdfBase64Content ? { layoutPdfBase64: data.layoutPdfBase64Content } : {}
+        );
 
     try {
       const analysis = await analyseQuestionnaire(payload, data.selectedTool);
