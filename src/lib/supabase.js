@@ -80,7 +80,11 @@ export async function authFetch(url, options, _isRetry) {
 
 export function signInWithGoogleUrl() {
   const redirectUrl = encodeURIComponent(window.location.href.split('#')[0]);
-  return SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + redirectUrl;
+  // prompt=select_account force l'affichage du selecteur de compte Google a chaque
+  // connexion, au lieu de reconnecter silencieusement avec la seule session Google active
+  // dans le navigateur (meme choix que startGoogleAuth dans google.js, pour l'autorisation
+  // Google Forms).
+  return SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + redirectUrl + '&prompt=select_account';
 }
 
 // A appeler au montage, APRES avoir tente consumeGoogleOAuthReturn() (les deux flux
