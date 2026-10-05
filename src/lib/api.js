@@ -2,6 +2,25 @@ import { authFetch } from './supabase';
 
 export const BACKEND_URL = 'https://r2-forms-backend.onrender.com';
 
+async function jsonOrThrow(res, fallback) {
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const e = new Error(data.message || fallback);
+    e.code = data.error || null;
+    e.data = data;
+    throw e;
+  }
+  return data;
+}
+
+function postAuth(path, body) {
+  return authFetch(BACKEND_URL + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+}
+
 // Envoie le fichier au backend pour extraction du texte (PDF lu nativement par Claude a
 // l'analyse -> le backend renvoie alors pdfBase64 plutot qu'un texte extrait).
 export async function importFile(file) {
@@ -17,101 +36,63 @@ export async function importFile(file) {
   return data;
 }
 
-// Apercu de cout AVANT de lancer l'analyse (route gratuite, sans authentification, aucune
-// ecriture) — reutilise la meme formule d'estimation que le serveur utilise deja pour
-// refuser un solde insuffisant, cette fois pour l'AFFICHER a l'utilisateur au lieu de le
-// garder invisible jusqu'a un eventuel refus.
-export async function estimateTarif({ text, pdfBase64, imageCount }) {
-  const res = await fetch(BACKEND_URL + '/api/estimate-tarif', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, pdfBase64, imageCount }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data.message || 'Erreur estimation');
-    err.data = data;
-    throw err;
-  }
-  return data;
+// --- Commandes (paiement Gumroad) -------------------------------------------------------
+// Le serveur decide seul du prix et de la gratuite (premiere generation du compte offerte,
+// quelle que soit la taille) — le client ne fait qu'afficher ce qu'il renvoie.
+// kind: 'generation' (5 $, avant l'analyse) | 'supplement' (5 $ de plus, apres une analyse
+// de plus de 100 questions, avec analysisId) | 'redeploy' | 'translation'.
+// Reponse : { orderId, free, amountUsd, checkoutUrl }.
+export async function createOrder(kind, extra) {
+  const res = await postAuth('/api/orders', Object.assign({ kind }, extra));
+  return jsonOrThrow(res, 'Erreur de commande');
 }
 
-// Route payante : exige une connexion (jeton Supabase), facturee de maniere fiable cote
-// serveur (verification de solde puis debit atomique APRES succes de l'analyse) — plus de
-// debit client separe et evitable.
-export async function analyseQuestionnaire(payload, tool) {
-  const res = await authFetch(BACKEND_URL + '/api/analyse', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(Object.assign({ tool }, payload)),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
-    const e = new Error(err.message || 'Erreur analyse');
-    e.code = err.error;
-    e.pendingAnalysisId = err.pendingAnalysisId || null;
-    e.tarifReel = err.tarifReel || null;
-    throw e;
-  }
-  const data = await res.json();
+// { status: 'pending' | 'paid' | 'used' | 'refunded' }
+export async function getOrder(orderId) {
+  const res = await authFetch(BACKEND_URL + '/api/orders/' + encodeURIComponent(orderId));
+  return jsonOrThrow(res, 'Erreur de commande');
+}
+
+function mapAnalysis(data) {
   return {
+    status: data.status || 'ready', // 'ready' | 'supplement_required'
+    analysisId: data.analysis_id || null,
     title: data.title,
     xlsform: data.xlsform,
-    needsReview: data.needs_review || [],
-    coherenceReport: data.coherence_report || [],
     media: data.media_associations || [],
-    tarif: data.tarif,
-    analysisId: data.analysis_id || null,
-    warning: data.warning || null,
-    missingChoicesCount: data.missing_choices_count || 0,
+    questionCount: data.question_count || 0,
   };
 }
 
-// Refacture une analyse deja calculee (xlsform deja produit par un appel Claude reussi)
-// mais mise en attente cote serveur faute de solde suffisant au tarif reel — AUCUN nouvel
-// appel Claude, juste un nouveau debit tente sur le meme resultat. A utiliser apres une
-// recharge, en remplacement d'un nouvel appel a analyseQuestionnaire (qui relancerait
-// l'analyse depuis zero, payant deux fois le meme appel Claude pour un seul resultat livre).
-export async function retryAnalysisBilling(pendingAnalysisId) {
-  const res = await authFetch(BACKEND_URL + '/api/analyse/retry-billing', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pendingAnalysisId }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
-    const e = new Error(err.message || 'Erreur de facturation');
-    e.code = err.error;
-    e.pendingAnalysisId = err.pendingAnalysisId || null;
-    e.tarifReel = err.tarifReel || null;
-    throw e;
-  }
-  const data = await res.json();
-  return {
-    title: data.title,
-    xlsform: data.xlsform,
-    needsReview: data.needs_review || [],
-    coherenceReport: data.coherence_report || [],
-    media: data.media_associations || [],
-    tarif: data.tarif,
-    analysisId: data.analysis_id || null,
-    warning: data.warning || null,
-    missingChoicesCount: data.missing_choices_count || 0,
-  };
+// Consomme une commande payee (ou gratuite). Si le questionnaire depasse 100 questions et
+// que la commande n'etait pas gratuite, le serveur renvoie status 'supplement_required'
+// SANS le xlsform : il ne sera libere qu'apres paiement du complement (releaseAnalysis).
+export async function analyseQuestionnaire(payload, tool, orderId) {
+  const res = await postAuth('/api/analyse', Object.assign({ tool, orderId }, payload));
+  return mapAnalysis(await jsonOrThrow(res, 'Erreur analyse'));
 }
 
+export async function releaseAnalysis(analysisId, orderId) {
+  const res = await postAuth('/api/analyse/release', { analysisId, orderId });
+  return mapAnalysis(await jsonOrThrow(res, 'Erreur analyse'));
+}
+
+// Traduit un xlsform deja paye (nouvelle ligne "analyses" liee via sourceAnalysisId).
+export async function translateXlsform({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil, orderId }) {
+  const res = await postAuth('/api/translate-xlsform', { xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil, orderId });
+  return jsonOrThrow(res, 'Erreur traduction'); // { xlsform, analysis_id }
+}
+
+
+// --- Deploiement vers l'outil cible ------------------------------------------------------
 export async function deployToKobo({ xlsform, title, media }, { username, password, server }) {
   const res = await fetch(BACKEND_URL + '/api/deploy/kobo', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ xlsform, title, credentials: { username, password, server: server || 'https://kf.kobotoolbox.org' }, media: media || [] }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Erreur déploiement' }));
-    throw new Error(err.message || 'Erreur déploiement');
-  }
-  const data = await res.json();
-  return { uid: data.uid, url: data.url, mediaAssociated: data.mediaAssociated || 0 };
+  const data = await jsonOrThrow(res, 'Erreur déploiement');
+  return { uid: data.uid, url: data.url };
 }
 
 export async function deployToJotForm({ xlsform, title }, { apiKey }) {
@@ -120,9 +101,8 @@ export async function deployToJotForm({ xlsform, title }, { apiKey }) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ xlsform, title, credentials: { apiKey } }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Erreur déploiement JotForm');
-  return { uid: data.formId, url: data.url, note: data.note || null, repeatsFlattened: data.repeatsFlattened || 0 };
+  const data = await jsonOrThrow(res, 'Erreur déploiement JotForm');
+  return { uid: data.formId, url: data.url };
 }
 
 export async function deployToGoogle({ xlsform, title }, { accessToken }) {
@@ -131,9 +111,8 @@ export async function deployToGoogle({ xlsform, title }, { accessToken }) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ xlsform, title, credentials: { accessToken } }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Erreur déploiement Google Forms');
-  return { uid: data.formId, url: data.url, repeatsFlattened: data.repeatsFlattened || 0 };
+  const data = await jsonOrThrow(res, 'Erreur déploiement Google Forms');
+  return { uid: data.formId, url: data.url };
 }
 
 export async function deployToExcel({ xlsform, title }) {
@@ -162,76 +141,6 @@ export async function downloadImagesZip(images, title) {
   return { blob, filename: (title || 'formulaire').replace(/[^a-zA-Z0-9_-]/g, '_') + '_images.zip' };
 }
 
-export async function translateXlsform({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil }) {
-  const res = await authFetch(BACKEND_URL + '/api/translate-xlsform', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || 'Erreur traduction');
-  }
-  return res.json();
-}
-
-export async function redeployBill({ xlsform, targetTool, titre }) {
-  const res = await authFetch(BACKEND_URL + '/api/redeploy-bill', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ xlsform, targetTool, titre }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || 'Erreur facturation du redéploiement');
-  }
-  return res.json();
-}
-
-// authFetch (jeton Supabase) desormais requis: le serveur associe la transaction a
-// l'utilisateur connecte des l'initiation, pour que /verify credite le bon compte plus
-// tard, quel que soit qui appelle /verify (voir server.js, pendingPayments).
-export async function initiateFedaPay(prix, email) {
-  const res = await authFetch(BACKEND_URL + '/api/payment/initiate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: prix, description: 'TransQi Deploy - Recharge ' + prix.toLocaleString('fr-FR') + ' FCFA', customer: { email } }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.token) throw new Error(data.message || 'Erreur initialisation');
-  return data; // { token, checkoutUrl, transactionId }
-}
-
-export async function verifyFedaPay(transactionId) {
-  const res = await authFetch(BACKEND_URL + '/api/payment/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ transactionId }),
-  });
-  return res.json();
-}
-
-// authFetch requis pour la meme raison que initiateFedaPay ci-dessus.
-export async function initiateKora(montantFcfa, currency, email) {
-  const res = await authFetch(BACKEND_URL + '/api/payment/kora/initiate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ montantFcfa, currency, customer: { email } }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.link) throw new Error(data.message || 'Erreur initialisation');
-  return data; // { link, txRef, targetAmount, targetCurrency }
-}
-
-export async function verifyKora(txRef) {
-  const res = await authFetch(BACKEND_URL + '/api/payment/kora/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ txRef }),
-  });
-  return res.json();
-}
-
 export function triggerBlobDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -241,4 +150,17 @@ export function triggerBlobDownload(blob, filename) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// Deploie un xlsform deja libere vers l'outil choisi. Renvoie { url, uid } (url null pour
+// Excel/XLSForm telecharges localement).
+export async function deployForm(tool, form, credentials) {
+  if (tool === 'excel') {
+    const { blob, filename } = await deployToExcel(form);
+    triggerBlobDownload(blob, filename);
+    return { url: null, uid: null };
+  }
+  if (tool === 'jotform') return deployToJotForm(form, { apiKey: credentials.apiKey });
+  if (tool === 'google') return deployToGoogle(form, { accessToken: credentials.googleAccessToken });
+  return deployToKobo(form, credentials);
 }

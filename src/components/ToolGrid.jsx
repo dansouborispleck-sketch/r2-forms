@@ -4,19 +4,19 @@ import { useLang } from '../lib/LangContext';
 export default function ToolGrid({ selectedTool, onSelect }) {
   const { t } = useLang();
   return (
-    <div className="tool-grid">
+    <div className="tools" role="radiogroup">
       {TOOLS.map((tool) => (
-        <div
+        <button
           key={tool.id}
-          className={'tool-card' + (selectedTool === tool.id ? ' selected' : '')}
+          role="radio"
+          aria-checked={selectedTool === tool.id}
+          className={'tool' + (selectedTool === tool.id ? ' on' : '')}
           onClick={() => onSelect(tool.id)}
         >
-          <div className="tool-icon" style={{ background: tool.color }}>
-            <tool.Icon />
-          </div>
-          <div className="tool-name">{tool.name}</div>
-          <div className="tool-desc">{t(...tool.desc)}</div>
-        </div>
+          <span className="tool-icon" style={{ background: tool.color }}><tool.Icon /></span>
+          <span className="tool-name">{tool.name}</span>
+          <span className="tool-desc">{t(...tool.desc)}</span>
+        </button>
       ))}
     </div>
   );

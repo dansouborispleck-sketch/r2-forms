@@ -1,104 +1,55 @@
-import { initiateFedaPay, verifyFedaPay, initiateKora, verifyKora } from './api';
+import { createOrder, getOrder } from './api';
 
-// Lance une popup de paiement puis sonde /api/payment/verify (ou son equivalent Kora)
-// toutes les 5s jusqu'a approbation/refus. Le credit est APPLIQUE cote SERVEUR (montant
-// reel du prestataire, jamais la valeur locale "credits") — cette fonction se contente de
-// rafraichir l'affichage une fois l'evenement recu. stopStatuses: valeurs de
-// verifyData.status qui arretent le sondage sans succes (different par prestataire).
+// Paiement Gumroad (carte bancaire). Le serveur cree la commande et renvoie l'URL de
+// checkout du produit Gumroad, avec order_id en parametre d'URL : Gumroad le renvoie tel
+// quel dans son "Ping" (webhook) au serveur, qui marque alors la commande payee. Le client
+// se contente de sonder l'etat de la commande — il ne decide jamais lui-meme qu'un
+// paiement a abouti.
 //
-// Une fois le paiement approuve, crediteApplique peut rester faux un instant (ecriture
-// Supabase transitoire, cf server.js) — au lieu d'abandonner des le premier sondage
-// "approuve", on continue de sonder pendant creditRetryMs (le serveur retente le credit a
-// chaque appel) avant de renoncer et d'afficher le message de support.
-function pollPayment({ popup, verify, stopStatuses, timeoutMs, creditRetryMs, onCredited, onPendingCredit, onDeclined, onCreditTimeout }) {
-  let settled = false;
-  let creditDeadline = null;
-  const interval = setInterval(async () => {
-    if (settled) return;
+// La fenetre de paiement est ouverte de facon SYNCHRONE au clic (openCheckoutWindow) puis
+// redirigee une fois la commande creee : ouverte apres un await, elle serait bloquee par
+// les navigateurs (surtout sur mobile).
+export function openCheckoutWindow() {
+  return window.open('about:blank', 'transqi-checkout');
+}
+
+const POLL_MS = 3000;
+const TIMEOUT_MS = 20 * 60 * 1000;
+
+// Renvoie l'orderId une fois paye (ou immediatement si la commande est gratuite).
+// onAwaiting(checkoutUrl) : appele quand le client doit payer (pour afficher un lien de
+// reouverture si la fenetre a ete fermee ou bloquee). signal : AbortSignal pour annuler.
+export async function payOrder(kind, extra, { checkoutWindow, onAwaiting, signal }) {
+  let order;
+  try {
+    order = await createOrder(kind, extra);
+  } catch (e) {
+    if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
+    throw e;
+  }
+  if (order.free) {
+    if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
+    return order.orderId;
+  }
+  if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.location.href = order.checkoutUrl;
+  else window.open(order.checkoutUrl, 'transqi-checkout');
+  onAwaiting?.(order.checkoutUrl, order.amountUsd);
+
+  const deadline = Date.now() + TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, POLL_MS));
+    if (signal?.aborted) throw Object.assign(new Error('cancelled'), { code: 'CANCELLED' });
     try {
-      const verifyData = await verify();
-      if (verifyData.approved && verifyData.crediteApplique) {
-        settled = true;
-        clearInterval(interval);
-        if (popup && !popup.closed) popup.close();
-        onCredited(verifyData);
-      } else if (verifyData.approved) {
-        if (creditDeadline === null) creditDeadline = Date.now() + (creditRetryMs || 60000);
-        if (Date.now() >= creditDeadline) {
-          settled = true;
-          clearInterval(interval);
-          if (popup && !popup.closed) popup.close();
-          onCreditTimeout();
-        } else if (onPendingCredit) {
-          onPendingCredit();
-        }
-      } else if (stopStatuses.includes(verifyData.status)) {
-        settled = true;
-        clearInterval(interval);
-        if (popup && !popup.closed) popup.close();
-        onDeclined();
+      const { status } = await getOrder(order.orderId);
+      if (status === 'paid') {
+        if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
+        return order.orderId;
       }
+      if (status === 'refunded') throw Object.assign(new Error('refunded'), { code: 'PAYMENT_FAILED' });
     } catch (e) {
-      console.error('[RECHARGE] Erreur:', e);
+      if (e.code === 'PAYMENT_FAILED') throw e;
+      // erreur reseau ponctuelle : on continue de sonder
     }
-  }, 5000);
-  if (timeoutMs) setTimeout(() => { if (!settled) { settled = true; clearInterval(interval); } }, timeoutMs);
-  return interval;
-}
-
-// t: fonction de traduction (voir useLang) — passee par l'appelant (RechargeModal) car ce
-// module n'est pas un composant React et ne peut pas utiliser le hook directement.
-// Fallback identite (toujours francais) si aucun t n'est fourni, pour ne jamais planter
-// un appelant qui l'oublierait.
-const identityT = (fr) => fr;
-
-export async function lancerPaiementRecharge(prix, credits, { email, accessToken, showToast, onCredited, t = identityT }) {
-  try {
-    const data = await initiateFedaPay(prix, email);
-    const popup = window.open(data.checkoutUrl || data.token, 'fedapay-recharge', 'width=520,height=700,scrollbars=yes');
-    showToast(t('⏳ En attente du paiement...', '⏳ Waiting for payment...'));
-    let pendingToastShown = false;
-    pollPayment({
-      popup,
-      verify: () => verifyFedaPay(data.transactionId),
-      stopStatuses: ['declined'],
-      onCredited: async () => {
-        await onCredited();
-        showToast(t('✅ Solde rechargé : +', '✅ Balance topped up: +') + credits.toLocaleString('fr-FR') + ' FCFA');
-      },
-      onPendingCredit: () => {
-        if (!pendingToastShown) { pendingToastShown = true; showToast(t('⏳ Paiement confirmé, application du crédit...', '⏳ Payment confirmed, applying credit...')); }
-      },
-      onCreditTimeout: () => showToast(t('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.', '⚠️ Payment confirmed but credit not applied. Please contact support.')),
-      onDeclined: () => showToast(t('❌ Paiement refusé. Réessayez.', '❌ Payment declined. Please try again.')),
-    });
-  } catch (e) {
-    showToast(t('❌ Erreur : ', '❌ Error: ') + e.message);
   }
-}
-
-export async function lancerPaiementRechargeKora(montantFcfa, credits, currency, { email, accessToken, showToast, onCredited, t = identityT }) {
-  try {
-    const data = await initiateKora(montantFcfa, currency, email);
-    const popup = window.open(data.link, 'kora-recharge', 'width=520,height=700,scrollbars=yes');
-    showToast(t('⏳ En attente du paiement (', '⏳ Waiting for payment (') + (data.targetAmount || '').toLocaleString('fr-FR') + ' ' + (data.targetCurrency || currency) + ')...');
-    let pendingToastShown = false;
-    pollPayment({
-      popup,
-      verify: () => verifyKora(data.txRef),
-      stopStatuses: ['failed', 'cancelled'],
-      timeoutMs: 900000, // 15 minutes — le parcours Kora (page complete) peut prendre plus de temps qu'un simple popup Mobile Money.
-      onCredited: async () => {
-        await onCredited();
-        showToast(t('✅ Solde rechargé : +', '✅ Balance topped up: +') + credits.toLocaleString('fr-FR') + ' FCFA');
-      },
-      onPendingCredit: () => {
-        if (!pendingToastShown) { pendingToastShown = true; showToast(t('⏳ Paiement confirmé, application du crédit...', '⏳ Payment confirmed, applying credit...')); }
-      },
-      onCreditTimeout: () => showToast(t('⚠️ Paiement confirmé mais crédit non appliqué. Contactez le support.', '⚠️ Payment confirmed but credit not applied. Please contact support.')),
-      onDeclined: () => showToast(t('❌ Paiement refusé. Réessayez.', '❌ Payment declined. Please try again.')),
-    });
-  } catch (e) {
-    showToast(t('❌ Erreur : ', '❌ Error: ') + e.message);
-  }
+  throw Object.assign(new Error('timeout'), { code: 'PAYMENT_TIMEOUT' });
 }
