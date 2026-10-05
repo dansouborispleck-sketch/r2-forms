@@ -298,6 +298,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .center-pad { padding: 40px 0; text-align: center; }
 
 /* Footer */
+.test-badge {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 90;
+  background: var(--warn-soft); color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; box-shadow: var(--shadow-md); white-space: nowrap;
+}
 .footer { border-top: 1px solid var(--line); }
 .footer-inner { max-width: 1080px; margin: 0 auto; padding: 28px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
 .footer-inner .brand { font-size: 15px; margin-right: auto; }

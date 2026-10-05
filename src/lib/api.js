@@ -1,6 +1,9 @@
 import { authFetch } from './supabase';
 
-export const BACKEND_URL = 'https://r2-forms-backend.onrender.com';
+// Serveur de production par defaut. Une version de test (ex: site statique Render construit
+// depuis une branche) definit VITE_BACKEND_URL pour viser le serveur de test.
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://r2-forms-backend.onrender.com';
+export const IS_TEST_BUILD = !!import.meta.env.VITE_BACKEND_URL;
 
 async function jsonOrThrow(res, fallback) {
   const data = await res.json().catch(() => ({}));

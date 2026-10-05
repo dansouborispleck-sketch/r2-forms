@@ -1,10 +1,12 @@
 import LogoMark from './LogoMark';
 import { useLang } from '../lib/LangContext';
+import { IS_TEST_BUILD } from '../lib/api';
 
 export default function Footer() {
   const { t } = useLang();
   return (
     <footer className="footer">
+      {IS_TEST_BUILD && <div className="test-badge">{t('Version de test : paiements simulés', 'Test version: payments simulated')}</div>}
       <div className="footer-inner">
         <div className="brand"><LogoMark size={22} /><span>TransQi</span></div>
         <div className="muted-text">{t('Paiement sécurisé par carte bancaire via Gumroad', 'Secure card payment via Gumroad')}</div>

@@ -9,7 +9,7 @@ export const GOOGLE_CLIENT_ID = '873941698932-rk9boo1l3uccmnii866vgpsjg0pitn1t.a
 // parcours d'analyse normal (avec l'outil par defaut, Kobo).
 export function startGoogleAuth({ selectedTool, fileContent, pasteContent, redeployAnalysis }) {
   const scope = 'https://www.googleapis.com/auth/forms.body';
-  const redirectUri = 'https://dansouborispleck-sketch.github.io/r2-forms/';
+  const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'https://dansouborispleck-sketch.github.io/r2-forms/';
   const authUrl =
     'https://accounts.google.com/o/oauth2/v2/auth?' +
     'client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID) +
