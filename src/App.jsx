@@ -14,6 +14,8 @@ import { LANGUAGES } from './lib/languages';
 import { sbFetch } from './lib/supabase';
 import { openCheckoutWindow, payOrder } from './lib/payment';
 import { reusePriceUsd } from './lib/pricing';
+import { IS_DEMO } from './lib/env';
+import DemoPanel from './components/DemoPanel';
 import {
   analyseQuestionnaire, releaseAnalysis, translateXlsform, redeployAnalysis, listPendingAnalyses, deployForm,
   downloadImagesZip, triggerBlobDownload,
@@ -103,6 +105,7 @@ export default function App() {
   function changeTool(id) { setTool(id); if (phase === 'done') resetRun(); }
 
   function handleGoogleConnect() {
+    if (IS_DEMO) { setCreds((c) => ({ ...c, googleAccessToken: 'demo' })); return; }
     const text = source.fileContent || source.pasteContent;
     startGoogleAuth({ selectedTool: tool, fileContent: text, pasteContent: text, redeployAnalysis: reuse });
   }
@@ -407,6 +410,7 @@ export default function App() {
       </main>
 
       <Footer />
+      {IS_DEMO && <DemoPanel onSample={(text) => { changeSource({ ...EMPTY_SOURCE, pasteContent: text }); document.getElementById('flow')?.scrollIntoView({ behavior: 'smooth' }); }} />}
 
       <AuthDialog
         mode={authMode}

@@ -1,4 +1,5 @@
 import { createOrder, getOrder } from './api';
+import { IS_DEMO } from './env';
 
 // Paiement Gumroad (carte bancaire). Le serveur cree la commande et renvoie l'URL de
 // checkout du produit Gumroad, avec order_id en parametre d'URL : Gumroad le renvoie tel
@@ -10,6 +11,7 @@ import { createOrder, getOrder } from './api';
 // redirigee une fois la commande creee : ouverte apres un await, elle serait bloquee par
 // les navigateurs (surtout sur mobile).
 export function openCheckoutWindow() {
+  if (IS_DEMO) return null; // demo : paiement simule, aucune fenetre
   return window.open('about:blank', 'transqi-checkout');
 }
 
@@ -32,7 +34,7 @@ export async function payOrder(kind, extra, { checkoutWindow, onAwaiting, signal
     return order.orderId;
   }
   if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.location.href = order.checkoutUrl;
-  else window.open(order.checkoutUrl, 'transqi-checkout');
+  else if (!IS_DEMO) window.open(order.checkoutUrl, 'transqi-checkout');
   onAwaiting?.(order.checkoutUrl, order.amountUsd);
 
   const deadline = Date.now() + TIMEOUT_MS;

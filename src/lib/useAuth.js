@@ -4,6 +4,7 @@ import {
   clearSession, setTokens, getAccessToken, authFetch, SUPABASE_KEY,
 } from './supabase';
 import { BACKEND_URL } from './api';
+import { IS_DEMO } from './env';
 
 // googleOAuthAlreadyHandled : true si consumeGoogleOAuthReturn() (cote outil-cible,
 // App.jsx) a deja revendique le hash de l'URL courante — dans ce cas ce hook ne doit PAS
@@ -120,8 +121,9 @@ export function useAuth(googleOAuthAlreadyHandled) {
   }, []);
 
   const signInWithGoogle = useCallback(() => {
+    if (IS_DEMO) { login('demo@transqi.com', 'demo'); return; }
     window.location.href = signInWithGoogleUrl();
-  }, []);
+  }, [login]);
 
   return { user, profile, ready, error, setError, login, signup, signOut, signInWithGoogle, loadProfile, accessToken: getAccessToken() };
 }

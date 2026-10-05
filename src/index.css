@@ -331,3 +331,19 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .result .row .btn { width: 100%; }
   .footer-inner { padding: 24px 16px; }
 }
+
+/* Version de demonstration uniquement */
+.demo-panel {
+  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 95; width: min(330px, calc(100vw - 32px));
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px; box-shadow: var(--shadow-lg);
+  padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; animation: rise .3s ease both;
+}
+.demo-head { display: flex; align-items: center; justify-content: space-between; }
+.demo-head strong { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--warn); }
+.demo-panel p { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.demo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.demo-fab {
+  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 95; border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--warn); font-weight: 700; font-size: 12px; padding: 8px 14px; border-radius: 999px;
+  box-shadow: var(--shadow-md); cursor: pointer;
+}
