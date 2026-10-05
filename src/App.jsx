@@ -213,19 +213,19 @@ export default function App() {
         targetLang: langue.label, targetLangCode: langue.code, sourceAnalysisId: row.id, outil: tool, orderId,
       });
       const title = tr.xlsform?.settings?.[0]?.form_title || `${row.titre || 'Questionnaire'} (${langue.label})`;
-      await deploy({ analysisId: tr.analysis_id, title, xlsform: tr.xlsform, media: [] });
+      await deploy({ analysisId: tr.analysis_id, title, xlsform: tr.xlsform, deployTicket: tr.deploy_ticket });
     } else {
       const orderId = await pay('redeploy', { analysisId: row.id }, win);
       setPhase('analyzing');
       const analysis = await redeployAnalysis({ analysisId: row.id, orderId, targetTool: tool });
-      await deploy({ ...analysis, media: [] });
+      await deploy(analysis);
     }
   }
 
   async function deploy(analysis) {
     setPaid(analysis);
     setPhase('deploying');
-    const res = await deployForm(tool, { xlsform: analysis.xlsform, title: analysis.title, media: analysis.media }, creds);
+    const res = await deployForm(tool, { ticket: analysis.deployTicket, title: analysis.title }, creds);
     if (analysis.analysisId) {
       sbFetch('/rest/v1/deployments', 'POST', {
         analysis_id: analysis.analysisId, user_id: auth.user.id, outil: tool,

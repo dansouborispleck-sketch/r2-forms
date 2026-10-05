@@ -63,6 +63,7 @@ function mapAnalysis(data) {
     xlsform: data.xlsform,
     media: data.media_associations || [],
     questionCount: data.question_count || 0,
+    deployTicket: data.deploy_ticket || null,
   };
 }
 
@@ -101,42 +102,28 @@ export async function listPendingAnalyses() {
 }
 
 // --- Deploiement vers l'outil cible ------------------------------------------------------
-export async function deployToKobo({ xlsform, title, media }, { username, password, server }) {
-  const res = await fetch(BACKEND_URL + '/api/deploy/kobo', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ xlsform, title, credentials: { username, password, server: server || 'https://kf.kobotoolbox.org' }, media: media || [] }),
-  });
+// Le serveur depose le formulaire ENREGISTRE pour ce ticket (remis apres paiement) — jamais
+// un formulaire envoye par le navigateur. Un ticket vaut pour un depot reussi.
+export async function deployToKobo({ ticket }, { username, password, server }) {
+  const res = await postAuth('/api/deploy/kobo', { ticket, credentials: { username, password, server: server || 'https://kf.kobotoolbox.org' } });
   const data = await jsonOrThrow(res, 'Erreur déploiement');
   return { uid: data.uid, url: data.url };
 }
 
-export async function deployToJotForm({ xlsform, title }, { apiKey }) {
-  const res = await fetch(BACKEND_URL + '/api/deploy/jotform', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ xlsform, title, credentials: { apiKey } }),
-  });
+export async function deployToJotForm({ ticket }, { apiKey }) {
+  const res = await postAuth('/api/deploy/jotform', { ticket, credentials: { apiKey } });
   const data = await jsonOrThrow(res, 'Erreur déploiement JotForm');
   return { uid: data.formId, url: data.url };
 }
 
-export async function deployToGoogle({ xlsform, title }, { accessToken }) {
-  const res = await fetch(BACKEND_URL + '/api/deploy/google', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ xlsform, title, credentials: { accessToken } }),
-  });
+export async function deployToGoogle({ ticket }, { accessToken }) {
+  const res = await postAuth('/api/deploy/google', { ticket, credentials: { accessToken } });
   const data = await jsonOrThrow(res, 'Erreur déploiement Google Forms');
   return { uid: data.formId, url: data.url };
 }
 
-export async function deployToExcel({ xlsform, title }) {
-  const res = await fetch(BACKEND_URL + '/api/deploy/excel', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ xlsform, title }),
-  });
+export async function deployToExcel({ ticket, title }) {
+  const res = await postAuth('/api/deploy/excel', { ticket });
   if (!res.ok) {
     const e = await res.json().catch(() => ({}));
     throw new Error(e.message || 'Erreur génération Excel');
