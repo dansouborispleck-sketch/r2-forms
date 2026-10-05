@@ -249,16 +249,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .note-ok { background: var(--success-soft); color: var(--success); }
 
 /* Result */
-.result {
-  margin: 8px 0 0 62px; padding: 36px 24px; text-align: center; border-radius: 20px;
-  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-md); animation: rise .5s ease both;
-  scroll-margin-top: 90px;
-}
+.result { padding: 16px 0 6px; text-align: center; animation: rise .5s ease both; scroll-margin-top: 90px; }
 .result-check {
   width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center;
   background: var(--success-soft); color: var(--success); font-size: 26px; font-weight: 700;
 }
 .result h2 { font-size: 22px; letter-spacing: -.02em; margin-bottom: 20px; overflow-wrap: anywhere; }
+.pay-box-flush { margin-top: 0; }
 
 /* Overlay / dialog / drawer */
 .overlay {
@@ -316,7 +313,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .card { padding: 16px; }
   .tools { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
-  .result { margin-left: 0; padding: 28px 16px; }
   .result .row .btn { width: 100%; }
   .footer-inner { padding: 24px 16px; }
 }

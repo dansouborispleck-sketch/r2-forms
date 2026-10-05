@@ -143,7 +143,8 @@ export default function App() {
     if (paid) { guarded(() => deploy(paid)); return; }
     // Fenetre de paiement ouverte des le clic (sinon bloquee par le navigateur) — sauf
     // si le premier formulaire gratuit s'applique.
-    const win = reuse || !freeTrial ? openCheckoutWindow() : null;
+    const needsCheckout = reuse ? !!reuse.langCode : !freeTrial;
+    const win = needsCheckout ? openCheckoutWindow() : null;
     guarded(() => (reuse ? runReuse(win) : runGeneration(win)));
   }
 
@@ -183,8 +184,7 @@ export default function App() {
       const orderId = await pay('translation', { analysisId: row.id }, win);
       setPhase('analyzing');
       const tr = await translateXlsform({
-        xlsform: row.xlsform_json, targetLang: langue.label, targetLangCode: langue.code,
-        titre: row.titre, sourceAnalysisId: row.id, outil: tool, orderId,
+        targetLang: langue.label, targetLangCode: langue.code, sourceAnalysisId: row.id, outil: tool, orderId,
       });
       const title = tr.xlsform?.settings?.[0]?.form_title || `${row.titre || 'Questionnaire'} (${langue.label})`;
       await deploy({ analysisId: tr.analysis_id, title, xlsform: tr.xlsform, media: [] });
@@ -299,18 +299,21 @@ export default function App() {
           <ToolAccess tool={tool} credentials={creds} onChange={setCreds} onGoogleConnect={handleGoogleConnect} />
         </Step>
 
-        <Step n="04" title={t('Générer', 'Generate')} last>
-          {!reuse && !paid && (
-            <div className="summary">
-              <span>{t('Total', 'Total')}</span>
-              {freeTrial
-                ? <strong className="free">{t('Offert', 'Free')}</strong>
-                : <strong>5 $</strong>}
+        <Step n="04" title={phase === 'done' ? t('Votre formulaire', 'Your form') : t('Générer', 'Generate')} last>
+          {phase === 'done' && result ? (
+            <div className="result" ref={resultRef}>
+              <div className="result-check" aria-hidden="true">✓</div>
+              <h2>{result.title || t('Formulaire prêt', 'Form ready')}</h2>
+              <div className="row center">
+                {result.url && (
+                  <a className="btn btn-primary" href={result.url} target="_blank" rel="noreferrer">{t('Ouvrir dans ', 'Open in ') + toolById(result.tool).name} ↗</a>
+                )}
+                <button className="btn btn-outline" onClick={downloadXlsform}>{t('Télécharger', 'Download')}</button>
+                <button className="btn btn-ghost" onClick={startOver}>{t('Nouveau formulaire', 'New form')}</button>
+              </div>
             </div>
-          )}
-
-          {phase === 'supplement' ? (
-            <div className="pay-box">
+          ) : phase === 'supplement' ? (
+            <div className="pay-box pay-box-flush">
               <div className="pay-title">{t('Plus de 100 questions', 'Over 100 questions')}</div>
               <p>{t('Complétez 5 $ pour continuer.', 'Add $5 to continue.')}</p>
               <button className="btn btn-primary btn-block btn-lg" onClick={handleSupplement}>
@@ -318,9 +321,19 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <button className="btn btn-primary btn-block btn-lg" disabled={!canGenerate && !!auth.user} onClick={handleGenerate}>
-              {busy ? <span className="spinner" /> : <>{!freeTrial && !paid && <CardIcon />}{cta}</>}
-            </button>
+            <>
+              {!reuse && !paid && (
+                <div className="summary">
+                  <span>{t('Total', 'Total')}</span>
+                  {freeTrial
+                    ? <strong className="free">{t('Offert', 'Free')}</strong>
+                    : <strong>5 $</strong>}
+                </div>
+              )}
+              <button className="btn btn-primary btn-block btn-lg" disabled={!canGenerate && !!auth.user} onClick={handleGenerate}>
+                {busy ? <span className="spinner" /> : <>{(reuse ? !!reuse.langCode : !freeTrial) && !paid && <CardIcon />}{cta}</>}
+              </button>
+            </>
           )}
 
           {phase === 'paying' && checkoutUrl && (
@@ -337,20 +350,6 @@ export default function App() {
           {(phase === 'analyzing' || phase === 'deploying') && <div className="progress" aria-busy="true"><span /></div>}
           {error && <div className="note note-error">{error}</div>}
         </Step>
-
-        {phase === 'done' && result && (
-          <section className="result" ref={resultRef}>
-            <div className="result-check" aria-hidden="true">✓</div>
-            <h2>{result.title || t('Formulaire prêt', 'Form ready')}</h2>
-            <div className="row center">
-              {result.url && (
-                <a className="btn btn-primary" href={result.url} target="_blank" rel="noreferrer">{t('Ouvrir dans ', 'Open in ') + toolById(result.tool).name} ↗</a>
-              )}
-              <button className="btn btn-outline" onClick={downloadXlsform}>{t('Télécharger', 'Download')}</button>
-              <button className="btn btn-ghost" onClick={startOver}>{t('Nouveau formulaire', 'New form')}</button>
-            </div>
-          </section>
-        )}
       </main>
 
       <Footer />

@@ -74,7 +74,7 @@ export default function AccountDrawer({ open, onClose, user, onReuse }) {
                 {payments.map((p) => (
                   <li key={p.id} className="list-item">
                     <div className="list-main">
-                      <div className="list-title">{p.questionnaire_titre || p.libelle || t('Génération', 'Generation')}</div>
+                      <div className="list-title">{p.description || p.questionnaire_titre || t('Paiement', 'Payment')}</div>
                       <div className="list-meta">{fmtDate(p.created_at)}</div>
                     </div>
                     <div className="amount">{p.montant_usd != null ? `${p.montant_usd} $` : `${(p.montant || 0).toLocaleString('fr-FR')} FCFA`}</div>

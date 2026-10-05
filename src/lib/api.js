@@ -40,7 +40,8 @@ export async function importFile(file) {
 // Le serveur decide seul du prix et de la gratuite (premiere generation du compte offerte,
 // quelle que soit la taille) — le client ne fait qu'afficher ce qu'il renvoie.
 // kind: 'generation' (5 $, avant l'analyse) | 'supplement' (5 $ de plus, apres une analyse
-// de plus de 100 questions, avec analysisId) | 'redeploy' | 'translation'.
+// de plus de 100 questions, avec analysisId) | 'translation' (5 $) | 'redeploy' (gratuit).
+// Une commande de generation deja payee mais jamais consommee est reutilisee (free: true).
 // Reponse : { orderId, free, amountUsd, checkoutUrl }.
 export async function createOrder(kind, extra) {
   const res = await postAuth('/api/orders', Object.assign({ kind }, extra));
@@ -77,12 +78,12 @@ export async function releaseAnalysis(analysisId, orderId) {
   return mapAnalysis(await jsonOrThrow(res, 'Erreur analyse'));
 }
 
-// Traduit un xlsform deja paye (nouvelle ligne "analyses" liee via sourceAnalysisId).
-export async function translateXlsform({ xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil, orderId }) {
-  const res = await postAuth('/api/translate-xlsform', { xlsform, targetLang, targetLangCode, titre, sourceAnalysisId, outil, orderId });
-  return jsonOrThrow(res, 'Erreur traduction'); // { xlsform, analysis_id }
+// Traduit un formulaire deja genere (relu cote serveur depuis sourceAnalysisId) ; cree une
+// nouvelle ligne "analyses" liee. Reponse : { xlsform, analysis_id }.
+export async function translateXlsform({ targetLang, targetLangCode, sourceAnalysisId, outil, orderId }) {
+  const res = await postAuth('/api/translate-xlsform', { targetLang, targetLangCode, sourceAnalysisId, outil, orderId });
+  return jsonOrThrow(res, 'Erreur traduction');
 }
-
 
 // --- Deploiement vers l'outil cible ------------------------------------------------------
 export async function deployToKobo({ xlsform, title, media }, { username, password, server }) {
