@@ -158,6 +158,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .price-free .price-amount { color: var(--accent); }
 .price-label { font-size: 13px; color: var(--muted); line-height: 1.35; margin-top: 2px; }
 
+.pricing-note { max-width: 520px; margin: -20px auto 32px; font-size: 13px; color: var(--muted); }
+
 /* ---------- Flow ---------- */
 .flow { max-width: 760px; margin: 0 auto; padding: 24px 20px 96px; scroll-margin-top: 70px; }
 .step { display: grid; grid-template-columns: 44px 1fr; gap: 18px; animation: rise .5s ease both; }
@@ -176,6 +178,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .row.center, .center { justify-content: center; text-align: center; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* Reprise d'un questionnaire en attente du complement */
+.pending { margin: 0 0 28px 62px; display: flex; flex-direction: column; gap: 8px; animation: rise .4s ease both; }
+.pending-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 16px; border-radius: 14px;
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
 
 /* Drop zone */
 .drop {
@@ -309,6 +318,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .flow { padding: 8px 16px 64px; }
   .step { grid-template-columns: 1fr; gap: 0; }
   .step-rail { display: none; }
+  .pending { margin-left: 0; }
   .step-body { padding-bottom: 28px; }
   .card { padding: 16px; }
   .tools { grid-template-columns: repeat(2, 1fr); }

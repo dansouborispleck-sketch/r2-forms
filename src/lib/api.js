@@ -40,7 +40,8 @@ export async function importFile(file) {
 // Le serveur decide seul du prix et de la gratuite (premiere generation du compte offerte,
 // quelle que soit la taille) — le client ne fait qu'afficher ce qu'il renvoie.
 // kind: 'generation' (5 $, avant l'analyse) | 'supplement' (5 $ de plus, apres une analyse
-// de plus de 100 questions, avec analysisId) | 'translation' (5 $) | 'redeploy' (gratuit).
+// de plus de 100 questions, avec analysisId) | 'translation' | 'redeploy' (3 $, 5 $ au-dela
+// de 100 questions).
 // Une commande de generation deja payee mais jamais consommee est reutilisee (free: true).
 // Reponse : { orderId, free, amountUsd, checkoutUrl }.
 export async function createOrder(kind, extra) {
@@ -83,6 +84,20 @@ export async function releaseAnalysis(analysisId, orderId) {
 export async function translateXlsform({ targetLang, targetLangCode, sourceAnalysisId, outil, orderId }) {
   const res = await postAuth('/api/translate-xlsform', { targetLang, targetLangCode, sourceAnalysisId, outil, orderId });
   return jsonOrThrow(res, 'Erreur traduction');
+}
+
+// Redeploiement d'un formulaire deja genere : consomme une commande "redeploy" payee et
+// renvoie le xlsform a deployer.
+export async function redeployAnalysis({ analysisId, orderId, targetTool }) {
+  const res = await postAuth('/api/redeploy', { analysisId, orderId, targetTool });
+  return mapAnalysis(await jsonOrThrow(res, 'Erreur redéploiement'));
+}
+
+// Questionnaires de plus de 100 questions en attente du complement (reprise).
+export async function listPendingAnalyses() {
+  const res = await authFetch(BACKEND_URL + '/api/me/pending');
+  const data = await jsonOrThrow(res, 'Erreur chargement');
+  return data.pending || [];
 }
 
 // --- Deploiement vers l'outil cible ------------------------------------------------------

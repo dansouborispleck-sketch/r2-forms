@@ -13,8 +13,9 @@ import { toolById } from './lib/tools';
 import { LANGUAGES } from './lib/languages';
 import { sbFetch } from './lib/supabase';
 import { openCheckoutWindow, payOrder } from './lib/payment';
+import { reusePriceUsd } from './lib/pricing';
 import {
-  analyseQuestionnaire, releaseAnalysis, translateXlsform, deployForm,
+  analyseQuestionnaire, releaseAnalysis, translateXlsform, redeployAnalysis, listPendingAnalyses, deployForm,
   downloadImagesZip, triggerBlobDownload,
 } from './lib/api';
 
@@ -37,6 +38,10 @@ export default function App() {
   const [creds, setCreds] = useState(EMPTY_CREDS);
   // Formulaire deja genere, reutilise depuis "Mon compte" (redeploiement / traduction).
   const [reuse, setReuse] = useState(null); // { analysis: row, langCode }
+  // Questionnaire de plus de 100 questions dont le complement n'a pas ete paye (reprise
+  // apres fermeture de la page).
+  const [resume, setResume] = useState(null); // { id, title, question_count }
+  const [pendingList, setPendingList] = useState([]);
 
   const [phase, setPhase] = useState('idle');
   const [checkoutUrl, setCheckoutUrl] = useState(null);
@@ -64,19 +69,27 @@ export default function App() {
     setTimeout(() => document.getElementById('step-access')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
   }, [googleReturn]);
 
+  const userId = auth.user?.id;
+  useEffect(() => {
+    if (!userId) { setPendingList([]); return; }
+    listPendingAnalyses().then(setPendingList).catch(() => setPendingList([]));
+  }, [userId]);
+
   useEffect(() => {
     if (phase === 'done') resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [phase]);
 
   const busy = ['paying', 'analyzing', 'deploying'].includes(phase);
-  const hasSource = !!reuse || !!source.pdfBase64Content || source.fileContent.length > 0 || source.pasteContent.trim().length > 20;
+  const hasSource = !!reuse || !!resume || !!source.pdfBase64Content || source.fileContent.length > 0 || source.pasteContent.trim().length > 20;
   const hasAccess =
     tool === 'excel' ||
     (tool === 'google' && !!creds.googleAccessToken) ||
     (tool === 'jotform' && creds.apiKey.trim().length > 0) ||
     (!['excel', 'google', 'jotform'].includes(tool) && creds.username.trim() && creds.password && (tool !== 'odk' || creds.server.trim()));
   const canGenerate = hasSource && hasAccess && !busy;
-  const freeTrial = !auth.user || !auth.profile?.free_trial_used;
+  // Generation offerte : essai gratuit non utilise, ou generation bonus (anciens soldes).
+  const freeTrial = !auth.user || !auth.profile?.free_trial_used || (auth.profile?.bonus_generations || 0) > 0;
+  const reusePrice = reuse ? reusePriceUsd(reuse.analysis.xlsform_json) : null;
 
   function resetRun() {
     setPaid(null);
@@ -86,7 +99,7 @@ export default function App() {
     setPhase('idle');
   }
 
-  function changeSource(s) { setSource(s); setReuse(null); resetRun(); }
+  function changeSource(s) { setSource(s); setReuse(null); setResume(null); resetRun(); }
   function changeTool(id) { setTool(id); if (phase === 'done') resetRun(); }
 
   function handleGoogleConnect() {
@@ -98,8 +111,16 @@ export default function App() {
     setAccountOpen(false);
     setSource(EMPTY_SOURCE);
     resetRun();
+    setResume(null);
     setReuse({ analysis: row, langCode: '' });
     setTimeout(() => flowRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+  }
+
+  function handleResume(item) {
+    setSource(EMPTY_SOURCE);
+    setReuse(null);
+    resetRun();
+    setResume(item);
   }
 
   function errorText(e) {
@@ -143,8 +164,9 @@ export default function App() {
     if (paid) { guarded(() => deploy(paid)); return; }
     // Fenetre de paiement ouverte des le clic (sinon bloquee par le navigateur) — sauf
     // si le premier formulaire gratuit s'applique.
-    const needsCheckout = reuse ? !!reuse.langCode : !freeTrial;
+    const needsCheckout = !!reuse || !!resume || !freeTrial;
     const win = needsCheckout ? openCheckoutWindow() : null;
+    if (resume) { setPendingSupplement(resume.id); guarded(() => runSupplement(resume.id, win)); return; }
     guarded(() => (reuse ? runReuse(win) : runGeneration(win)));
   }
 
@@ -168,13 +190,17 @@ export default function App() {
 
   function handleSupplement() {
     const win = openCheckoutWindow();
-    guarded(async () => {
-      const orderId = await pay('supplement', { analysisId: pendingSupplement }, win);
-      setPhase('analyzing');
-      const analysis = await releaseAnalysis(pendingSupplement, orderId);
-      setPendingSupplement(null);
-      await deploy(analysis);
-    });
+    guarded(() => runSupplement(pendingSupplement, win));
+  }
+
+  async function runSupplement(analysisId, win) {
+    const orderId = await pay('supplement', { analysisId }, win);
+    setPhase('analyzing');
+    const analysis = await releaseAnalysis(analysisId, orderId);
+    setPendingSupplement(null);
+    setResume(null);
+    setPendingList((list) => list.filter((p) => p.id !== analysisId));
+    await deploy(analysis);
   }
 
   async function runReuse(win) {
@@ -189,8 +215,10 @@ export default function App() {
       const title = tr.xlsform?.settings?.[0]?.form_title || `${row.titre || 'Questionnaire'} (${langue.label})`;
       await deploy({ analysisId: tr.analysis_id, title, xlsform: tr.xlsform, media: [] });
     } else {
-      await pay('redeploy', { analysisId: row.id }, win);
-      await deploy({ analysisId: row.id, title: row.titre, xlsform: row.xlsform_json, media: [] });
+      const orderId = await pay('redeploy', { analysisId: row.id }, win);
+      setPhase('analyzing');
+      const analysis = await redeployAnalysis({ analysisId: row.id, orderId, targetTool: tool });
+      await deploy({ ...analysis, media: [] });
     }
   }
 
@@ -204,7 +232,7 @@ export default function App() {
         form_url: res.url || null, form_id: res.uid || null,
       }).catch((e) => console.error('[HISTORIQUE]', e));
     }
-    if (!reuse && source.sourceImages.length > 0) {
+    if (!reuse && !resume && source.sourceImages.length > 0) {
       downloadImagesZip(source.sourceImages, analysis.title || 'formulaire')
         .then(({ blob, filename }) => triggerBlobDownload(blob, filename))
         .catch((e) => console.error('[ZIP]', e));
@@ -221,6 +249,7 @@ export default function App() {
   function startOver() {
     setSource(EMPTY_SOURCE);
     setReuse(null);
+    setResume(null);
     resetRun();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -228,7 +257,9 @@ export default function App() {
   const toolName = toolById(tool).name;
   let cta = t('Générer le formulaire', 'Generate the form');
   if (paid) cta = t('Relancer le déploiement', 'Retry deployment');
+  else if (resume) cta = t('Payer 5 $ et récupérer', 'Pay $5 and retrieve');
   else if (reuse) cta = reuse.langCode ? t('Traduire et déployer', 'Translate and deploy') : t('Redéployer', 'Redeploy');
+  const totalLabel = reuse ? `${reusePrice} $` : resume ? '5 $' : freeTrial ? null : '5 $';
 
   return (
     <>
@@ -267,12 +298,35 @@ export default function App() {
             <div className="price-label">{t('au-delà de 100 questions', 'over 100 questions')}</div>
           </div>
         </div>
+        <p className="pricing-note">
+          {t('Traduction ou redéploiement d’un formulaire existant : 3 $, ou 5 $ au-delà de 100 questions. Paiement par carte bancaire.',
+            'Translating or redeploying an existing form: $3, or $5 over 100 questions. Card payment.')}
+        </p>
         <a href="#flow" className="btn btn-primary btn-lg">{t('Commencer', 'Get started')} ↓</a>
       </header>
 
       <main className="flow" id="flow" ref={flowRef}>
+        {pendingList.length > 0 && !resume && phase !== 'done' && (
+          <div className="pending">
+            {pendingList.map((p) => (
+              <div key={p.id} className="pending-item">
+                <div className="list-main">
+                  <div className="list-title">{p.title || t('Questionnaire', 'Questionnaire')}</div>
+                  <div className="list-meta">{t('En attente du complément de 5 $', 'Awaiting the $5 top-up')}</div>
+                </div>
+                <button className="btn btn-outline btn-sm" onClick={() => handleResume(p)}>{t('Reprendre', 'Resume')}</button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <Step n="01" title={t('Votre questionnaire', 'Your questionnaire')}>
-          {reuse ? (
+          {resume ? (
+            <div className="file-chip">
+              <span className="file-name">{resume.title || t('Questionnaire', 'Questionnaire')}</span>
+              <button className="icon-btn" onClick={() => { setResume(null); resetRun(); }} aria-label={t('Retirer', 'Remove')}>×</button>
+            </div>
+          ) : reuse ? (
             <div className="reuse">
               <div className="file-chip">
                 <span className="file-name">{reuse.analysis.titre || t('Questionnaire', 'Questionnaire')}</span>
@@ -322,16 +376,16 @@ export default function App() {
             </div>
           ) : (
             <>
-              {!reuse && !paid && (
+              {!paid && (
                 <div className="summary">
                   <span>{t('Total', 'Total')}</span>
-                  {freeTrial
-                    ? <strong className="free">{t('Offert', 'Free')}</strong>
-                    : <strong>5 $</strong>}
+                  {totalLabel
+                    ? <strong>{totalLabel}</strong>
+                    : <strong className="free">{t('Offert', 'Free')}</strong>}
                 </div>
               )}
               <button className="btn btn-primary btn-block btn-lg" disabled={!canGenerate && !!auth.user} onClick={handleGenerate}>
-                {busy ? <span className="spinner" /> : <>{(reuse ? !!reuse.langCode : !freeTrial) && !paid && <CardIcon />}{cta}</>}
+                {busy ? <span className="spinner" /> : <>{totalLabel && !paid && <CardIcon />}{cta}</>}
               </button>
             </>
           )}
